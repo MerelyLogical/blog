@@ -21,3 +21,5 @@ layout: home
 [Hexagonal Grid Pathfinding](pages/hex2)
 
 [A Moment of Time](pages/moment)
+
+[Aruaru Quiz](pages/aruaru)
