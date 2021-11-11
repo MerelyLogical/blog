@@ -1,4 +1,5 @@
 base_url: "/blog"
+url: "https://merelylogical.github.io/blog"
 theme: jekyll-theme-midnight
 sass:
   style: compressed
@@ -13,3 +14,4 @@ compress_html:
   startings: [html, head, body]
 plugins:
   - jekyll-seo-tag
+  - jekyll-sitemap
