@@ -7,7 +7,7 @@ layout: post
 
 Click on the empty rows to reveal additional hints pairs.
 
-### Example Question
+## Example Question
 
 | Category 1 | Category 2 |
 | ---------- | ---------- |
@@ -18,7 +18,10 @@ Click on the empty rows to reveal additional hints pairs.
 * Category 2: Corporate jargon
 * Answer: Equity
 
-### Question 1
+<br>
+<hr>
+
+## Question 1
 
 <table>
   <thead>
@@ -37,7 +40,10 @@ Click on the empty rows to reveal additional hints pairs.
   <li>Answer:<span style="opacity:0" onClick="toggle(this)"> Rose</span></li>
 </ul>
 
-### Question 2
+<br>
+<hr>
+
+## Question 2
 
 <table>
   <thead>
@@ -57,7 +63,10 @@ Click on the empty rows to reveal additional hints pairs.
   <li>Answer:<span style="opacity:0" onClick="toggle(this)"> Lick</span></li>
 </ul>
 
-### Question 3
+<br>
+<hr>
+
+## Question 3
 
 <table>
   <thead>
@@ -76,7 +85,10 @@ Click on the empty rows to reveal additional hints pairs.
   <li>Answer:<span style="opacity:0" onClick="toggle(this)"> Kyiv</span></li>
 </ul>
 
-### Question 4
+<br>
+<hr>
+
+## Question 4
 
 <table>
   <thead>
@@ -95,6 +107,9 @@ Click on the empty rows to reveal additional hints pairs.
   <li>Category 2:<span style="opacity:0" onClick="toggle(this)"> Highest mountains of countries</span></li>
   <li>Answer:<span style="opacity:0" onClick="toggle(this)"> Fuji</span></li>
 </ul>
+
+<br>
+<hr>
 
 <strong>Inspired by <a href="https://www.youtube.com/watch?v=bHkQo_YqP40">｢あるなしクイズ｣じゃなくて｢あるあるクイズ｣やってみた</a>.
 
