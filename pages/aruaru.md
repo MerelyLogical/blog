@@ -104,7 +104,7 @@ Click on the empty rows to reveal additional hints pairs.
 
 <ul>
   <li>Category 1:<span style="opacity:0" onClick="toggle(this)"> Apple varieties </span></li>
-  <li>Category 2:<span style="opacity:0" onClick="toggle(this)"> Highest mountains of countries</span></li>
+  <li>Category 2:<span style="opacity:0" onClick="toggle(this)"> Highest mountain of countries</span></li>
   <li>Answer:<span style="opacity:0" onClick="toggle(this)"> Fuji</span></li>
 </ul>
 
