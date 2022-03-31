@@ -1,20 +1,17 @@
 var canvas = document.getElementById("screen");
 var ctx = canvas.getContext("2d");
-// ctx.imageSmoothingEnabled = false;
 
-var sd = [];
-// use 135x240 grid for 1/8x portrait of 1920x1080
-var ps = 3;     // pixel scaling (only used in drawing)
-var sw = 135;   // screen width
-var sh = 240;   // screen height
-var bw = 5;     // block width
-var bh = 5;     // block height
 
-function itoxy(i) {
-    var x = i % sw;
-    var y = Math.floor(i / sw);
-    return [x, y];
-}
+var ps = 3; // pixel scaling (only used in final drawing)
+var sd = []; // screen data per scaled pixel
+
+var bw = 7; // block width in scaled pixels
+var bh = 7; // block height in scaled pixels
+
+// TODO, add another array that is item per block for easier programming
+var sw = 20 * bw; // screen width
+var sh = 30 * bh; // screen height
+
 
 function clearscreen(sd) {
     for (var i = 0; i < sh * sw; i++) {
@@ -23,8 +20,8 @@ function clearscreen(sd) {
 }
 
 function writeletter(sd, x, y, letter) {
-    for (var i = 0; i < bh; i++) {
-        for (var j = 0; j < bw; j++) {
+    for (var i = 0; i < bw; i++) {
+        for (var j = 0; j < bh; j++) {
             var wd; // word data
             switch (letter) {
                 case '.':
@@ -66,55 +63,63 @@ function writeletter(sd, x, y, letter) {
                 default:
                     wd = dempty;
             }
-            sd[(x + i) * sw + (y + j)] = wd[i * bw + j];
+            sd[(y + j) * sw + (x + i)] = wd[j * bw + i];
         }
     }
 }
 
-function showblockgrids(){
-    for (var i = 0; i<sw/bw; i++){
+// debug function, draw grids of blocks
+function showblockgrids() {
+    for (var i = 0; i < sw / bw; i++) {
         ctx.beginPath();
-        ctx.moveTo(i*ps*bw-0.5, 0);
-        ctx.lineTo(i*ps*bw-0.5, ps*sh);
-        ctx.strokeStyle = '#999999';
+        ctx.moveTo(i * ps * bw - 0.5, 0);
+        ctx.lineTo(i * ps * bw - 0.5, ps * sh);
+        ctx.strokeStyle = '#555555';
         ctx.stroke();
     }
-    for (var j = 0; j<sh/bh; j++){
+    for (var j = 0; j < sh / bh; j++) {
         ctx.beginPath();
-        ctx.moveTo(0,     j*ps*bw-0.5);
-        ctx.lineTo(ps*sw, j*ps*bw-0.5);
-        ctx.strokeStyle = '#999999';
+        ctx.moveTo(0, j * ps * bw - 0.5);
+        ctx.lineTo(ps * sw, j * ps * bw - 0.5);
+        ctx.strokeStyle = '#555555';
         ctx.stroke();
     }
 
+}
+
+// convert linear index of scaled pixels to 2d
+function itoxy(i) {
+    var x = i % sw;
+    var y = Math.floor(i / sw);
+    return [x, y];
 }
 
 function drawscreen(s_data) {
     for (var i = 0; i < sh * sw; i++) {
         var [x, y] = itoxy(i);
         if (s_data[i] === 0) {
-        //     ctx.fillStyle = "#000000"        // black
-        //     ctx.fillRect(x * ps, y * ps, ps, ps);
+            ctx.fillStyle = "#000000" // black
+            ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 1) {
-            ctx.fillStyle = "#FFFFFF"        // white
+            ctx.fillStyle = "#FFFFFF" // white
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 2) {
-            ctx.fillStyle = "#FF0000"        // red
+            ctx.fillStyle = "#FF0000" // red
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 3) {
-            ctx.fillStyle = "#00FF00"        // green
+            ctx.fillStyle = "#00FF00" // green
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 4) {
-            ctx.fillStyle = "#0000FF"        // blue
+            ctx.fillStyle = "#0000FF" // blue
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 5) {
-            ctx.fillStyle = "#FFFF00"        // yellow
+            ctx.fillStyle = "#FFFF00" // yellow
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 6) {
-            ctx.fillStyle = "#FF00FF"        // magenta
+            ctx.fillStyle = "#FF00FF" // magenta
             ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 7) {
-            ctx.fillStyle = "#00FFFF"        // cyan
+            ctx.fillStyle = "#00FFFF" // cyan
             ctx.fillRect(x * ps, y * ps, ps, ps);
         }
     }
@@ -125,22 +130,23 @@ clearscreen(sd);
 // pi
 str = String(Math.PI).split('');
 for (var i = 0; i < 11; i++) {
-    writeletter(sd, 5, 5 + 6 * i, str[i]);
+    writeletter(sd, bw * (i + 1), bh, str[i]);
 }
 
 // flag
-writeletter(sd, 5, 75, 'flag');
+writeletter(sd, 13 * bw, 1 * bh, 'flag');
 
 // test rainbow
 for (var i = 0; i < 100; i++) {
     for (var j = 0; j < 8; j++) {
-        sd[(20+(2*j))*sw+(5+i)] = j;
-        sd[(20+(2*j+1))*sw+(5+i)] = j;
+        sd[(50 + (2 * j)) * sw + (bw + i)] = j;
+        sd[(50 + (2 * j + 1)) * sw + (bw + i)] = j;
     }
 }
 
-writeletter(sd, 29, 10, 'flag');
-writeletter(sd, 29, 20, 'flag');
-writeletter(sd, 29, 30, 'flag');
-showblockgrids();
+writeletter(sd, 5 * bw, 8 * bh, 'flag');
+writeletter(sd, 7 * bw, 8 * bh, 'flag');
+writeletter(sd, 9 * bw, 8 * bh, 'flag');
+// showblockgrids();
 drawscreen(sd);
+
