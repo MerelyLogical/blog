@@ -4,11 +4,11 @@ var ctx = canvas.getContext("2d");
 
 var sd = [];
 // use 135x240 grid for 1/8x portrait of 1920x1080
+var ps = 3;     // pixel scaling (only used in drawing)
 var sw = 135;   // screen width
 var sh = 240;   // screen height
-var ps = 3;     // pixel size
-var ww = 5;     // font width
-var wh = 5;     // font height
+var bw = 5;     // block width
+var bh = 5;     // block height
 
 function itoxy(i) {
     var x = i % sw;
@@ -23,8 +23,8 @@ function clearscreen(sd) {
 }
 
 function writeletter(sd, x, y, letter) {
-    for (var i = 0; i < wh; i++) {
-        for (var j = 0; j < ww; j++) {
+    for (var i = 0; i < bh; i++) {
+        for (var j = 0; j < bw; j++) {
             var wd; // word data
             switch (letter) {
                 case '.':
@@ -66,17 +66,35 @@ function writeletter(sd, x, y, letter) {
                 default:
                     wd = dempty;
             }
-            sd[(x + i) * sw + (y + j)] = wd[i * ww + j];
+            sd[(x + i) * sw + (y + j)] = wd[i * bw + j];
         }
     }
+}
+
+function showblockgrids(){
+    for (var i = 0; i<sw/bw; i++){
+        ctx.beginPath();
+        ctx.moveTo(i*ps*bw-0.5, 0);
+        ctx.lineTo(i*ps*bw-0.5, ps*sh);
+        ctx.strokeStyle = '#999999';
+        ctx.stroke();
+    }
+    for (var j = 0; j<sh/bh; j++){
+        ctx.beginPath();
+        ctx.moveTo(0,     j*ps*bw-0.5);
+        ctx.lineTo(ps*sw, j*ps*bw-0.5);
+        ctx.strokeStyle = '#999999';
+        ctx.stroke();
+    }
+
 }
 
 function drawscreen(s_data) {
     for (var i = 0; i < sh * sw; i++) {
         var [x, y] = itoxy(i);
         if (s_data[i] === 0) {
-            ctx.fillStyle = "#000000"        // black
-            ctx.fillRect(x * ps, y * ps, ps, ps);
+        //     ctx.fillStyle = "#000000"        // black
+        //     ctx.fillRect(x * ps, y * ps, ps, ps);
         } else if (s_data[i] === 1) {
             ctx.fillStyle = "#FFFFFF"        // white
             ctx.fillRect(x * ps, y * ps, ps, ps);
@@ -124,5 +142,5 @@ for (var i = 0; i < 100; i++) {
 writeletter(sd, 29, 10, 'flag');
 writeletter(sd, 29, 20, 'flag');
 writeletter(sd, 29, 30, 'flag');
-
+showblockgrids();
 drawscreen(sd);
