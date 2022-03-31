@@ -23,3 +23,5 @@ layout: home
 [A Moment of Time](pages/moment)
 
 [Aruaru Quiz](pages/aruaru)
+
+[Drawing Pixels](pages/pixels)
