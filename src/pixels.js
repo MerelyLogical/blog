@@ -125,6 +125,31 @@ function drawscreen(s_data) {
     }
 }
 
+// TODO clean this up
+var fx = 0;
+var fy = 0;
+
+function keyhandler (e) {
+    switch (e.key) {
+        case 'w':
+            fy--;
+            break;
+        case 'a':
+            fx--;
+            break;
+        case 's':
+            fy++;
+            break;
+        case 'd':
+            fx++;
+            break;
+    }
+    writeletter(sd, fx * bw, fy * bh, 'flag');
+    drawscreen(sd);
+}
+
+document.addEventListener('keydown', keyhandler);
+
 clearscreen(sd);
 
 // pi
@@ -149,4 +174,3 @@ writeletter(sd, 7 * bw, 8 * bh, 'flag');
 writeletter(sd, 9 * bw, 8 * bh, 'flag');
 // showblockgrids();
 drawscreen(sd);
-
