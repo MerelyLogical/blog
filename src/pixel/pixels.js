@@ -1,76 +1,39 @@
-var canvas = document.getElementById("screen");
-var ctx = canvas.getContext("2d");
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
 
 // raw pixels index with (m,n)
-var ps = 3;  // pixel scaling (only used in final drawing)
-var pd = []; // pixel data, index with (i,j)
+const ps = 3;  // pixel scaling (only used in final drawing)
 
-var bw = 7;  // block width in scaled pixels
-var bh = 7;  // block height in scaled pixels
-var xb = 20; // number of blocks horizontally
-var yb = 20; // number of blocks vertically
+const bw = 7;  // block width in scaled pixels
+const bh = 7;  // block height in scaled pixels
+const xb = 20; // number of blocks horizontally
+const yb = 20; // number of blocks vertically
 
-// TODO: this probably should be a class or something
-// block data, index with (x,y)
-var bd = Array.from({length: xb * yb}, () => ( {tile: '.', playing: false} ));
-bd.assign = function (x, y, value) {
-    this[y * xb + x].tile = value;
-}
-
-var sw = xb * bw; // screen width
-var sh = yb * bh; // screen height
+const sw = xb * bw; // screen width
+const sh = yb * bh; // screen height
 
 // initial positions
-var fx = 3;
-var fy = 3;
-var rx = xb - fx - 1;
-var ry = yb - fy - 1;
+let fx = 3;
+let fy = 3;
+let rx = xb - fx - 1;
+let ry = yb - fy - 1;
 
 // -----------------------------------------------------------------
 // pixel level stuff
 // -----------------------------------------------------------------
+// pixel data, index with (i,j)
+let pd = [];
 
-// convert linear index of scaled pixels to 2d
-function itomn(i) {
-    var m = i % sw;
-    var n = Math.floor(i / sw);
-    return [m, n];
+function drawpixel(i, color) {
+    const m = i % sw;
+    const n = Math.floor(i / sw);
+    ctx.fillStyle = pixelcolorlut[color] // black
+    ctx.fillRect(m * ps, n * ps, ps, ps);
 }
 
-function drawpixel() {
+function drawscreen() {
     for (var i = 0; i < sh * sw; i++) {
-        var [m, n] = itomn(i);
-        if (pd[i] === '.') {
-            ctx.fillStyle = "#000000" // black
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'w') {
-            ctx.fillStyle = "#FFFFFF" // white
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'r') {
-            ctx.fillStyle = "#FF0000" // red
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'g') {
-            ctx.fillStyle = "#00FF00" // green
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'b') {
-            ctx.fillStyle = "#0000FF" // blue
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'y') {
-            ctx.fillStyle = "#FFFF00" // yellow
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'm') {
-            ctx.fillStyle = "#FF00FF" // magenta
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'c') {
-            ctx.fillStyle = "#00FFFF" // cyan
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'o') {
-            ctx.fillStyle = "#FFA500" // orange
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        } else if (pd[i] === 'v') {
-            ctx.fillStyle = "#7F00FF" // violet
-            ctx.fillRect(m * ps, n * ps, ps, ps);
-        }
+        drawpixel(i, pd[i]);
     }
 }
 
@@ -83,57 +46,86 @@ function clearpixels() {
 // -----------------------------------------------------------------
 // block level stuff
 // -----------------------------------------------------------------
-
-function writeblock(x, y, block) {
-    for (var j = 0; j < bh; j++) {
-        for (var i = 0; i < bw; i++) {
-            var temp; // block data from font.js
-            switch (block.tile) {
-                case '.':
-                    temp = ddot; break;
-                case 'flag':
-                    temp = dflag; break;
-                case 'rainbow':
-                    temp = drainbow; break;
-                case '0':
-                    temp = d0; break;
-                case '1':
-                    temp = d1; break;
-                case '2':
-                    temp = d2; break;
-                case '3':
-                    temp = d3; break;
-                case '4':
-                    temp = d4; break;
-                case '5':
-                    temp = d5; break;
-                case '6':
-                    temp = d6; break;
-                case '7':
-                    temp = d7; break;
-                case '8':
-                    temp = d8; break;
-                case '9':
-                    temp = d9; break;
-                default:
-                    temp = dempty;
-            }
-            if (block.playing) {
-                pd[((y * bh) + j) * sw + ((x * bw) + i)] = invcolorlut[temp[j * bw + i]];
-            } else {
-                pd[((y * bh) + j) * sw + ((x * bw) + i)] = temp[j * bw + i];
-            }
-        }
+// block data, index with (x,y)
+class Block {
+    constructor(tile = '.', playing = false) {
+        this.tile = tile;
+        this.playing = playing;
     }
 }
 
-function bd2pd() {
-    for (var y = 0; y < yb; y++) {
-        for (var x = 0; x < xb; x++) {
-            writeblock(x, y, bd[y * yb + x]);
+class BlockData {
+    constructor() {
+        this.list = Array.from({length: xb * yb}, () => ( new Block ));
+    }
+
+    iassign(i, value) {
+        this.list[i].tile = value;
+    }
+
+    assign(x, y, value) {
+        this.list[y * xb + x].tile = value;
+    }
+
+    get length() {
+        return this.list.length;
+    }
+
+    writeblock(x, y, block) {
+        for (var j = 0; j < bh; j++) {
+            for (var i = 0; i < bw; i++) {
+                var temp; // block data from font.js
+                switch (block.tile) {
+                    case '.':
+                        temp = ddot; break;
+                    case 'flag':
+                        temp = dflag; break;
+                    case 'rainbow':
+                        temp = drainbow; break;
+                    case '0':
+                        temp = d0; break;
+                    case '1':
+                        temp = d1; break;
+                    case '2':
+                        temp = d2; break;
+                    case '3':
+                        temp = d3; break;
+                    case '4':
+                        temp = d4; break;
+                    case '5':
+                        temp = d5; break;
+                    case '6':
+                        temp = d6; break;
+                    case '7':
+                        temp = d7; break;
+                    case '8':
+                        temp = d8; break;
+                    case '9':
+                        temp = d9; break;
+                    default:
+                        temp = dempty;
+                }
+                if (block.playing) {
+                    pd[((y * bh) + j) * sw + ((x * bw) + i)] = invcolorlut[temp[j * bw + i]];
+                } else {
+                    pd[((y * bh) + j) * sw + ((x * bw) + i)] = temp[j * bw + i];
+                }
+            }
         }
     }
+
+    refreshpixels() {
+        for (var y = 0; y < yb; y++) {
+            for (var x = 0; x < xb; x++) {
+                this.writeblock(x, y, this.list[y * yb + x]);
+            }
+        }
+        drawscreen();
+    }
 }
+
+let bd = new BlockData;
+
 
 // debug function, draw grids of blocks
 // function showblockgrids() {
@@ -159,17 +151,16 @@ function bd2pd() {
 // -----------------------------------------------------------------
 
 function refresh() {
-    bd2pd(pd, bd);
-    drawpixel(pd);
+    bd.refreshpixels();
     // showblockgrids();
 }
 
 function initialise() {
-    clearpixels(pd);
+    clearpixels();
     document.addEventListener('keydown', keyhandler);
     // initial text
     for (var i = 0; i < xb * yb; i++) {
-        bd[i].tile = pi[i];
+        bd.iassign(i, pi[i]);
     }
     // player controllable tiles
     bd.assign(fx, fy, 'flag');
@@ -244,11 +235,11 @@ var freqlut = {
 
 async function playmap() {
     for (var i = 0; i < bd.length; i++) {
-        bd[i].playing = true;
+        bd.list[i].playing = true;
         refresh();
-        beep(freqlut[bd[i].tile]);
+        beep(freqlut[bd.list[i].tile]);
         await timer(300);
-        bd[i].playing = false;
+        bd.list[i].playing = false;
     }
 }
 
