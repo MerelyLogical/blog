@@ -24,4 +24,4 @@ layout: home
 
 [Aruaru Quiz](pages/aruaru)
 
-[Drawing Pixels](pages/pixels)
+[Pi Player](pages/pixels)
