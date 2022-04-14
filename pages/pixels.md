@@ -14,13 +14,7 @@ Press WSAD to alter the music being played with flags and rainbows
 
 More features to come!
 
-<label for="volume">volume:</label>
-<input type="range" min="0" max="100" class="slider" id="volume" style="width:50%">
-<span id="volumevalue"></span>
-
-<label for="sustain">sustain:</label>
-<input type="range" min="0" max="100" class="slider" id="sustain" style="width:50%">
-<span id="sustainvalue"></span>
+<div id="sliders"></div>
 
 <button id="sound" onclick="soundinit()">Play</button>
 

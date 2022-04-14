@@ -201,31 +201,64 @@ document.getElementById('sound').addEventListener('click', () => { audioCtx.resu
 // linear attack but exponential decay and release cause I'm mad
 // hold = attack + decay + sustain time
 // actual duration = hold + release time
-// in seconds
-// TODO: make everything sliders
-let hold    = 0.250;
-let attack  = 0.010;
-let decay   = 0.100;
-let release = 0.050;
-let bpm     = 120;
-let spacing = 60000/bpm; // time between two notes in ms
+// times in microseconds, volumes in percentages
 
-// gain percentage
-const volumeslider = document.getElementById("volume");
-const sustainslider = document.getElementById("sustain");
-let volume = 10;
-let sustain = 75;
-volumeslider.value = volume;
-sustainslider.value = sustain;
-document.getElementById("volumevalue").innerHTML = volume;
-document.getElementById("sustainvalue").innerHTML = sustain;
-volumeslider.oninput = () => {
-    volume = volumeslider.value;
-    document.getElementById("volumevalue").innerHTML = volume;
-}
-sustainslider.oninput = () => {
-    sustain = sustainslider.value;
-    document.getElementById("sustainvalue").innerHTML = sustain;
+// sound parameters, i.e. tone or instrument or something
+const sp = {
+    "volume" : 10,
+    "sustain": 75,
+    "hold"   : 250,
+    "attack" : 10,
+    "decay"  : 100,
+    "release": 50,
+    "bpm"    : 120
+};
+
+// <label for="volume">volume:</label>
+// <input type="range" min="0" max="100" class="slider" id="volume" style="width:50%">
+// <span id="volumevalue" class="label"></span>
+// TODO: kinda insane that label doesn't have a class and the span have class label
+Object.entries(sp).forEach(
+    ([k,v]) => {
+        const ediv = document.createElement("div");
+
+        const elabel = document.createElement("label");
+        elabel.htmlFor = k;
+        elabel.innerText = k+":";
+        ediv.appendChild(elabel);
+
+        const einput = document.createElement("input");
+        einput.type = "range";
+        einput.min = 10;
+        einput.max = 100;
+        einput.value = v;
+        einput.className = "slider";
+        einput.id = k;
+        einput.style = "width:50%";
+        ediv.appendChild(einput);
+
+        const espan = document.createElement("span");
+        espan.id = k+"value";
+        espan.className = "label"
+        espan.value = v;
+        ediv.appendChild(espan);
+
+        document.getElementById("sliders").appendChild(ediv);
+    }
+)
+
+const sliders = document.getElementsByClassName("slider");
+const labels = document.getElementsByClassName("label");
+
+for (let i=0; i<sliders.length; i++){
+    const pkey = sliders[i].id;
+    const pvalue = sp[pkey];
+    sliders[i].value = pvalue;
+    labels[i].innerText = pvalue;
+    sliders[i].oninput = () => {
+        sp[pkey] = parseInt(sliders[i].value);
+        labels[i].innerText = sliders[i].value.toString();
+    }
 }
 
 // TODO: have a new node per press of the play button
@@ -241,10 +274,10 @@ function beep(freq = 440) {
     // gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
     // leaving the potential for some portamentos
     oscNode.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime+0.005);
-    gainNode.gain.linearRampToValueAtTime(volume/100, audioCtx.currentTime + attack);
+    gainNode.gain.linearRampToValueAtTime(sp["volume"]/100, audioCtx.currentTime + sp["attack"]/1000);
     // 1-e^(-n), 95% reached when n=3, so take 1/3 of decay time as constant
-    gainNode.gain.setTargetAtTime(sustain*volume/10000, audioCtx.currentTime + attack, decay/3);
-    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime + hold, release/3);
+    gainNode.gain.setTargetAtTime(sp["sustain"]*sp["volume"]/10000, audioCtx.currentTime + sp["attack"]/1000, sp["decay"]/3000);
+    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime + sp["hold"]/1000, sp["release"]/3000);
     // setTimeout(() => { oscNode.stop(); }, 250);
 };
 
@@ -257,7 +290,7 @@ async function playmap() {
         bd.list[i].playing = true;
         refresh();
         beep(freqlut[bd.list[i].tile]);
-        await timer(spacing);
+        await timer(60000/sp["bpm"]); // time between two notes in ms
         bd.list[i].playing = false;
     }
 }
