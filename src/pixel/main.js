@@ -197,16 +197,55 @@ document.getElementById('sound').addEventListener('click', () => { audioCtx.resu
 // TODO: use one oscillator but disconnect and re-connect nodes for mute
 // freqencies can be changed smoothly between notes if only one osc used
 // sine waves produces a glitch on start, try smooth attack with compressor maybe?
+
+// linear attack but exponential decay and release cause I'm mad
+// hold = attack + decay + sustain time
+// actual duration = hold + release time
+// in seconds
+// TODO: make everything sliders
+let hold    = 0.250;
+let attack  = 0.010;
+let decay   = 0.100;
+let release = 0.050;
+let bpm     = 120;
+let spacing = 60000/bpm; // time between two notes in ms
+
+// gain percentage
+const volumeslider = document.getElementById("volume");
+const sustainslider = document.getElementById("sustain");
+let volume = 10;
+let sustain = 75;
+volumeslider.value = volume;
+sustainslider.value = sustain;
+document.getElementById("volumevalue").innerHTML = volume;
+document.getElementById("sustainvalue").innerHTML = sustain;
+volumeslider.oninput = () => {
+    volume = volumeslider.value;
+    document.getElementById("volumevalue").innerHTML = volume;
+}
+sustainslider.oninput = () => {
+    sustain = sustainslider.value;
+    document.getElementById("sustainvalue").innerHTML = sustain;
+}
+
+// TODO: have a new node per press of the play button
+const oscNode = audioCtx.createOscillator();
+const gainNode = audioCtx.createGain();
+oscNode.type = 'square';
+gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+oscNode.connect(gainNode);
+gainNode.connect(audioCtx.destination);
+oscNode.start();
+
 function beep(freq = 440) {
-    const oscNode = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    oscNode.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    gainNode.gain.value = 0.1;
-    oscNode.frequency.value = freq;
-    oscNode.type = 'square';
-    oscNode.start();
-    setTimeout(() => { oscNode.stop(); }, 250);
+    // gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    // leaving the potential for some portamentos
+    oscNode.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime+0.005);
+    gainNode.gain.linearRampToValueAtTime(volume/100, audioCtx.currentTime + attack);
+    // 1-e^(-n), 95% reached when n=3, so take 1/3 of decay time as constant
+    gainNode.gain.setTargetAtTime(sustain*volume/10000, audioCtx.currentTime + attack, decay/3);
+    gainNode.gain.setTargetAtTime(0, audioCtx.currentTime + hold, release/3);
+    // setTimeout(() => { oscNode.stop(); }, 250);
 };
 
 function timer(ms) {
@@ -218,7 +257,7 @@ async function playmap() {
         bd.list[i].playing = true;
         refresh();
         beep(freqlut[bd.list[i].tile]);
-        await timer(300);
+        await timer(spacing);
         bd.list[i].playing = false;
     }
 }
