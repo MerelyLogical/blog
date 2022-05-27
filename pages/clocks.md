@@ -27,14 +27,18 @@ layout: post
 
 ### E
 
-* <span id="etimer"></span>
-* <span id="retimer"></span>
+* <span id="jtimer"></span>
 
 ### F
 
+* <span id="etimer"></span>
+* <span id="retimer"></span>
+
+### G
+
 * <span id="ptimer"></span>
 
-<!-- ### G
+<!-- ### H
 
 * <span style="font-size:xx-large">🕐</span> -->
 

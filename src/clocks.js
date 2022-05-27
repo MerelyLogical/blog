@@ -62,6 +62,14 @@ function toZodiac(m) {
     return zlut[Math.floor(zm)] + alut[Math.floor(zk)];
 }
 
+// input is in hours
+// names from Japan Meteorological Agency
+function toTkyh(h) {
+    let tkyhlut = ['未明', '明け方', '朝', '昼前', '昼過ぎ', '夕方', '夜のはじめ頃', '夜遅く'];
+    return tkyhlut[Math.floor(h/3)];
+}
+    
+
 // input is Date and form
 // TODO: stop calculating dawn/dusk time every tick
 function toEdo(today, form) {
@@ -156,6 +164,8 @@ function startTime() {
         rdt = toRoman(dt / 100),
         // zodiac time
         zt = toZodiac(nt / 60),
+        // JMA weather forcast time
+        jt = toTkyh(h),
         // edo time
         et = toEdo(t, 'j'),
         ret = toEdo(t, 'r'),
@@ -167,6 +177,7 @@ function startTime() {
     document.getElementById('rtimer').innerHTML = rt;
     document.getElementById('rdtimer').innerHTML = rdt;
     document.getElementById('ztimer').innerHTML = zt;
+    document.getElementById('jtimer').innerHTML = jt;
     document.getElementById('etimer').innerHTML = et;
     document.getElementById('retimer').innerHTML = ret;
     document.getElementById('ptimer').innerHTML = pt;
