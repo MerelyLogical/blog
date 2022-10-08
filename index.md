@@ -25,3 +25,5 @@ layout: home
 [Aruaru Quiz](pages/aruaru)
 
 [Pi Player](pages/pixels)
+
+[NAS Build Log](pages/nas)
