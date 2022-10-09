@@ -5,7 +5,7 @@ layout: post
 
 <strong>Log and documentation for my NAS build</strong>
 
-> Wow an actual blog post on my _blog_ website?
+> > Wow an actual blog post on my _blog_ website?
 
 
 ## Build the computer
@@ -20,9 +20,9 @@ Memory: 8GB
 
 PSU: 500W (idle power draw < 25W)
 
-> Built the whole thing in one go, but it didn't POST first time.
-> To troubleshoot I pulled out everything from the motherboard except CPU, RAM,
-> the power cables for those CPU and MOBO, and the HDMI cable.
+> Built the whole thing in one go, but it didn't POST the first time.
+> To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
+> power cables for CPU and MOBO, and HDMI cable.
 > then it POST'ed successfully, so I tested repeatedly adding one connection
 > at a time, and it POST'ed every time.
 >
@@ -31,9 +31,9 @@ PSU: 500W (idle power draw < 25W)
 
 ## Setting up SSH
 
-> eventually I'd like to do everything remotely, so SSH should be a good first step
-> It should allow connections from the local network only, not really planning to access
-> this from the outside world any time soon.
+> eventually I'd like to do everything remotely, so SSH should be a good first step.
+> It should allow connections from the local network only for now, not really planning
+> to access this from the outside world any time soon.
 
 download openssh-server and configure it:
 
@@ -55,7 +55,7 @@ Match Address 192.168.0.*
         AllowUsers <user>
 ```
 
-remember to switch password authentication on temporarily to copy ssh keys
+remember to switch password authentication on temporarily to copy ssh keys.
 
 then to set up ssh key on client side:
 
@@ -64,7 +64,7 @@ ssh-copy-id -i ~/.ssh/<name>.pub -p 22 user@ipaddress
 ```
 
 > ssh keys might be overkill on top of matching 192.168,
-> but I guess more security doesn't hurt
+> but I guess more security doesn't hurt.
 
 to SSH into server, either configure router DHCP so that the nas gets a fixed IP:
 
@@ -86,12 +86,12 @@ ssh user@hostname
 >
 > NoMachine seems to have a lot more features but it feels like its meant to be
 > configured and used through its GUI.
-> Setting up VNC from SSH CLI would be cool but I still have my KB&M & montior connected
+> Setting up VNC from SSH CLI would be cool but I still have my KB&M & monitor connected
 > so might as well make use of them.
 
-Download and install NoMachine on both server and client
+Download and install NoMachine on both server and client.
 
-This shows a blackscreen because Ubuntu is too smart:
+Initially this just shows a blackscreen because Ubuntu is too smart:
 
 [Connecting to Linux headless machines with NoMachine](https://kb.nomachine.com/AR03P00973)
 
@@ -100,12 +100,12 @@ sudo systemctl stop sddm
 sudo /etx/NX/nxserver --restart
 ```
 
-> TODO: automate this
+> TODO: consider automating this on startup if no monitor is connected.
 
 
 ## Enable firewall
 
-> You might want to do this earlier
+> You might want to do this earlier.
 
 UFW is preinstalled, so we'll just use that:
 
@@ -123,7 +123,7 @@ to check logs, first make sure logging is enabled:
 sudo ufw status verbose
 ```
 
-then the log should be stored at `/var/log/ufw.log`
+then the log should be stored at `/var/log/ufw.log`.
 
 refer to this for more details on UFW logs:
 
