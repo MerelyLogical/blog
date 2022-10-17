@@ -10,15 +10,13 @@ layout: post
 
 # Build the computer
 
-OS: Kubuntu 22.04.1 LTS
-
-CPU: Intel i3-10105
-
-GPU: Intel UHD Graphics 630
-
-Memory: 8GB
-
-PSU: 500W (idle power draw < 25W)
+|     |                              |
+|-----|------------------------------|
+| OS  | Kubuntu 22.04.1 LTS          |
+| CPU | Intel i3-10105               |
+| GPU | Intel UHD Graphics 630       |
+| RAM | 8GB                          |
+| PSU | 500W (idle power draw < 25W) |
 
 > Built the whole thing in one go, but it didn't POST the first time.
 > To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
@@ -188,8 +186,20 @@ and to reattach after the detach:
 screen -r [session]
 ```
 
+> Note: tmux should work as well.
+
 
 # Build more of the computer
 
-The case used supports 6
+The case has 6 mounting bays for 3.5 inch drives, but the motherboard only has 4 sata ports.
+One of them is disabled if the M.2 slot is used, so we only have 3 usable.
 
+We have a spare PCIe slot, so to expand the number of ports, we can install a HBA card:
+
+|     |                                                            |
+|-----|------------------------------------------------------------|
+| HBA | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|
+
+> SATA expansion cards is also a thing, but
+> [This](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
+> gives a convincing argument why we should use HBA cards instead.
