@@ -5,10 +5,10 @@ layout: post
 
 <strong>Log and documentation for my NAS build</strong>
 
-> > Wow an actual blog post on my _blog_ website?
+> Wow an actual blog post on my _blog_ website?
 
 
-## Build the computer
+# Build the computer
 
 OS: Kubuntu 22.04.1 LTS
 
@@ -28,8 +28,10 @@ PSU: 500W (idle power draw < 25W)
 >
 > No idea what the problem was.
 
+Case: Fractal Design Node 304
 
-## Setting up SSH
+
+# Setting up SSH
 
 > eventually I'd like to do everything remotely, so SSH should be a good first step.
 > It should allow connections from the local network only for now, not really planning
@@ -79,8 +81,10 @@ ssh user@hostname
 
 > TODO: this works on some of my local computers but not all?
 
+> TODO: motherboard supports wake-on-lan, might want to try it out
 
-## Setting up remote desktop
+
+# Setting up remote desktop
 
 > Remote CLI works, now for remote GUI.
 >
@@ -103,7 +107,7 @@ sudo /etx/NX/nxserver --restart
 > TODO: consider automating this on startup if no monitor is connected.
 
 
-## Enable firewall
+# Enable firewall
 
 > You might want to do this earlier.
 
@@ -128,4 +132,64 @@ then the log should be stored at `/var/log/ufw.log`.
 refer to this for more details on UFW logs:
 
 [How Do I Check My UFW Log?](https://linuxhint.com/check-my-ufw-log/)
+
+> TODO: NoMachine is supposed to configure firewall automatically but that didn't work?
+
+
+# Setting up a terraria server
+
+> This doesn't really help with the NAS thing but it's fun.
+
+Upload the world save file with rsync:
+
+```bash
+rsync -av Terraria/Worlds/ <ipaddress>:games/ts/
+```
+
+download the server binary and set up a configuration file `server.conf`:
+
+```
+world=/home/<user>/games/ts/worlds/<world>.wld
+maxplayers=4
+port=<port>
+password=<password>
+motd=<motd>
+worldpath=/home/<user>/games/ts/worlds
+secure=1
+language=en-US
+npcstream=60
+```
+
+make sure the configuration file and the binary is in the same folder, and run:
+
+```bash
+./TerrariaServer.bin.x86_64 -config server.conf
+```
+
+remember to open the port in ufw, and the server should now be working.
+
+to keep the server running and accesiable across SSH sessions, use screen:
+
+```bash
+screen
+./TerrariaServer.bin.x86_64 -config server.conf
+Ctrl+a d
+```
+
+to check if detach worked:
+
+```bash
+screen -list
+```
+
+and to reattach after the detach:
+
+```bash
+screen -r [session]
+```
+
+
+# Build more of the computer
+
+The case used supports 6
 
