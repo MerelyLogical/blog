@@ -10,13 +10,14 @@ layout: post
 
 # Build the computer
 
-|     |                              |
-|-----|------------------------------|
-| OS  | Kubuntu 22.04.1 LTS          |
-| CPU | Intel i3-10105               |
-| GPU | Intel UHD Graphics 630       |
-| RAM | 8GB                          |
-| PSU | 500W (idle power draw < 25W) |
+|      |                              |
+|------|------------------------------|
+|  OS  | Kubuntu 22.04.1 LTS          |
+|  CPU | Intel i3-10105               |
+|  GPU | Intel UHD Graphics 630       |
+|  RAM | 8GB                          |
+|  PSU | 500W (idle power draw < 25W) |
+| Case | Fractal Design Node 304      |
 
 > Built the whole thing in one go, but it didn't POST the first time.
 > To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
@@ -25,8 +26,6 @@ layout: post
 > at a time, and it POST'ed every time.
 >
 > No idea what the problem was.
-
-Case: Fractal Design Node 304
 
 
 # Setting up SSH
