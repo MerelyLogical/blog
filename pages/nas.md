@@ -157,6 +157,9 @@ language=en-US
 npcstream=60
 ```
 
+> Setting maximum player to be exact seems to block players retrying connection after
+> entering a wrong password
+
 make sure the configuration file and the binary is in the same folder, and run:
 
 ```bash
@@ -208,7 +211,8 @@ We have a spare PCIe slot, so to expand the number of ports, we can install a HB
 
 > Note: cable management is a lot more difficult with such a small case and a lot of drives.
 > Took me multiple times before it POST'ed again after installing the HDDs.
-> I resit the RAM stick to make SATA plugging easier, I suspect that was the culprit.
+> I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
+> it didn't go back in properly.
 
 > Note 2: boot time seems to have slowed down a lot after installing the three drives?
 
@@ -220,6 +224,9 @@ Test out to see if the drives are good:
 ```bash
 badblocks -b 4096 -wsv /dev/sdX
 ```
+
+This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
+It took about 18 hours for the 1TB HDD, and about 45 hours for the 4TB HDDs.
 
 
 # Formatting the drives
