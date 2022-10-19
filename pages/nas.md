@@ -198,7 +198,29 @@ We have a spare PCIe slot, so to expand the number of ports, we can install a HB
 |     |                                                            |
 |-----|------------------------------------------------------------|
 | HBA | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|
+| HDD | Seagate Ironwolf 4TB                                       |
+| HDD | Seagate Ironwolf 4TB                                       |
+| HDD | some OEM drive from old laptop 1TB                         |
 
 > SATA expansion cards is also a thing, but
 > [This](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
 > gives a convincing argument why we should use HBA cards instead.
+
+> Note: cable management is a lot more difficult with such a small case and a lot of drives.
+> Took me multiple times before it POST'ed again after installing the HDDs.
+> I resit the RAM stick to make SATA plugging easier, I suspect that was the culprit.
+
+> Note 2: boot time seems to have slowed down a lot after installing the three drives?
+
+
+# Badblocks
+
+Test out to see if the drives are good:
+
+```bash
+badblocks -b 4096 -wsv /dev/sdX
+```
+
+
+# Formatting the drives
+
