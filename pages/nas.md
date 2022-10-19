@@ -10,14 +10,17 @@ layout: post
 
 # Build the computer
 
-|      |                              |
-|------|------------------------------|
-|  OS  | Kubuntu 22.04.1 LTS          |
-|  CPU | Intel i3-10105               |
-|  GPU | Intel UHD Graphics 630       |
-|  RAM | 8GB                          |
-|  PSU | 500W (idle power draw < 25W) |
-| Case | Fractal Design Node 304      |
+|      |                              | Price(£) |
+|------|------------------------------|---------:|
+| OS   | Kubuntu 22.04.1 LTS          |     Free |
+| MoBo | ASRock H510M                 |   103.92 |
+| CPU  | Intel i3-10105               |   109.99 |
+| GPU  | Intel UHD Graphics 630       |          |
+| RAM  | 8GB                          |    29.50 |
+| PSU  | Be Quiet! 500W               |    46.26 |
+| Case | Fractal Design Node 304      |    99.98 |
+| SSD  | Crucial 250G                 |    26.99 |
+|      | Total                        |   416.64 |
 
 > Built the whole thing in one go, but it didn't POST the first time.
 > To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
@@ -198,15 +201,21 @@ One of them is disabled if the M.2 slot is used, so we only have 3 usable.
 
 We have a spare PCIe slot, so to expand the number of ports, we can install a HBA card:
 
-|     |                                                            |
-|-----|------------------------------------------------------------|
-| HBA | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|
-| HDD | Seagate Ironwolf 4TB                                       |
-| HDD | Seagate Ironwolf 4TB                                       |
-| HDD | some OEM drive from old laptop 1TB                         |
+The firmware should be in IT/HBA mode instead of RAID mode, which would allow the system
+to see connected drives separately.
+
+|      |                                                            | Price(£) |
+|------|------------------------------------------------------------|---------:|
+| HBA  | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|    30.00 |
+| HDD  | Seagate Ironwolf 4TB                                       |    83.99 |
+| HDD  | Seagate Ironwolf 4TB                                       |    83.99 |
+| HDD  | some OEM drive from old laptop 1TB                         |          |
+| Misc | 5x SATA cables                                             |     3.55 |
+|      | Total                                                      |   201.53 |
+|      | Grand Total                                                |   618.17 |
 
 > SATA expansion cards is also a thing, but
-> [This](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
+> [this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
 > gives a convincing argument why we should use HBA cards instead.
 
 > Note: cable management is a lot more difficult with such a small case and a lot of drives.
@@ -227,6 +236,10 @@ badblocks -b 4096 -wsv /dev/sdX
 
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
 It took about 18 hours for the 1TB HDD, and about 45 hours for the 4TB HDDs.
+
+> A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
+> With the electricity price at 35p/kW, and assuming the power draw averages at 30W,
+> the running cost works out to be around £8 per month.
 
 
 # Formatting the drives
