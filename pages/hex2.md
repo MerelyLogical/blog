@@ -1,9 +1,11 @@
 ---
 title: Hexagonal Grid Pathfinding
 layout: post
+nav_order: 5
 ---
 
-<strong>Pathfinding on a SVG-based Hexagonal Grid</strong>
+{: .fs-6}
+Pathfinding on a SVG-based Hexagonal Grid
 
 Flying distance from start(blue) to end(green) is: <span id="fly_dist"></span>
 

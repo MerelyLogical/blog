@@ -1,9 +1,11 @@
 ---
 title: Hexagonal Grid
 layout: post
+nav_order: 4
 ---
 
-<strong>A Hex Grid with Canvas</strong>
+{: .fs-6}
+A Hex Grid with Canvas
 
 <form>
     <input id="h" type="number" style="width: 5ch;" min="0" max="99" value="5" onchange="refresh()">

@@ -1,6 +1,6 @@
 base_url: "/blog"
 url: "https://merelylogical.github.io"
-theme: jekyll-theme-midnight
+theme: "just-the-docs"
 sass:
   style: compressed
 compress_html:
@@ -15,3 +15,16 @@ compress_html:
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
+color_scheme: dark
+callouts:
+  highlight:
+    color: blue
+  todo:
+    title: Todo
+    color: yellow
+  note:
+    title: Note
+    color: green
+  warning:
+    title: Warning
+    color: red

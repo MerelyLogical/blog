@@ -1,9 +1,11 @@
 ---
 title: Pi Player
 layout: post
+nav_order: 8
 ---
 
-<strong>Pi Player made in JS from scratch</strong>
+{: .fs-6}
+Pi Player made in JS from scratch
 
 Press play to start a new playing cursor
 

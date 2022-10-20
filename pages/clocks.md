@@ -1,9 +1,11 @@
 ---
 title: Clocks
 layout: post
+nav_order: 2
 ---
 
-<strong>A collection of interesting time formats, see if you can figure out how each works :))</strong>
+{: .fs-6}
+A collection of interesting time formats, see if you can figure out how each works :))
 
 ### 24-hour time
 

@@ -1,14 +1,22 @@
 ---
 title: NAS building log
 layout: post
+nav_order: 9
 ---
 
-<strong>Log and documentation for my NAS build</strong>
+{: .fs-6}
+Log and documentation for my NAS build
 
-> Wow an actual blog post on my _blog_ website?
+{: .highlight}
+Wow an actual blog post on my _blog_ website?
 
+1. TOC
+{:toc}
 
 # Build the computer
+
+The target of this build is the Synology DS1522+ 5 bay desktop NAS which costs about £700.
+We'll have a better CPU and one more bay for 60% of the cost.
 
 |      |                              | Price(£) |
 |------|------------------------------|---------:|
@@ -16,12 +24,13 @@ layout: post
 | MoBo | ASRock H510M                 |   103.92 |
 | CPU  | Intel i3-10105               |   109.99 |
 | GPU  | Intel UHD Graphics 630       |          |
-| RAM  | 8GB                          |    29.50 |
+| RAM  | Corsair 8GB                  |    29.50 |
 | PSU  | Be Quiet! 500W               |    46.26 |
 | Case | Fractal Design Node 304      |    99.98 |
 | SSD  | Crucial 250G                 |    26.99 |
 |      | Total                        |   416.64 |
 
+{: .highlight}
 > Built the whole thing in one go, but it didn't POST the first time.
 > To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
 > power cables for CPU and MOBO, and HDMI cable.
@@ -33,6 +42,7 @@ layout: post
 
 # Setting up SSH
 
+{: .highlight}
 > eventually I'd like to do everything remotely, so SSH should be a good first step.
 > It should allow connections from the local network only for now, not really planning
 > to access this from the outside world any time soon.
@@ -65,6 +75,7 @@ then to set up ssh key on client side:
 ssh-copy-id -i ~/.ssh/<name>.pub -p 22 user@ipaddress
 ```
 
+{: .highlight}
 > ssh keys might be overkill on top of matching 192.168,
 > but I guess more security doesn't hurt.
 
@@ -79,13 +90,16 @@ or if DNS works in the local network:
 ssh user@hostname
 ```
 
-> TODO: this works on some of my local computers but not all?
+{: .todo}
+> this works on some of my local computers but not all?
 
-> TODO: motherboard supports wake-on-lan, might want to try it out
+{: .todo}
+> motherboard supports wake-on-lan, might want to try it out
 
 
 # Setting up remote desktop
 
+{: .highlight}
 > Remote CLI works, now for remote GUI.
 >
 > NoMachine seems to have a lot more features but it feels like its meant to be
@@ -104,11 +118,13 @@ sudo systemctl stop sddm
 sudo /etx/NX/nxserver --restart
 ```
 
-> TODO: consider automating this on startup if no monitor is connected.
+{: .todo}
+> consider automating this on startup if no monitor is connected.
 
 
 # Enable firewall
 
+{: .note}
 > You might want to do this earlier.
 
 UFW is preinstalled, so we'll just use that:
@@ -133,11 +149,13 @@ refer to this for more details on UFW logs:
 
 [How Do I Check My UFW Log?](https://linuxhint.com/check-my-ufw-log/)
 
-> TODO: NoMachine is supposed to configure firewall automatically but that didn't work?
+{: .todo}
+> NoMachine is supposed to configure firewall automatically but that didn't work?
 
 
 # Setting up a terraria server
 
+{: .highlight}
 > This doesn't really help with the NAS thing but it's fun.
 
 Upload the world save file with rsync:
@@ -160,6 +178,7 @@ language=en-US
 npcstream=60
 ```
 
+{: .highlight}
 > Setting maximum player to be exact seems to block players retrying connection after
 > entering a wrong password
 
@@ -191,7 +210,8 @@ and to reattach after the detach:
 screen -r [session]
 ```
 
-> Note: tmux should work as well.
+{: .note}
+> tmux should work as well.
 
 
 # Build more of the computer
@@ -214,16 +234,21 @@ to see connected drives separately.
 |      | Total                                                      |   201.53 |
 |      | Grand Total                                                |   618.17 |
 
+{: .highlight}
 > SATA expansion cards is also a thing, but
 > [this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
 > gives a convincing argument why we should use HBA cards instead.
 
+{: .note}
 > Note: cable management is a lot more difficult with such a small case and a lot of drives.
+
+{: .highlight}
 > Took me multiple times before it POST'ed again after installing the HDDs.
 > I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
 > it didn't go back in properly.
 
-> Note 2: boot time seems to have slowed down a lot after installing the three drives?
+{: .todo}
+> boot time seems to have slowed down a lot after installing the three drives?
 
 
 # Badblocks
@@ -237,6 +262,7 @@ badblocks -b 4096 -wsv /dev/sdX
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
 It took about 18 hours for the 1TB HDD, and about 45 hours for the 4TB HDDs.
 
+{: .highlight}
 > A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
 > With the electricity price at 35p/kW, and assuming the power draw averages at 30W,
 > the running cost works out to be around £8 per month.

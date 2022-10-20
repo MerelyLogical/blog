@@ -1,9 +1,11 @@
 ---
 title: A Moment of Time
 layout: post
+nav_order: 6
 ---
 
-<strong>How long is a moment today in London?</strong>
+{: .fs-6}
+How long is a moment today in London?
 
 A moment is <span id="moment"></span> seconds long today.
 

@@ -7,3 +7,5 @@ group :jekyll_plugins do
 end
 
 gem "webrick", "~> 1.7"
+gem "just-the-docs", "0.4.0.rc3"
+

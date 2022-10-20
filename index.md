@@ -1,16 +1,17 @@
 ---
 title: Home
 layout: home
+nav_order: 1
 ---
 
-<strong>Welcome! You've found the best website on the internet!</strong>
-<em>(According to me at least)</em>
+{: .fs-6}
+Welcome! You've found the best website on the internet!
 
-<hr>
+(According to me at least)
 
-### Posts
+---
 
-<hr>
+# Posts
 
 [Clocks](pages/clocks)
 

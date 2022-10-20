@@ -1,11 +1,14 @@
 ---
 title: Dakuten
 layout: post
+nav_order: 3
 ---
 
-<strong>A tool that irresponsibly adds dakutens everywhere.</strong>
+{: .fs-6}
+A tool that irresponsibly adds dakutens everywhere.
 
-<strong>濁点を無理やりつけるツール！</strong>
+{: .fs-6}
+濁点を無理やりつけるツール！
 
 <div>
 <textarea  style="display:block; margin-left:auto; margin-right:auto; background-color:black; color:white; width:90%" id="input" type="text" rows="10"></textarea>

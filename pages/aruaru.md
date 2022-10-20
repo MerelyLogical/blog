@@ -1,10 +1,13 @@
 ---
 title: Aruaru quiz
 layout: post
+nav_order: 7
 ---
 
-<strong>Guess what the two categories are, and find a word that fits in both!</strong>
+{: .fs-6}
+Guess what the two categories are, and find a word that fits in both!
 
+{: .note}
 Click on the empty rows to reveal additional hints pairs.
 
 ## Example Question
