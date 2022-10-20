@@ -18,17 +18,17 @@ Wow an actual blog post on my _blog_ website?
 The target of this build is the Synology DS1522+ 5 bay desktop NAS which costs about £700.
 We'll have a better CPU and one more bay for 60% of the cost.
 
-|      |                              | Price(£) |
-|------|------------------------------|---------:|
-| OS   | Kubuntu 22.04.1 LTS          |     Free |
-| MoBo | ASRock H510M                 |   103.92 |
-| CPU  | Intel i3-10105               |   109.99 |
-| GPU  | Intel UHD Graphics 630       |          |
-| RAM  | Corsair 8GB                  |    29.50 |
-| PSU  | Be Quiet! 500W               |    46.26 |
-| Case | Fractal Design Node 304      |    99.98 |
-| SSD  | Crucial 250G                 |    26.99 |
-|      | Total                        |   416.64 |
+|       |                              | Price(£) |
+| ----- | ---------------------------- | -------: |
+| OS    | Kubuntu 22.04.1 LTS          |     Free |
+| MoBo  | ASRock H510M                 |   103.92 |
+| CPU   | Intel i3-10105               |   109.99 |
+| GPU   | Intel UHD Graphics 630       |          |
+| RAM   | Corsair 8GB                  |    29.50 |
+| PSU   | Be Quiet! 500W               |    46.26 |
+| Case  | Fractal Design Node 304      |    99.98 |
+| SSD   | Crucial 250G                 |    26.99 |
+| Total |                              |   416.64 |
 
 {: .highlight}
 > Built the whole thing in one go, but it didn't POST the first time.
@@ -224,15 +224,15 @@ We have a spare PCIe slot, so to expand the number of ports, we can install a HB
 The firmware should be in IT/HBA mode instead of RAID mode, which would allow the system
 to see connected drives separately.
 
-|      |                                                            | Price(£) |
-|------|------------------------------------------------------------|---------:|
-| HBA  | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|    30.00 |
-| HDD  | Seagate Ironwolf 4TB                                       |    83.99 |
-| HDD  | Seagate Ironwolf 4TB                                       |    83.99 |
-| HDD  | some OEM drive from old laptop 1TB                         |          |
-| Misc | 5x SATA cables                                             |     3.55 |
-|      | Total                                                      |   201.53 |
-|      | Grand Total                                                |   618.17 |
+|             |                                                            | Price(£) |
+| ----------- | ---------------------------------------------------------- | -------: |
+| HBA         | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|    30.00 |
+| HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
+| HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
+| HDD         | some OEM drive from old laptop 1TB                         |          |
+| Misc        | 5x SATA cables                                             |     3.55 |
+| Total       |                                                            |   201.53 |
+| Grand Total |                                                            |   618.17 |
 
 {: .highlight}
 > SATA expansion cards is also a thing, but
@@ -240,7 +240,7 @@ to see connected drives separately.
 > gives a convincing argument why we should use HBA cards instead.
 
 {: .note}
-> Note: cable management is a lot more difficult with such a small case and a lot of drives.
+> cable management is a lot more difficult with such a small case and a lot of drives.
 
 {: .highlight}
 > Took me multiple times before it POST'ed again after installing the HDDs.
