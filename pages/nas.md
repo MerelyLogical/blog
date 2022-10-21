@@ -260,7 +260,7 @@ badblocks -b 4096 -wsv /dev/sdX
 ```
 
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
-It took about 18 hours for the 1TB HDD, and about 45 hours for the 4TB HDDs.
+It took about 18 hours for the 1TB HDD, and about 50 hours for the 4TB HDDs.
 
 {: .highlight}
 > A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
