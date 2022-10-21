@@ -16,7 +16,7 @@ Log and documentation for my NAS build
 # Build the computer
 
 The target of this build is the Synology DS1522+ 5 bay desktop NAS which costs about £700.
-We'll have a better CPU and one more bay for 60% of the cost.
+This will have a better CPU and one more bay for 60% of the cost.
 
 |       |                              | Price(£) |
 | ----- | ---------------------------- | -------: |
@@ -113,13 +113,18 @@ Initially this just shows a blackscreen because Ubuntu is too smart:
 
 [Connecting to Linux headless machines with NoMachine](https://kb.nomachine.com/AR03P00973)
 
+
 ```bash
 sudo systemctl stop sddm
 sudo /etx/NX/nxserver --restart
 ```
 
-{: .todo}
-> consider automating this on startup if no monitor is connected.
+Alternatively run this screen after startup if GUI is not needed.
+
+```bash
+sudo systemctl stop sddm
+sudo /etc/NX/nxserver --shutdown
+```
 
 
 # Enable firewall
@@ -178,7 +183,7 @@ language=en-US
 npcstream=60
 ```
 
-{: .highlight}
+{: .note}
 > Setting maximum player to be exact seems to block players retrying connection after
 > entering a wrong password
 
@@ -217,9 +222,9 @@ screen -r [session]
 # Build more of the computer
 
 The case has 6 mounting bays for 3.5 inch drives, but the motherboard only has 4 sata ports.
-One of them is disabled if the M.2 slot is used, so we only have 3 usable.
+One of them is disabled if the M.2 slot is used, so there're only have 3 usable.
 
-We have a spare PCIe slot, so to expand the number of ports, we can install a HBA card:
+We have a spare PCIe slot, so to expand the number of ports, a HBA card can be installed:
 
 The firmware should be in IT/HBA mode instead of RAID mode, which would allow the system
 to see connected drives separately.
@@ -234,10 +239,10 @@ to see connected drives separately.
 | Total       |                                                            |   201.53 |
 | Grand Total |                                                            |   618.17 |
 
-{: .highlight}
+{: .note}
 > SATA expansion cards is also a thing, but
 > [this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
-> gives a convincing argument why we should use HBA cards instead.
+> gives a convincing argument why HBA cards should be used instead.
 
 {: .note}
 > cable management is a lot more difficult with such a small case and a lot of drives.
@@ -283,7 +288,7 @@ ata-ST4000[-----------]2[-] -> ../../sdb
 ata-ST4000[-----------]3[-] -> ../../sdc
 ```
 
-We use `gdisk` to partition the drives:
+Using `gdisk` to partition the drives:
 
 ```bash
 sudo gdisk /dev/sda
