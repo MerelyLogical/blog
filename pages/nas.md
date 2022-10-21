@@ -244,16 +244,15 @@ to see connected drives separately.
 > [this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
 > gives a convincing argument why HBA cards should be used instead.
 
-{: .note}
-> cable management is a lot more difficult with such a small case and a lot of drives.
-
 {: .highlight}
 > Took me multiple times before it POST'ed again after installing the HDDs.
 > I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
 > it didn't go back in properly.
+>
+> Cable management is a lot more difficult with such a small case and a lot of drives.
 
 {: .todo}
-> boot time seems to have slowed down a lot after installing the three drives?
+> Boot time seems to have slowed down a lot after installing the three drives?
 
 
 # Badblocks
@@ -292,9 +291,9 @@ Using `gdisk` to partition the drives:
 
 ```bash
 sudo gdisk /dev/sda
-o	#create a new empty GUID partition table (GPT)
-n	#add a new partition
-w	#write table to disk and exit
+o   #create a new empty GUID partition table (GPT)
+n   #add a new partition
+w   #write table to disk and exit
 ```
 
 At each step the options can be left at the default values.
