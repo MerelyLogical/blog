@@ -8,7 +8,7 @@ nav_order: 9
 Log and documentation for my NAS build
 
 {: .highlight}
-Wow an actual blog post on my _blog_ website?
+> Wow an actual blog post on my _blog_ website?
 
 1. TOC
 {:toc}
@@ -153,7 +153,7 @@ refer to this for more details on UFW logs:
 > NoMachine is supposed to configure firewall automatically but that didn't work?
 
 
-# Setting up a terraria server
+# Setting up a Terraria server
 
 {: .highlight}
 > This doesn't really help with the NAS thing but it's fun.
@@ -261,6 +261,9 @@ badblocks -b 4096 -wsv /dev/sdX
 
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
 It took about 18 hours for the 1TB HDD, and about 50 hours for the 4TB HDDs.
+
+{: .note}
+> Don't know how to use screens? Well you shouldn't have skipped the Terraria section :)
 
 {: .highlight}
 > A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
