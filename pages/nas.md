@@ -229,7 +229,7 @@ to see connected drives separately.
 | HBA         | [LSI SAS 9212-4i4e](https://docs.broadcom.com/doc/12353334)|    30.00 |
 | HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
 | HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
-| HDD         | some OEM drive from old laptop 1TB                         |          |
+| HDD         | HGST Travelstar(?) 1TB (pulled from old laptop)            |          |
 | Misc        | 5x SATA cables                                             |     3.55 |
 | Total       |                                                            |   201.53 |
 | Grand Total |                                                            |   618.17 |
@@ -269,4 +269,51 @@ It took about 18 hours for the 1TB HDD, and about 50 hours for the 4TB HDDs.
 
 
 # Formatting the drives
+
+To check which drive is which:
+
+```bash
+$ ll /dev/disk/by-id
+...
+ata-HGST_[----------------] -> ../../sda
+ata-ST4000[-----------]2[-] -> ../../sdb
+ata-ST4000[-----------]3[-] -> ../../sdc
+```
+
+We use `gdisk` to partition the drives:
+
+```bash
+sudo gdisk /dev/sda
+o	#create a new empty GUID partition table (GPT)
+n	#add a new partition
+w	#write table to disk and exit
+```
+
+At each step the options can be left at the default values.
+
+After repeating it on all drives we can check that the partition has been created with lsblk:
+
+```bash
+$ lsblk
+...
+sda           8:0    0 931.5G  0 disk
+└─sda1        8:1    0 931.5G  0 part
+sdb           8:16   0   3.6T  0 disk
+└─sdb1        8:17   0   3.6T  0 part
+sdc           8:32   0   3.6T  0 disk
+└─sdc1        8:33   0   3.6T  0 part
+```
+
+To create an `ext4` filesystem:
+
+```bash
+sudo mkfs.ext4 /dev/sda1
+```
+
+
+# Setting up MergerFS
+
+```bash
+sudo apt install mergerfs
+```
 
