@@ -320,7 +320,62 @@ sudo mkfs.ext4 /dev/sda1
 
 # Setting up MergerFS
 
+Install MergerFS:
+
 ```bash
 sudo apt install mergerfs
 ```
+
+Confirming the ID of our partitions:
+
+```bash
+$ ll /dev/disk/by-id
+...
+ata-HGST_[----------------] -> ../../sda
+ata-HGST_[----------------]-part1 -> ../../sda1
+ata-ST4000[-----------]2[-] -> ../../sdb
+ata-ST4000[-----------]2[-]-part1 -> ../../sdb1
+ata-ST4000[-----------]3[-] -> ../../sdc
+ata-ST4000[-----------]3[-]-part1 -> ../../sdc1
+```
+
+The parity drive should be of the size of the largest drive, so the plan is to use one of the
+4TB drives as parity, and the rest as data drives.
+
+MergerFS is configured with `/etc/fstab`:
+
+```bash
+$ sudo vim /etc/fstab
+...
+# <file system>                                   <mount point> <type> <options> <dump> <pass>
+/dev/disk/by-id/ata-ST4000[-----------]2[-]-part1 /mnt/parity0  ext4   defaults  0      0
+/dev/disk/by-id/ata-ST4000[-----------]3[-]-part1 /mnt/disk0    ext4   defaults  0      0
+/dev/disk/by-id/ata-HGST_[----------------]-part1 /mnt/disk1    ext4   defaults  0      0
+
+/mnt/disk0:/mnt/disk1 /mnt/main fuse.mergerfs defaults,nonempty,allow_other,use_ino,cache.files=off,moveonenospc=true,dropcacheonclose=true,minfreespace=100G,category.create=mfs,fsname=mergerfs 0 0
+```
+
+Check that the new lines in `/etc/fstab` works before rebooting the system:
+
+```bash
+$ mkdir /mnt/parity0
+$ mkdir /mnt/data0
+$ mkdir /mnt/data1
+$ mkdir /mnt/main
+$ mount -a
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+...
+/dev/sdb1       3.6T   28K  3.4T   1% /mnt/parity0
+/dev/sdc1       3.6T   28K  3.4T   1% /mnt/data0
+/dev/sda1       916G   28K  870G   1% /mnt/data1
+mergerfs        4.5T   56K  4.3T   1% /mnt/main
+```
+
+{: .note}
+> If you made the mistake of using `sudo mkdir /mnt/<name>` like me, to pass the ownership of
+> the mount points back to the user, use:
+> `sudo chown -R <user>:<user> /mnt/<name>`
+
+# Setting up SnapRAID
 
