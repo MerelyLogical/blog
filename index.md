@@ -27,4 +27,4 @@ Welcome! You've found the best website on the internet!
 
 [Pi Player](pages/pixels)
 
-[NAS Build Log](pages/nas)
+[NAS Build Log](pages/nas/nas)
