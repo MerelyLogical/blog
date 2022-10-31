@@ -107,8 +107,8 @@ ssh user@hostname
 
 Download and install NoMachine on both server and client.
 
-{: .note}
-> Nomachine provides a `.deb` file on its website, is there an easy to check updates for it?
+{: .todo}
+> Nomachine provides a `.deb` file on its website, is there an easy way to check updates for it?
 
 Initially this just shows a blackscreen because Ubuntu is too smart:
 
@@ -218,3 +218,4 @@ screen -r [session]
 
 {: .note}
 > tmux should work as well.
+

@@ -232,4 +232,52 @@ sudo apt install iotop-c
 > That means `ext4` is still initialising, so there's nothing to worry about.
 
 
+# Check connection speeds
+
+To test the connection speeds between the machines, we can use `iperf3`:
+
+```bash
+sudo apt install iperf3
+```
+
+To start listening on the server side:
+
+```bash
+$ iperf3 -s -p <port>
+```
+
+Then we launch the test from the client side:
+
+```bash
+$ iperf3 -c <ipaddress> -p <port>
+...
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  1.10 GBytes   944 Mbits/sec    0             sender
+[  5]   0.00-10.03  sec  1.10 GBytes   941 Mbits/sec                  receiver
+
+iperf Done.
+```
+
+
 # Setting up SnapRAID
+
+Install SnapRAID as usual:
+
+```bash
+sudo apt install snapraid
+```
+
+Checking its versions directly returns `vnone`, but checking it through `apt` gives a more sensible result:
+
+{: .note}
+> What could go possibly wrong?
+
+```bash
+$ snapraid --version
+snapraid vnone by Andrea Mazzoleni, http://www.snapraid.it
+
+$ apt list snapraid
+Listing... Done
+snapraid/jammy,now 12.1-1 amd64 [installed]
+```
+
