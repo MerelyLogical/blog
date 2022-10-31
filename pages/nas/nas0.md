@@ -107,6 +107,9 @@ ssh user@hostname
 
 Download and install NoMachine on both server and client.
 
+{: .note}
+> Nomachine provides a `.deb` file on its website, is there an easy to check updates for it?
+
 Initially this just shows a blackscreen because Ubuntu is too smart:
 
 [Connecting to Linux headless machines with NoMachine](https://kb.nomachine.com/AR03P00973)
