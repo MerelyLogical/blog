@@ -281,3 +281,31 @@ Listing... Done
 snapraid/jammy,now 12.1-1 amd64 [installed]
 ```
 
+SnapRAID is configured with `/etc/snapraid.conf`:
+
+```
+parity /mnt/parity0/snapraid.parity
+
+content /var/snapraid/snapraid.content
+content /mnt/data0/snapraid.content
+content /mnt/data1/snapraid.content
+
+data d0 /mnt/data0/
+data d1 /mnt/data1/
+
+nohidden
+
+exclude /tmp/
+exclude /lost+found/
+```
+
+Now we just need to run:
+
+```bash
+snapraid sync
+```
+
+{: .note}
+> use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
+> since `snapraid sync` should not require `sudo`.
+
