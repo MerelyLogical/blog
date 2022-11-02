@@ -348,8 +348,64 @@ SG_IO: bad/missing sense data, sb[]: ...
  APM_level	= not supported
 ```
 
+Seagate drives requires `openSeaChest`:
+
+```bash
+sudo apt install make
+sudo apt install gcc
+git clone --recursive https://github.com/Seagate/openSeaChest.git
+cd openSeaChest/Make/gcc
+make release
+cd openseachest_exes
+```
+
+Now we can configure the power modes:
+```bash
+$ sudo ./openSeaChest_PowerControl --device /dev/sdb  --EPCfeature enable
+$ sudo ./openSeaChest_PowerControl --device /dev/sdb  --idle_a 1000 --idle_b 120000 --idle_c 300000 --standby_z 900000
+```
+
+To check that the current setting:
+```bash
+$ sudo ./openSeaChest_PowerControl -d /dev/sdb --showEPCSettings
+==========================================================================================
+ openSeaChest_PowerControl - openSeaChest drive utilities - NVMe Enabled
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_PowerControl Version: 3.2.0-3_2_1 X86_64
+ Build Date: [---------]
+ Today: [----------------------]	User: root
+==========================================================================================
+
+/dev/sg1 - ST4000[-----------]2[----] - ATA
+
+
+===EPC Settings===
+	* = timer is enabled
+	C column = Changeable
+	S column = Savable
+	All times are in 100 milliseconds
+
+Name       Current Timer Default Timer Saved Timer   Recovery Time C S
+Idle A     *10           *10           *10           1             Y Y
+Idle B     *1200         *6000         *1200         4             Y Y
+Idle C     *3000          18000        *3000         25            Y Y
+Standby Z  *9000          0            *9000         55            Y Y
+```
+
+The drive's electronics will enter power saving mode in 1 second,
+heads will unload in 2 minutes, RPM will reduce at 5 minutes, and stop at 15 minutes.
+
+To check the current power mode:
+```bash
+$ sudo ./openSeaChest_PowerControl -d /dev/sdb --checkPowerMode
+```
+
+To check the number of start/stop and load/unload cycles:
+```bash
+$ sudo ./openSeaChest_SMART -d /dev/sdb --smartAttributes raw | grep  -E "Start/Stop|Load-Unload"
+```
+
 {: .todo}
-> `$ sudo hdparm -y /dev/sdb` works in putting the drive in standby.
-> looks like I need `openSeaChest` to put this on a timer?
-> there's also a low current spin up feature, to investigate.
+> there's also a low current spin up feature, but that's mostly used to prevent current spike when you spin up
+> too many drives at the same time.
 
