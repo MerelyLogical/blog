@@ -309,3 +309,47 @@ snapraid sync
 > use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
 > since `snapraid sync` should not require `sudo`.
 
+
+# Configure disk spin down
+
+Although spinning the disks up and down repeatedly causes more wear and tear than keeping it spinning,
+if the drives are not used for a long time it can still be beneficial as it will reduce power consumption and noise.
+
+Set the auto spin down timer to 10 minutes:
+
+```bash
+$ sudo hdparm -S 120 /dev/sda
+$ sudo hdparm -S 120 /dev/sdb
+$ sudo hdparm -S 120 /dev/sdc
+```
+
+Nothing spinned down after 10 minutes, and the culprit is Advanced Power Management.
+APM levels above 128 does not allow drives to spin down.
+
+```bash
+$ sudo hdparm -B /dev/sda
+
+/dev/sda:
+ APM_level	= 254
+$ sudo hdparm -B 127 /dev/sda
+
+/dev/sda:
+ setting Advanced Power Management level to 0x7f (127)
+ APM_level	= 127
+```
+
+However, this doesn't work on the Seagate drives:
+
+```bash
+$ sudo hdparm -B 127 /dev/sdb
+/dev/sdb:
+ setting Advanced Power Management level to 0x7f (127)
+SG_IO: bad/missing sense data, sb[]: ...
+ APM_level	= not supported
+```
+
+{: .todo}
+> `$ sudo hdparm -y /dev/sdb` works in putting the drive in standby.
+> looks like I need `openSeaChest` to put this on a timer?
+> there's also a low current spin up feature, to investigate.
+
