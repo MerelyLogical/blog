@@ -40,6 +40,17 @@ $ sudo hdparm -B 127 /dev/sda
  APM_level	= 127
 ```
 
+It looks like `hdparm` settings is not persistent after reboot.
+To fix it, add this to `/etc/hdparm.conf`:
+
+```
+/dev/disk/by-id/ata-HGST_[----------------] {
+        apm = 127
+        spindown_time = 96
+}
+```
+
+
 However, this doesn't work on the Seagate drives:
 
 ```bash
@@ -110,7 +121,6 @@ $ sudo ./openSeaChest_SMART -d /dev/sdb --smartAttributes raw | grep  -E "Start/
 {: .todo}
 > there's also a low current spin up feature, but that's mostly used to prevent current spike when you spin up
 > too many drives at the same time.
-
 
 # Setting up Prometheus
 
@@ -366,3 +376,8 @@ AccuracySec=1
 WantedBy=timers.target
 ```
 
+To enable HDD temperatures in `hwmon`:
+
+```bash
+sudo modprobe drivetemp
+```
