@@ -28,3 +28,5 @@ Welcome! You've found the best website on the internet!
 [Pi Player](pages/pixels)
 
 [NAS Build Log](pages/nas/nas)
+
+[Pi Calculator](pages/picalc)
