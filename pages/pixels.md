@@ -6,6 +6,7 @@ nav_order: 8
 
 {: .fs-6}
 Pi Player made in JS from scratch
+Kinda broken, replacement here: https://github.com/JiZhang495/wavemusic
 
 Press play to start a new playing cursor
 
