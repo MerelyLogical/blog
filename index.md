@@ -30,3 +30,5 @@ Welcome! You've found the best website on the internet!
 [NAS Build Log](pages/nas/nas)
 
 [Pi Calculator](pages/picalc)
+
+[Pinyin Chart](pages/pinyin)
