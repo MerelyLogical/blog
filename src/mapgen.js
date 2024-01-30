@@ -2,10 +2,15 @@ var graph = document.getElementById("map");
 
 var height = 500;
 var width = 600;
-var size = 30;
+var size = 10;
 
 var nodes = [];
 var edges = [];
+var dist_matrix = [];
+
+// 1. generate random nodes
+// 2. calculate distance between all nodes
+// 3. randomly add edges between the nodes, prioritising ones with shorter distance
 
 class Node {
     constructor(x, y) {
@@ -20,15 +25,26 @@ function generateGraph() {
         let randx = Math.random();
         let randy = Math.random();
         nodes.push(new Node(randx, randy));
+
+        let dists = Array(size).fill(-1);
+        for (let j = 0; j < i; j++) {
+            let dist = Math.sqrt(((randx - nodes[j].x) ** 2) + (randy - nodes[j].y) ** 2);
+            dists[j] = dist;
+        }
+        dist_matrix.push(dists);
     }
 
     // generate edges
-    // this can generate duplicate edges
-    // consider searching for nearest point in a cone to generate realistic maps
     for (let i = 0; i < size; i++) {
-        let a = Math.floor(Math.random() * size);
-        let b = Math.floor(Math.random() * size);
-        edges.push([a, b]);
+        for (let j = 0; j < i; j++) {
+            // linear probability. consider using Sigmoid?
+            let roll = Math.random() / 1.8;
+            let threshold = dist_matrix[i][j] / Math.sqrt(2);
+            console.log(i, j, roll, threshold, roll > threshold);
+            if (roll > threshold) {
+                edges.push([i, j]);
+            }
+        }
     }
 }
 
@@ -54,6 +70,11 @@ function drawGraph() {
 }
 
 function main() {
+    nodes = [];
+    edges = [];
+    dist_matrix = [];
+    graph.innerHTML = "";
     generateGraph();
+    console.log(dist_matrix);
     drawGraph();
 }
