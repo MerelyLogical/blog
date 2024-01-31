@@ -223,7 +223,15 @@ GEM
     mutex_m (0.2.0)
     net-http (0.4.1)
       uri
+    nokogiri (1.16.0-aarch64-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.0-arm-linux)
+      racc (~> 1.4)
     nokogiri (1.16.0-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.0-x86-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.0-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.16.0-x86_64-linux)
       racc (~> 1.4)
@@ -266,8 +274,11 @@ GEM
     webrick (1.8.1)
 
 PLATFORMS
-  arm64-darwin-21
-  arm64-darwin-22
+  aarch64-linux
+  arm-linux
+  arm64-darwin
+  x86-linux
+  x86_64-darwin
   x86_64-linux
 
 DEPENDENCIES
@@ -277,4 +288,4 @@ DEPENDENCIES
   webrick (~> 1.7)
 
 BUNDLED WITH
-   2.2.11
+   2.5.5
