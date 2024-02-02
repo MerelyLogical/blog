@@ -1,10 +1,11 @@
 var graph = document.getElementById("map");
 
-var size = 5;
+var size = 25;
 
 var nodes = [];
 var edges = [];
 var dist_matrix = [];
+var solution = [];
 
 var start;
 var goal;
@@ -12,6 +13,12 @@ var goal;
 // 1. generate random nodes
 // 2. calculate distance between all nodes
 // 3. randomly add edges between the nodes, prioritising ones with shorter distance and with fewer connections
+
+// TODO:
+// make start and goal more interesting -> force 2 points at far edges of the map?
+// make maps more interesting?
+// visualise pathfinding process?
+// error message to user + allow user config parameters
 
 class Node {
     constructor(x, y, visited=false, search_dist=999, search_last=999) {
@@ -43,7 +50,7 @@ function generateGraph() {
         let connections = 0;
         for (let j = 0; j < i; j++) {
             // probability linear against distance and number of existing connections. consider using Sigmoid?
-            let roll = Math.random() / 1.2;
+            let roll = Math.random() / 2.5;
             let threshold = (dist_matrix[i][j] / Math.sqrt(2)) + (connections / size);
             // console.log(i, j, roll, threshold, roll > threshold);
             if (roll > threshold) {
@@ -98,6 +105,7 @@ function findPath() {
 
         // stop if we have reached the goal node
         if (visiting_node == goal) {break;}
+        if (nodes[visiting_node].visited) {break;}
 
         // visit all neighbours and update if a shorter path is found
         for (let i = 0; i < size; i++) {
@@ -118,6 +126,16 @@ function findPath() {
     }
 
     console.log(nodes);
+}
+
+function connectPath() {
+    let current_node = goal;
+    while (current_node != start && current_node != 999) {
+        let next_node = nodes[current_node].search_last;
+        solution.push([current_node, next_node]);
+        current_node = next_node;
+    }
+    console.log(solution);
 }
 
 function drawGraph() {
@@ -148,15 +166,33 @@ function drawGraph() {
         newLine.setAttribute("stroke-width", 0.003)
         graph.appendChild(newLine);
     }
+
+    // just draw thicker line over old edges cause i'm lazy
+    if (solution[solution.length - 1][1] != start) {
+        console.log("no solutions found");
+    } else {
+        for (edge of solution) {
+            let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+            newLine.setAttribute("x1", nodes[edge[0]].x);
+            newLine.setAttribute("y1", nodes[edge[0]].y);
+            newLine.setAttribute("x2", nodes[edge[1]].x);
+            newLine.setAttribute("y2", nodes[edge[1]].y);
+            newLine.setAttribute("stroke", "#00AAAA")
+            newLine.setAttribute("stroke-width", 0.005)
+            graph.appendChild(newLine);
+        }
+    }
 }
 
 function main() {
     nodes = [];
     edges = [];
     dist_matrix = [];
+    solution = [];
     graph.innerHTML = "";
 
     generateGraph();
     findPath();
+    connectPath();
     drawGraph();
 }
