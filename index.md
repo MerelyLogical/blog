@@ -32,3 +32,5 @@ Welcome! You've found the best website on the internet!
 [Pi Calculator](pages/picalc)
 
 [Pinyin Chart](pages/pinyin)
+
+[Random Map Pathfinding](pages/mapgen)
