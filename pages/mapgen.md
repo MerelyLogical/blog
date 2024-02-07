@@ -1,11 +1,11 @@
 ---
-title: Random Map Generator
+title: Random Map Pathfinding
 layout: post
 nav_order: 12
 ---
 
 {: .fs-6}
-Random Map Generator
+Random Map Pathfinding
 
 <button id="calc" onclick="main()">Generate</button>
 
