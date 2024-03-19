@@ -34,3 +34,6 @@ Welcome! You've found the best website on the internet!
 [Pinyin Chart](pages/pinyin)
 
 [Random Map Pathfinding](pages/mapgen)
+
+[Stock Market Simulator](pages/marketsim)
+
