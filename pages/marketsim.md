@@ -14,6 +14,7 @@ Stock price is currently: £<span id="price"></span>
 
 You have: £<span id="balance"></span> and <span id="shares"></span> shares
 
-<svg id="graph" viewBox="0 0 1 1"></svg>
+<canvas id="graph" style="width:100%"></canvas>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 <script type="text/javascript" src="../src/marketsim.js"></script>
