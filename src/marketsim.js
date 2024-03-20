@@ -7,7 +7,7 @@
 // [ ] mark points of buy/sell
 // [x] add possibility of loaning? and paying interest per tick
 // [x] loan limit? -> set LTV(loan to value) to 60%?
-// [ ] format html, tabulate all the info
+// [x] format html, tabulate all the info
 // [ ] link i rates to html
 // [ ] add economy cycle? a small background sine wave + general inflation
 // [ ] allow pennies -> imagine doing this is £sd then calling it victorian simulator lol
@@ -51,7 +51,6 @@ let chart = new Chart("graph", {
             label: "Average cost",
             data: [],
             borderColor: "green",
-            showLine: false,
             fill: false
         }]
     },
@@ -86,7 +85,7 @@ function reset() {
 
     chart.data.labels = [0];
     chart.data.datasets[0].data = [100];
-    chart.data.datasets[1].data = [100];
+    chart.data.datasets[1].data = [null];
     chart.update();
 }
 
@@ -106,7 +105,11 @@ function step() {
     }
     chart.data.labels.push(tick);
     chart.data.datasets[0].data.push(price);
-    chart.data.datasets[1].data.push(avg_cost);
+    if (shares > 0) {
+        chart.data.datasets[1].data.push(avg_cost);
+    } else {
+        chart.data.datasets[1].data.push(null);
+    }
     chart.update();
 }
 
