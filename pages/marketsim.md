@@ -12,7 +12,20 @@ Stock price is currently: £<span id="price"></span>
 <button id="buy" onclick="buy()">buy</button>
 <button id="sell" onclick="sell()">sell</button>
 
-You have: £<span id="balance"></span> and <span id="shares"></span> shares
+Cash: £<span id="cash"></span>
+Shares: <span id="shares"></span>
+Average cost: £<span id="avg_cost"></span>
+Networth: £<span id="networth"></span>
+
+---
+
+Bank
+
+<button id="borrow" onclick="borrow()">borrow</button>
+<button id="save" onclick="save()">save</button>
+
+Savings: £<span id="savings"></span>
+Loan: £<span id="loan"></span>
 
 <canvas id="graph" style="width:100%"></canvas>
 
