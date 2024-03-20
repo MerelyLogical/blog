@@ -19,10 +19,17 @@ Networth: £<span id="networth"></span>
 
 ---
 
-Bank
+Bank will only allow you to borrow up to 60% of your networth.
+
+Loan interest rate 0.05% per tick
 
 <button id="borrow" onclick="borrow()">borrow</button>
+<button id="repay" onclick="repay()">repay</button>
+
+Savings interest rate 0.01% per tick
+
 <button id="save" onclick="save()">save</button>
+<button id="withdraw" onclick="withdraw()">withdraw</button>
 
 Savings: £<span id="savings"></span>
 Loan: £<span id="loan"></span>

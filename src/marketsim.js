@@ -6,12 +6,13 @@
 // [x] draw prices on graph
 // [ ] mark points of buy/sell
 // [x] add possibility of loaning? and paying interest per tick
-// [ ] loan limit?
+// [x] loan limit? -> set LTV(loan to value) to 60%?
+// [ ] format html, tabulate all the info
+// [ ] link i rates to html
 // [ ] add economy cycle? a small background sine wave + general inflation
 // [ ] allow pennies -> imagine doing this is £sd then calling it victorian simulator lol
 // [ ] remove all the floating point maths
 // [ ] allow more buying/selling methods, limit orders etc
-// [ ] format html
 
 const graph = document.getElementById("graph");
 
@@ -24,6 +25,7 @@ const doc_savings = document.getElementById("savings");
 const doc_loan = document.getElementById("loan");
 
 const history_limit = 200;
+const ltv           = 0.60;
 const loan_rate     = 0.0005;
 const savings_rate  = 0.0001;
 
@@ -81,6 +83,7 @@ function writedocvar() {
 
 function reset() {
     writedocvar();
+
     chart.data.labels = [0];
     chart.data.datasets[0].data = [100];
     chart.data.datasets[1].data = [100];
@@ -132,10 +135,36 @@ function save() {
     }
 }
 
+function withdraw() {
+    if (savings >= 100) {
+        cash += 100;
+        savings -= 100;
+        writedocvar();
+    } else if (0 < savings < 100) {
+        cash += savings;
+        savings = 0;
+        writedocvar();
+    }
+}
+
 function borrow() {
-    loan += 100;
-    cash += 100;
-    writedocvar();
+    if (loan + 100 <= networth * ltv) {
+        cash += 100;
+        loan += 100;
+        writedocvar();
+    }
+}
+
+function repay() {
+    if (cash >= 100 && loan >= 100) {
+        cash -= 100;
+        loan -= 100;
+        writedocvar();
+    } else if (0 < loan < 100) {
+        cash -= loan;
+        loan = 0;
+        writedocvar();
+    }
 }
 
 reset();
