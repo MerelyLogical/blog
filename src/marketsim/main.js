@@ -9,13 +9,13 @@
 // [x] loan limit? -> set LTV(loan to value) to 60%?
 // [x] format html, tabulate all the info
 // [x] link i rates to html
-// [ ] add economy cycle? a small background sine wave + general inflation
+// [ ] add economy cycle? a small background sine wave + general inflation -> game is boring if its purely random
 // [ ] model inflation a bit better lolz
 // [ ] allow pennies -> imagine doing this is £sd then calling it victorian simulator lol
 // [ ] remove all the floating point maths
 // [ ] allow more buying/selling methods, limit orders etc
 // [ ] progression?
-// [ ] split files
+// [x] split files
 // [ ] keyboard shortcuts
 
 const doc_networth = document.getElementById("networth");
@@ -24,24 +24,24 @@ const doc_bank     = document.getElementById("bankhtml");
 
 const history_limit = 365;
 const ltv           = 0.60;
-const inflation     = 0.00010;
-const loan_rate     = 0.00020;
-const savings_rate  = 0.00007;
+const inflation     = 0.00015;
+const loan_rate     = 0.00030;
+const savings_rate  = 0.00010;
 
 let game_state = {grind: true, market: false, bank: false};
-let chart;
+let stock_chart, net_chart, p_inter;
 
-let price    = 100;
-let cash     = 1000;
+let price    = 10;
+let cash     = 0;
 let shares   = 0;
-let avg_cost = price;
+let avg_cost = 0;
 let tick     = 0;
-let networth = cash;
+let networth = 0;
 let savings  = 0;
 let loan     = 0;
 
 function initialiseChart() {
-    chart = new Chart("graph", {
+    stock_chart = new Chart("stock_chart", {
         type: "line",
         data: {
             labels: [],
@@ -66,10 +66,33 @@ function initialiseChart() {
         }
     });
 
-    chart.data.labels = [0];
-    chart.data.datasets[0].data = [100];
-    chart.data.datasets[1].data = [null];
-    chart.update();
+    stock_chart.data.labels = [0];
+    stock_chart.data.datasets[0].data = [price];
+    stock_chart.data.datasets[1].data = [null];
+    stock_chart.update();
+
+    net_chart = new Chart("networth_chart", {
+        type: "line",
+        data: {
+            labels: [],
+            datasets: [{
+                label: "Stock price",
+                data: [],
+                borderColor: "green",
+                radius: 0,
+                fill: false
+            }]
+        },
+        options: {
+            legend: {display: false},
+            tooltips: {enabled: false},
+            hover: {mode: null}
+        }
+    });
+
+    net_chart.data.labels = [0];
+    net_chart.data.datasets[0].data = [networth];
+    net_chart.update();
 }
 
 // Standard Normal variate using Box-Muller transform
@@ -85,7 +108,7 @@ function initialiseDoc() {
     doc_networth.innerText = networth.toFixed(2);
 
     let stockhtml = `
-        <canvas id="graph" style="width:100%"></canvas>
+        <canvas id="stock_chart" style="width:100%"></canvas>
         <p>
             <button id="buy" onclick="buy()">buy</button>
             <button id="sell" onclick="sell()">sell</button>
@@ -101,6 +124,7 @@ function initialiseDoc() {
             </table>
         </div>
     `
+    doc_stock.style.display = "none";
     doc_stock.innerHTML = stockhtml;
 
     let bankhtml = `
@@ -122,6 +146,7 @@ function initialiseDoc() {
         </div>
     `;
 
+    doc_bank.style.display = "none";
     doc_bank.innerHTML = bankhtml;
 }
 
@@ -142,24 +167,30 @@ function reset() {
 
 function refreshchart() {
     if (tick > history_limit) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-        chart.data.datasets[1].data.shift();
+        stock_chart.data.labels.shift();
+        stock_chart.data.datasets[0].data.shift();
+        stock_chart.data.datasets[1].data.shift();
+        net_chart.data.labels.shift();
+        net_chart.data.datasets[0].data.shift();
     }
-    chart.data.labels.push(tick);
-    chart.data.datasets[0].data.push(price);
+    stock_chart.data.labels.push(tick);
+    stock_chart.data.datasets[0].data.push(price);
+    net_chart.data.labels.push(tick);
+    net_chart.data.datasets[0].data.push(networth);
     if (shares > 0) {
-        chart.data.datasets[1].data.push(avg_cost);
+        stock_chart.data.datasets[1].data.push(avg_cost);
     } else {
-        chart.data.datasets[1].data.push(null);
+        stock_chart.data.datasets[1].data.push(null);
     }
-    chart.update();
+    stock_chart.update();
+    net_chart.update();
 }
 
 function step() {
     tick++;
-    price += gaussianRandom();
+    price += gaussianRandom()/2;
     price *= 1+inflation;
+    if (price < 0) {price = 0};
     networth = cash + shares * price + savings - loan;
     savings *= 1 + savings_rate;
     loan    *= 1 + loan_rate;
@@ -167,67 +198,19 @@ function step() {
     refreshchart();
 }
 
-function buy() {
-    if (cash - price >= 0) {
-        cash -= price;
-        avg_cost = (avg_cost * shares + price * 1) / (shares + 1);
-        shares++;
-        refreshDoc();
+function progress() {
+    if (!game_state.market && networth > 20) {
+        game_state.market = true;
+        doc_stock.style.display = "block";
     }
-}
-
-function sell() {
-    if (shares > 0) {
-        cash += price;
-        shares--;
-        refreshDoc();
+    if (game_state.market && !game_state.bank && networth > 100) {
+        game_state.bank = true;
+        doc_bank.style.display = "block";
+        clearInterval(p_inter);
     }
-}
-
-function save() {
-    if (cash >= 100) {
-        cash -= 100;
-        savings += 100;
-        refreshDoc();
-    }
-}
-
-function withdraw() {
-    if (savings >= 100) {
-        cash += 100;
-        savings -= 100;
-        refreshDoc();
-    } else if (0 < savings < 100) {
-        cash += savings;
-        savings = 0;
-        refreshDoc();
-    }
-}
-
-function borrow() {
-    if (loan + 100 <= networth * ltv) {
-        cash += 100;
-        loan += 100;
-        refreshDoc();
-    }
-}
-
-function repay() {
-    if (cash >= 100 && loan >= 100) {
-        cash -= 100;
-        loan -= 100;
-        refreshDoc();
-    } else if (cash >= loan && 0 < loan < 100) {
-        cash -= loan;
-        loan = 0;
-        refreshDoc();
-    }
-}
-
-function grind() {
-    cash++;
-    refreshDoc();
+    console.log(game_state);
 }
 
 reset();
 setInterval(step, 200);
+p_inter = setInterval(progress, 5000);
