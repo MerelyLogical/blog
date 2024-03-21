@@ -16,6 +16,7 @@
 // [ ] allow more buying/selling methods, limit orders etc
 // [ ] progression?
 // [ ] split files
+// [ ] keyboard shortcuts
 
 const doc_networth = document.getElementById("networth");
 const doc_stock    = document.getElementById("stockhtml");
@@ -158,7 +159,7 @@ function refreshchart() {
 function step() {
     tick++;
     price += gaussianRandom();
-    price *= 1+inflation; // inflation?
+    price *= 1+inflation;
     networth = cash + shares * price + savings - loan;
     savings *= 1 + savings_rate;
     loan    *= 1 + loan_rate;
@@ -216,7 +217,7 @@ function repay() {
         cash -= 100;
         loan -= 100;
         refreshDoc();
-    } else if (0 < loan < 100) {
+    } else if (cash >= loan && 0 < loan < 100) {
         cash -= loan;
         loan = 0;
         refreshDoc();
