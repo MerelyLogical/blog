@@ -5,9 +5,13 @@ nav_order: 14
 ---
 
 {: .fs-6}
-A physics engine made in JS from scratch
+Ball bouncing physics simulator
 
 Needs keyboard with arrowkeys to play.
+
+Brownian motion: <input type="checkbox" id="brownian">
+Wall wrap: <input type="checkbox" id="wrap">
+Gravity: <input type="checkbox" id="gravity">
 
 <svg id="screen" viewBox="0 0 1 1"></svg>
 

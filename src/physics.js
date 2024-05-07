@@ -1,9 +1,15 @@
 const s = document.getElementById("screen");
-const ARROW_ACC = 0.0003;
-const FRICTION_FACTOR = 1.012;
+const ARROW_ACC = 0.0002;
+const FRICTION_FACTOR = 1.015;
 const BALL_RADIUS = 0.006;
-const EPSILON = 0.05;
-const COR = 0.75;
+const EPSILON = 0.08;
+const COR = 0.80;
+const GRAVITY = 0.00004;
+const BROWNIAN_V = 0.0002;
+
+// TODO:
+// really laggy, find optimisations
+// maybe use other graphics, parallelisation(?), use GPU(???)
 
 class Point {
     constructor(x, y, vx, vy, c) {
@@ -29,6 +35,9 @@ class Point {
 var input = { left: false, right: false, up: false, down: false };
 
 document.addEventListener('keydown', (e) => {
+    if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].indexOf(e.code) > -1) {
+        e.preventDefault();
+    }
     switch (e.key) {
         case "ArrowLeft": input.left = true; break;
         case "ArrowRight": input.right = true; break;
@@ -49,10 +58,16 @@ document.addEventListener('keyup', (e) => {
 // Physics
 function movePoint(pt) {
 
-    // random nudge for brownian motion?
-    // pt.vx += (Math.random()-0.5) * EPSILON;
-    // pt.vy += (Math.random()-0.5) * EPSILON;
-    
+    let en_brownian = document.getElementById("brownian");
+    let en_wrap = document.getElementById("wrap");
+    let en_gravity = document.getElementById("gravity");
+
+    // random nudge for brownian motion
+    if (en_brownian.checked) {
+        pt.vx += (Math.random()-0.5) * BROWNIAN_V;
+        pt.vy += (Math.random()-0.5) * BROWNIAN_V;
+    }
+
     // velocity
     if (input.left) { pt.vx -= ARROW_ACC; }
     if (input.right) { pt.vx += ARROW_ACC; }
@@ -60,18 +75,42 @@ function movePoint(pt) {
     if (input.down) { pt.vy += ARROW_ACC; }
     pt.x += pt.vx;
     pt.y += pt.vy;
+
     // friction
     pt.vx = pt.vx / FRICTION_FACTOR;
     pt.vy = pt.vy / FRICTION_FACTOR;
 
-    // walls reflect
-    if (pt.x < BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = BALL_RADIUS; };
-    if (pt.x > 1-BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = 1-BALL_RADIUS; };
-    if (pt.y < BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = BALL_RADIUS; };
-    if (pt.y > 1-BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = 1-BALL_RADIUS; };
+    // gravity
+    if (en_gravity.checked) {pt.vy += GRAVITY};
+
+    if (en_wrap.checked){
+        // walls wrap
+        if (pt.x < BALL_RADIUS) {pt.x += 1; };
+        if (pt.x > 1-BALL_RADIUS) {pt.x -= 1; };
+        if (pt.y < BALL_RADIUS) {pt.y += 1; };
+        if (pt.y > 1-BALL_RADIUS) {pt.y -= 1; };
+    } else {
+        // walls reflect
+        // buggy? sometimes balls get stuck on ceilling?
+        if (pt.x < BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = BALL_RADIUS; };
+        if (pt.x > 1-BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = 1-BALL_RADIUS; };
+        if (pt.y < BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = BALL_RADIUS; };
+        if (pt.y > 1-BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = 1-BALL_RADIUS; };
+    }
 
     pt.el.setAttribute("cx", pt.x);
     pt.el.setAttribute("cy", pt.y);
+}
+
+// collision velocity calculator
+// v1 = v1 - ((dot(v1-v2, x1-x2) / |x1-x2|*2) * (x1-x2))
+// v2 = v2 - ((dot(v2-v1, x2-x1) / |x2-x1|*2) * (x2-x1))
+function colvcalc(p1, p2) {
+    let num = ((p1.vx-p2.vx)*(p1.x-p2.x)) + ((p1.vy-p2.vy)*(p1.y-p2.y));
+    let denom = (p1.x-p2.x)**2 + (p1.y-p2.y)**2;
+    let xfact = p1.x-p2.x;
+    let yfact = p1.y-p2.y;
+    return [xfact*num/denom, yfact*num/denom];
 }
 
 function collision(current, others) {
@@ -96,13 +135,12 @@ function collision(current, others) {
                 other.y += overlap*EPSILON;
             }
 
-            // swap v in perfect elastic collisions, but direction change needs more calculations
-            let tempx = current.vx;
-            let tempy = current.vy;
-            current.vx = other.vx;
-            current.vy = other.vy;
-            other.vx = tempx;
-            other.vy = tempy;
+            let tempcurrent = colvcalc(current, other);
+            let tempother = colvcalc(other, current);
+            current.vx -= tempcurrent[0];
+            current.vy -= tempcurrent[1];
+            other.vx -= tempother[0];
+            other.vy -= tempother[1];
         }
     })
 }
@@ -121,8 +159,8 @@ function init() {
 
 var pts = [];
 
-for (let i = 0; i < 250; i++) {
-    
+for (let i = 0; i < 750; i++) {
+
     pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 
