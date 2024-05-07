@@ -5,9 +5,9 @@ nav_order: 14
 ---
 
 {: .fs-6}
-Ball bouncing physics simulator
+Ball Bouncing Physics Simulator
 
-Needs keyboard with arrowkeys to play.
+Play with arrowkeys. Arrow key scrolling should be disabled.
 
 Brownian motion: <input type="checkbox" id="brownian">
 Wall wrap: <input type="checkbox" id="wrap">
