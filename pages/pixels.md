@@ -1,7 +1,8 @@
 ---
 title: Pi Player
 layout: post
-nav_order: 8
+nav_exclude: true
+search_exclude: true
 ---
 
 {: .fs-6}

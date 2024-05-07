@@ -25,8 +25,6 @@ Welcome! You've found the best website on the internet!
 
 [Aruaru Quiz](pages/aruaru)
 
-[Pi Player](pages/pixels)
-
 [NAS Build Log](pages/nas/nas)
 
 [Pi Calculator](pages/picalc)
@@ -37,3 +35,8 @@ Welcome! You've found the best website on the internet!
 
 [Stock Market Simulator](pages/marketsim)
 
+[Physics Engine](pages/physics)
+
+# Archived Ideas
+
+[Pi Player](pages/pixels)
