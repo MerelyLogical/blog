@@ -1,16 +1,9 @@
 const s = document.getElementById("screen");
-const ARROW_ACC = 0.0004;
-const FRICTION_FACTOR = 1.01;
-
-let border = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-border.setAttribute("width", 1);
-border.setAttribute("height", 1);
-border.setAttribute("x", 0);
-border.setAttribute("y", 0);
-border.style.fill = "none";
-border.style.strokeWidth = "0.005";
-border.style.stroke = "#CCCCCC"
-s.appendChild(border);
+const ARROW_ACC = 0.0003;
+const FRICTION_FACTOR = 1.012;
+const BALL_RADIUS = 0.006;
+const EPSILON = 0.05;
+const COR = 0.75;
 
 class Point {
     constructor(x, y, vx, vy, c) {
@@ -25,18 +18,14 @@ class Point {
         let node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         node.setAttribute("cx", x);
         node.setAttribute("cy", y);
-        node.setAttribute("r", 0.005);
+        node.setAttribute("r", BALL_RADIUS);
         node.style.fill = c;
         s.appendChild(node);
         return node;
     }
 }
 
-function refreshCircle(p) {
-    p.el.setAttribute("cx", p.x);
-    p.el.setAttribute("cy", p.y);
-}
-
+// Keyboard input handling
 var input = { left: false, right: false, up: false, down: false };
 
 document.addEventListener('keydown', (e) => {
@@ -57,13 +46,13 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-
-var pt1 = new Point(0.5, 0.5, 0, 0, "#AAAAAA");
-var pt2 = new Point(0.5, 0.3, 0, 0, "#33AA33");
-
-pts = [pt1, pt2];
-
+// Physics
 function movePoint(pt) {
+
+    // random nudge for brownian motion?
+    // pt.vx += (Math.random()-0.5) * EPSILON;
+    // pt.vy += (Math.random()-0.5) * EPSILON;
+    
     // velocity
     if (input.left) { pt.vx -= ARROW_ACC; }
     if (input.right) { pt.vx += ARROW_ACC; }
@@ -76,16 +65,73 @@ function movePoint(pt) {
     pt.vy = pt.vy / FRICTION_FACTOR;
 
     // walls reflect
-    if (pt.x < 0) { pt.vx = -pt.vx; pt.x = 0; };
-    if (pt.x > 1) { pt.vx = -pt.vx; pt.x = 1; };
-    if (pt.y < 0) { pt.vy = -pt.vy; pt.y = 0; };
-    if (pt.y > 1) { pt.vy = -pt.vy; pt.y = 1; };
+    if (pt.x < BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = BALL_RADIUS; };
+    if (pt.x > 1-BALL_RADIUS) { pt.vx = -pt.vx * COR; pt.x = 1-BALL_RADIUS; };
+    if (pt.y < BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = BALL_RADIUS; };
+    if (pt.y > 1-BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = 1-BALL_RADIUS; };
 
-    refreshCircle(pt);
+    pt.el.setAttribute("cx", pt.x);
+    pt.el.setAttribute("cy", pt.y);
+}
+
+function collision(current, others) {
+    others.forEach((other) => {
+        let dist = Math.sqrt((current.x-other.x)**2 + (current.y-other.y)**2);
+        let overlap = 2*BALL_RADIUS - dist;
+        if (overlap > 0) {
+            // very coarse way of nudging the balls away from each other first
+            if (current.x > other.x) {
+                current.x += overlap*EPSILON;
+                other.x -= overlap*EPSILON;
+            } else {
+                current.x -= overlap*EPSILON;
+                other.x += overlap*EPSILON;
+            }
+
+            if (current.y > other.y) {
+                current.y += overlap*EPSILON;
+                other.y -= overlap*EPSILON;
+            } else {
+                current.y -= overlap*EPSILON;
+                other.y += overlap*EPSILON;
+            }
+
+            // swap v in perfect elastic collisions, but direction change needs more calculations
+            let tempx = current.vx;
+            let tempy = current.vy;
+            current.vx = other.vx;
+            current.vy = other.vy;
+            other.vx = tempx;
+            other.vy = tempy;
+        }
+    })
+}
+
+function init() {
+    let border = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    border.setAttribute("width", 1);
+    border.setAttribute("height", 1);
+    border.setAttribute("x", 0);
+    border.setAttribute("y", 0);
+    border.style.fill = "none";
+    border.style.strokeWidth = "0.005";
+    border.style.stroke = "#DDDDDD"
+    s.appendChild(border);
+}
+
+var pts = [];
+
+for (let i = 0; i < 250; i++) {
+    
+    pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 
 function step() {
+    for (let i = 0; i < pts.length - 1; i++) {
+        collision(pts[i], pts.slice(i+1));
+    }
     pts.forEach(movePoint);
 }
 
+init();
 setInterval(step, 10);
