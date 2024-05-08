@@ -13,7 +13,7 @@ const BROWNIAN_V = 0.0002;
 
 // TODO:
 // really laggy, find optimisations
-// maybe use other graphics, parallelisation(?), use GPU(???)
+// maybe use parallelisation(?), use GPU(???)
 
 class Point {
     constructor(x, y, vx, vy, c) {
@@ -79,10 +79,10 @@ function movePoint(pt) {
 
     if (en_wrap.checked){
         // walls wrap
-        if (pt.x < BALL_RADIUS) {pt.x += 1; };
-        if (pt.x > 1-BALL_RADIUS) {pt.x -= 1; };
-        if (pt.y < BALL_RADIUS) {pt.y += 1; };
-        if (pt.y > 1-BALL_RADIUS) {pt.y -= 1; };
+        if (pt.x < BALL_RADIUS) { pt.x += 1; };
+        if (pt.x > 1-BALL_RADIUS) { pt.x -= 1; };
+        if (pt.y < BALL_RADIUS) { pt.y += 1; };
+        if (pt.y > 1-BALL_RADIUS) { pt.y -= 1; };
     } else {
         // walls reflect
         // buggy? sometimes balls get stuck on ceilling?
@@ -143,7 +143,7 @@ function collision(current, others) {
 
 var pts = [];
 
-for (let i = 0; i < 2500; i++) {
+for (let i = 0; i < 750; i++) {
     pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 
