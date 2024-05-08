@@ -1,4 +1,8 @@
-const s = document.getElementById("screen");
+const canvas = document.getElementById("cscreen");
+const ctx = canvas.getContext("2d");
+const HEIGHT = 1000;
+const WIDTH = 1000;
+
 const ARROW_ACC = 0.0002;
 const FRICTION_FACTOR = 1.015;
 const BALL_RADIUS = 0.006;
@@ -17,18 +21,8 @@ class Point {
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.el = this.drawCircle(x, y, c);
+        this.c = c;
     };
-
-    drawCircle(x, y, c) {
-        let node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        node.setAttribute("cx", x);
-        node.setAttribute("cy", y);
-        node.setAttribute("r", BALL_RADIUS);
-        node.style.fill = c;
-        s.appendChild(node);
-        return node;
-    }
 }
 
 // Keyboard input handling
@@ -98,8 +92,10 @@ function movePoint(pt) {
         if (pt.y > 1-BALL_RADIUS) { pt.vy = -pt.vy * COR; pt.y = 1-BALL_RADIUS; };
     }
 
-    pt.el.setAttribute("cx", pt.x);
-    pt.el.setAttribute("cy", pt.y);
+    ctx.beginPath();
+    ctx.arc(pt.x*WIDTH, pt.y*HEIGHT, BALL_RADIUS*WIDTH, 0, 2 * Math.PI);
+    ctx.fillStyle = pt.c;
+    ctx.fill();
 }
 
 // collision velocity calculator
@@ -145,31 +141,24 @@ function collision(current, others) {
     })
 }
 
-function init() {
-    let border = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    border.setAttribute("width", 1);
-    border.setAttribute("height", 1);
-    border.setAttribute("x", 0);
-    border.setAttribute("y", 0);
-    border.style.fill = "none";
-    border.style.strokeWidth = "0.005";
-    border.style.stroke = "#DDDDDD"
-    s.appendChild(border);
-}
-
 var pts = [];
 
-for (let i = 0; i < 750; i++) {
-
+for (let i = 0; i < 2500; i++) {
     pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 
 function step() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    ctx.beginPath();
+    ctx.lineWidth = "5";
+    ctx.strokeStyle = "#DDDDDD";
+    ctx.rect(0, 0, WIDTH, HEIGHT);
+    ctx.stroke();
     for (let i = 0; i < pts.length - 1; i++) {
         collision(pts[i], pts.slice(i+1));
     }
     pts.forEach(movePoint);
 }
 
-init();
 setInterval(step, 10);
+

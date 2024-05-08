@@ -13,6 +13,7 @@ Brownian motion: <input type="checkbox" id="brownian">
 Wall wrap: <input type="checkbox" id="wrap">
 Gravity: <input type="checkbox" id="gravity">
 
-<svg id="screen" viewBox="0 0 1 1"></svg>
+<canvas id='cscreen' height=1000 width=1000 style="width:100%; height:100%; margin:0"></canvas>
 
 <script type="text/javascript" src="../src/physics.js"></script>
+
