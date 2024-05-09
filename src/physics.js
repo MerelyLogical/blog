@@ -13,6 +13,9 @@ const BROWNIAN_V = 0.0002;
 
 var input = { left: false, right: false, up: false, down: false };
 var pts = [];
+// very hacky way of calculating sdv
+var sdv = 0;
+var cnt = 0;
 
 // TODO:
 // really laggy, find optimisations
@@ -55,17 +58,20 @@ document.addEventListener('keyup', (e) => {
 // Physics
 function movePoint(pt) {
 
-    let en_brownian = document.getElementById("brownian");
+    let en_heater   = document.getElementById("heater");
+    let en_friction = document.getElementById("freezer");
     let en_wrap     = document.getElementById("wrap");
+    let en_ewall    = document.getElementById("elasticwall");
     let en_gravity  = document.getElementById("gravity");
 
-    // random speed change for brownian motion
-    if (en_brownian.checked) {
+    // inject random speed change for heating
+    if (en_heater.checked) {
         pt.u += (Math.random()-0.5) * BROWNIAN_V;
         pt.v += (Math.random()-0.5) * BROWNIAN_V;
     }
 
     // velocity change from player input
+    // note this is injecting more speed if pressing two directions at once
     if (input.left)  { pt.u -= ARROW_ACC; }
     if (input.right) { pt.u += ARROW_ACC; }
     if (input.up)    { pt.v -= ARROW_ACC; }
@@ -76,25 +82,34 @@ function movePoint(pt) {
     pt.y += pt.v;
 
     // friction
-    pt.u = pt.u / FRICTION_FACTOR;
-    pt.v = pt.v / FRICTION_FACTOR;
+    if (en_friction.checked) {
+        pt.u = pt.u / FRICTION_FACTOR;
+        pt.v = pt.v / FRICTION_FACTOR;
+    }
 
     // gravity
     if (en_gravity.checked) {pt.v += GRAVITY};
 
     if (en_wrap.checked){
         // walls wrap
-        if (pt.x <   BALL_RADIUS) { pt.x += 1; };
-        if (pt.x > 1-BALL_RADIUS) { pt.x -= 1; };
-        if (pt.y <   BALL_RADIUS) { pt.y += 1; };
-        if (pt.y > 1-BALL_RADIUS) { pt.y -= 1; };
+        if (pt.x <   BALL_RADIUS) { pt.x += 1; }
+        if (pt.x > 1-BALL_RADIUS) { pt.x -= 1; }
+        if (pt.y <   BALL_RADIUS) { pt.y += 1; }
+        if (pt.y > 1-BALL_RADIUS) { pt.y -= 1; }
+    } else if (en_ewall.checked) {
+        // walls are perfectly elastic
+        // consider just set COR = 1
+        if (pt.x <   BALL_RADIUS) { sdv -= 2 * pt.u; pt.u = -pt.u; pt.x =   BALL_RADIUS; }
+        if (pt.x > 1-BALL_RADIUS) { sdv += 2 * pt.u; pt.u = -pt.u; pt.x = 1-BALL_RADIUS; }
+        if (pt.y <   BALL_RADIUS) { sdv -= 2 * pt.v; pt.v = -pt.v; pt.y =   BALL_RADIUS; }
+        if (pt.y > 1-BALL_RADIUS) { sdv += 2 * pt.v; pt.v = -pt.v; pt.y = 1-BALL_RADIUS; }
     } else {
         // walls reflect
         // buggy? sometimes balls get stuck on ceilling?
-        if (pt.x <   BALL_RADIUS) { pt.u = -pt.u * COR; pt.x =   BALL_RADIUS; };
-        if (pt.x > 1-BALL_RADIUS) { pt.u = -pt.u * COR; pt.x = 1-BALL_RADIUS; };
-        if (pt.y <   BALL_RADIUS) { pt.v = -pt.v * COR; pt.y =   BALL_RADIUS; };
-        if (pt.y > 1-BALL_RADIUS) { pt.v = -pt.v * COR; pt.y = 1-BALL_RADIUS; };
+        if (pt.x <   BALL_RADIUS) { sdv -= (1+COR) * pt.u; pt.u = -pt.u * COR; pt.x =   BALL_RADIUS; }
+        if (pt.x > 1-BALL_RADIUS) { sdv += (1+COR) * pt.u; pt.u = -pt.u * COR; pt.x = 1-BALL_RADIUS; }
+        if (pt.y <   BALL_RADIUS) { sdv -= (1+COR) * pt.v; pt.v = -pt.v * COR; pt.y =   BALL_RADIUS; }
+        if (pt.y > 1-BALL_RADIUS) { sdv += (1+COR) * pt.v; pt.v = -pt.v * COR; pt.y = 1-BALL_RADIUS; }
     }
 
     // draw circle at new position
@@ -153,10 +168,25 @@ function collision(points) {
     }
 }
 
+function calcKE(points) {
+    return points.reduce((acc, pt) => acc + pt.u**2 + pt.v**2, 0.0);
+}
+
 // clean canvas -> do math -> draw new frame
 // consider decoupling draw circles and maths for the circles
 // then we can do maths -> clean -> redraw
 function step() {
+    let ke = calcKE(pts);
+    // make this into a rolling average, remove last entry and add new entry to get smooth average
+    if (cnt > 9) {
+        document.getElementById("sdv").innerHTML = (sdv/10).toFixed(5);
+        if (sdv < 0.00001) { sdv = 0; } // hacky clip
+        document.getElementById("ratio").innerHTML = (sdv/ke).toFixed(5);
+        sdv = 0;
+        cnt = 0;
+    } else {
+        cnt++;
+    }
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     collision(pts);
     pts.forEach(movePoint);
@@ -165,6 +195,7 @@ function step() {
     ctx.strokeStyle = "#DDDDDD";
     ctx.rect(0, 0, WIDTH, HEIGHT);
     ctx.stroke();
+    document.getElementById("sv2").innerHTML = ke.toFixed(5);
 }
 
 
@@ -173,4 +204,3 @@ for (let i = 0; i < 750; i++) {
     pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 setInterval(step, 10);
-
