@@ -9,7 +9,11 @@ Ball Bouncing Physics Simulator
 
 Play with arrowkeys. Arrow key scrolling should be disabled.
 
-| Σv<sup>2</sup> = <span id="sv2"></span> | Σdv on walls = <span id="sdv"></span> | ratio = <span id="ratio"></span> |
+Σv<sup>2</sup> = <span id="sv2"></span>
+
+Σdv on walls = <span id="sdv"></span>
+
+ratio = <span id="ratio"></span>
 
 | <input type="checkbox" id="heater"> Heater | <input type="checkbox" id="wrap"> Wall wrap | <input type="checkbox" id="gravity"> Gravity |
 | <input type="checkbox" id="freezer"> Freezer | <input type="checkbox" id="elasticwall"> Perfectly elastic walls |

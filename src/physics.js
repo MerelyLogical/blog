@@ -15,15 +15,12 @@ var input = { left: false, right: false, up: false, down: false };
 var pts = [];
 // very hacky way of calculating sdv
 var sdv = 0;
-var cnt = 0;
 
 // TODO:
 // really laggy, find optimisations
 // add timers to different functions and see their cumulative times?
 // maybe use parallelisation(?), use GPU(???)
 // what does requestAnimationFrame do?
-// calculate some ideal gas constant for the lolz
-// expose variables for players to mess around with. e.g. zero friction mode
 // add a height map so gravity goes into the screen not just downwards
 // potentially consider how to generate and display this height map
 
@@ -176,21 +173,20 @@ function calcKE(points) {
     return points.reduce((acc, pt) => acc + pt.u**2 + pt.v**2, 0.0);
 }
 
+var sdvs = [];
+
 // clean canvas -> do math -> draw new frame
 // consider decoupling draw circles and maths for the circles
 // then we can do maths -> clean -> redraw
 function step() {
     let ke = calcKE(pts);
-    // make this into a rolling average, remove last entry and add new entry to get smooth average
-    if (cnt > 9) {
-        document.getElementById("sdv").innerHTML = (sdv/10).toFixed(5);
-        if (sdv < 0.00001) { sdv = 0; } // hacky clip
-        document.getElementById("ratio").innerHTML = (sdv/ke).toFixed(5);
-        sdv = 0;
-        cnt = 0;
-    } else {
-        cnt++;
-    }
+    sdvs.push(sdv);
+    if (sdvs.length > 100) { sdvs.shift(); }
+    let ave_sdv = (sdvs.reduce((acc, v) => acc + v, 0.0)) / sdvs.length;
+    document.getElementById("sdv").innerHTML = ave_sdv.toFixed(5);
+    document.getElementById("ratio").innerHTML = (ave_sdv/ke).toFixed(5);
+
+    sdv = 0;
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     collision(pts);
     pts.forEach(movePoint);
@@ -204,7 +200,7 @@ function step() {
 
 
 // main function
-for (let i = 0; i < 750; i++) {
+for (let i = 0; i < 1000; i++) {
     pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
 }
 setInterval(step, 10);
