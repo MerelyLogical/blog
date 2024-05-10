@@ -22,6 +22,10 @@ var cnt = 0;
 // add timers to different functions and see their cumulative times?
 // maybe use parallelisation(?), use GPU(???)
 // what does requestAnimationFrame do?
+// calculate some ideal gas constant for the lolz
+// expose variables for players to mess around with. e.g. zero friction mode
+// add a height map so gravity goes into the screen not just downwards
+// potentially consider how to generate and display this height map
 
 class Point {
     constructor(x, y, u, v, c) {
