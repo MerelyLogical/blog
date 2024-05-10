@@ -23,6 +23,7 @@ var sdv = 0;
 // what does requestAnimationFrame do?
 // add a height map so gravity goes into the screen not just downwards
 // potentially consider how to generate and display this height map
+// how come ratio not constant?
 
 class Point {
     constructor(x, y, u, v, c) {
@@ -179,7 +180,7 @@ var sdvs = [];
 // consider decoupling draw circles and maths for the circles
 // then we can do maths -> clean -> redraw
 function step() {
-    let ke = calcKE(pts);
+    let ke = calcKE(pts) / 2.0;
     sdvs.push(sdv);
     if (sdvs.length > 100) { sdvs.shift(); }
     let ave_sdv = (sdvs.reduce((acc, v) => acc + v, 0.0)) / sdvs.length;

@@ -9,7 +9,7 @@ Ball Bouncing Physics Simulator
 
 Play with arrowkeys. Arrow key scrolling should be disabled.
 
-Σv<sup>2</sup> = <span id="sv2"></span>
+½Σv<sup>2</sup> = <span id="sv2"></span>
 
 Σdv on walls = <span id="sdv"></span>
 
