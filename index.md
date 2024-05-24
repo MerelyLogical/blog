@@ -37,6 +37,8 @@ Welcome! You've found the best website on the internet!
 
 [Physics Engine](pages/physics)
 
+[e Calculator](pages/ecalc)
+
 # Archived Ideas
 
 [Pi Player](pages/pixels)
