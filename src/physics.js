@@ -1,15 +1,51 @@
 const canvas = document.getElementById("cscreen");
-const ctx = canvas.getContext("2d");
+const ctx    = canvas.getContext("2d");
 const HEIGHT = 1000;
-const WIDTH = 1000;
+const WIDTH  = 1000;
 
-const ARROW_ACC = 0.0002;
+const ARROW_ACC       = 0.0002;
 const FRICTION_FACTOR = 1.015;
-const BALL_RADIUS = 0.006;
-const EPSILON = 0.08;
-const COR = 0.80;
-const GRAVITY = 0.00004;
-const BROWNIAN_V = 0.0002;
+const BALL_RADIUS     = 0.006;
+const EPSILON         = 0.08;
+const COR             = 0.80;
+const GRAVITY         = 0.00004;
+const BROWNIAN_V      = 0.0002;
+const TARGET_V        = 0.00005;
+
+const HEART_WIDTH     = 31;
+const HEART_HEIGHT    = 30;
+const heart ="\
+...............................\
+...............................\
+...............................\
+...............................\
+........***.........***........\
+.......*****.......*****.......\
+......*******.....*******......\
+.....*********...*********.....\
+....***********.***********....\
+...*************************...\
+...*************************...\
+...*************************...\
+...*************************...\
+...*************************...\
+...*************************...\
+....***********************....\
+.....*********************.....\
+......*******************......\
+.......*****************.......\
+........***************........\
+.........*************.........\
+..........***********..........\
+...........*********...........\
+............*******............\
+.............*****.............\
+..............***..............\
+...............*...............\
+...............................\
+...............................\
+...............................";
+
 
 var input = { left: false, right: false, up: false, down: false };
 var pts = [];
@@ -26,12 +62,14 @@ var sdv = 0;
 // how come ratio not constant?
 
 class Point {
-    constructor(x, y, u, v, c) {
+    constructor(x, y, u, v, c, tx, ty) {
         this.x = x;
         this.y = y;
         this.u = u; // velocity x component
         this.v = v; // velocity y component
         this.c = c; // colour
+        this.tx = tx; // target x
+        this.ty = ty; // target y
     };
 }
 
@@ -78,6 +116,11 @@ function movePoint(pt) {
     if (input.right) { pt.u += ARROW_ACC; }
     if (input.up)    { pt.v -= ARROW_ACC; }
     if (input.down)  { pt.v += ARROW_ACC; }
+
+    // nudge towards target direction
+    tempdist = Math.sqrt((pt.tx-pt.x)**2 + (pt.ty-pt.y)**2);
+    pt.u += (pt.tx - pt.x) * tempdist * TARGET_V;
+    pt.v += (pt.ty - pt.y) * tempdist * TARGET_V;
 
     // move point
     pt.x += pt.u;
@@ -201,7 +244,25 @@ function step() {
 
 
 // main function
-for (let i = 0; i < 1000; i++) {
-    pts[i] = new Point(Math.random(), Math.random(), 0, 0, 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)');
+// for (let i = 0; i < 1000; i++) {
+//     pts[i] = new Point(Math.random(), Math.random(), 0, 0, );
+// }
+for (let i = 0; i < heart.length; i++) {
+    if (heart[i] == '*') {
+        tempcolour = 'hsla(' + (Math.random() * 360) + ', 50%, 50%, 1)';
+    } else {
+        tempcolour = 'hsla(180, 10%, 20%, 1)';
+    }
+
+    temptx =            (i % HEART_WIDTH  + 0.5) / HEART_WIDTH;
+    tempty = (Math.floor(i / HEART_WIDTH) + 0.5) / HEART_HEIGHT;
+
+    pts[i] = new Point(x = Math.random(),
+                       y = Math.random(), 
+                       u = 0,
+                       v = 0,
+                       colour = tempcolour,
+                       tx = temptx,
+                       ty = tempty);
 }
 setInterval(step, 10);
