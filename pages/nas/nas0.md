@@ -117,7 +117,7 @@ Initially this just shows a blackscreen because Ubuntu is too smart:
 
 ```bash
 sudo systemctl stop sddm
-sudo /etx/NX/nxserver --restart
+sudo /etc/NX/nxserver --restart
 ```
 
 Alternatively run this screen after startup if GUI is not needed.
