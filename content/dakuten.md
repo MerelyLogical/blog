@@ -19,7 +19,7 @@ A tool that irresponsibly adds dakutens everywhere.
 <br>
 </div>
 
-<script type="text/javascript" src="../src/dakuten.js"></script>
+<script type="text/javascript" src="../js/dakuten.js"></script>
 <script type="text/javascript">
     document.getElementById('input').placeholder = "The quick brown fox jumps over the lazy dog.\n\n"
                                                   +"Διαφυλάξτε γενικά τη ζωή σας από βαθειά ψυχικά τραύματα.\n\n"

@@ -18,4 +18,4 @@ Estimate π with Monte Carlo Method
 
 <svg id="graph" viewBox="0 0 1 1"></svg>
 
-<script type="text/javascript" src="../src/picalc.js"></script>
+<script type="text/javascript" src="../js/picalc.js"></script>

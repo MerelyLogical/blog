@@ -11,4 +11,4 @@ Random Map Pathfinding
 
 <svg id="map" viewBox="0 0 1 1"></svg>
 
-<script type="text/javascript" src="../src/mapgen.js"></script>
+<script type="text/javascript" src="../js/mapgen.js"></script>

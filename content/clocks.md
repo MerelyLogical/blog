@@ -61,8 +61,8 @@ A collection of interesting time formats, see if you can figure out how each wor
 
 <!-- <input type="checkbox"> Enable hints -->
 
-<script type="text/javascript" src="../src/suncalc/suncalc.js"></script>
+<script type="text/javascript" src="../js/suncalc/suncalc.js"></script>
 
-<script type="text/javascript" src="../src/clocks.js"></script>
+<script type="text/javascript" src="../js/clocks.js"></script>
 
 <script type="text/javascript">startTime(); hide('timeForm');</script>
