@@ -17,4 +17,4 @@ A Hex Grid with Canvas
 
 <canvas id='grid' height=500 width=500 style="width:100%; height:100%; margin:0"></canvas>
 
-<script type="text/javascript" src="../src/hex.js"></script>
+<script type="text/javascript" src="../js/hex.js"></script>

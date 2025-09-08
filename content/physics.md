@@ -21,5 +21,5 @@ ratio = <span id="ratio"></span>
 
 <canvas id='cscreen' height=1000 width=1000 style="width:100%; height:100%; margin:0"></canvas>
 
-<script type="text/javascript" src="../src/physics.js"></script>
+<script type="text/javascript" src="../js/physics.js"></script>
 

@@ -20,5 +20,5 @@ Estimates <i>e</i> by Simulating People Sitting on a Long Bench
 
 bench looks like: <span id="bench"></span>
 
-<script type="text/javascript" src="../src/ecalc.js"></script>
+<script type="text/javascript" src="../js/ecalc.js"></script>
 

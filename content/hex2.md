@@ -15,4 +15,4 @@ Walking distance from start(blue) to end(green) is: <span id="walk_dist"></span>
 
 <svg id="grid" viewBox="0 0 500 600" height="500" width="600"></svg>
 
-<script type="text/javascript" src="../src/hex2.js"></script>
+<script type="text/javascript" src="../js/hex2.js"></script>
