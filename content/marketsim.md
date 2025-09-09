@@ -1,7 +1,6 @@
 ---
 title: Stock Market Simulator
 layout: post
-nav_order: 13
 ---
 
 {: .fs-6}

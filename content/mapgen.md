@@ -1,7 +1,6 @@
 ---
 title: Random Map Pathfinding
 layout: post
-nav_order: 12
 ---
 
 {: .fs-6}

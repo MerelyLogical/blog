@@ -1,7 +1,7 @@
 ---
 title: Hexagonal Grid
 layout: post
-nav_order: 4
+: 4
 ---
 
 {: .fs-6}

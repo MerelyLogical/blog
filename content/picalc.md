@@ -1,7 +1,6 @@
 ---
 title: Pi Calculator
 layout: post
-nav_order: 10
 ---
 
 {: .fs-6}

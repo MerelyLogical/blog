@@ -1,7 +1,6 @@
 ---
 title: Clocks
 layout: post
-nav_order: 2
 ---
 
 {: .fs-6}

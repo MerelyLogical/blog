@@ -1,7 +1,6 @@
 ---
 title: e Calculator
 layout: post
-nav_order: 15
 ---
 
 {: .fs-6}
