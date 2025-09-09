@@ -1,6 +1,6 @@
 {
 	"scripts": {
-		"dev": "next dev -p 3300 --turbopack",
+		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
 		"build": "next build"
 	},
 	"dependencies": {
