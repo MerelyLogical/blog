@@ -1,7 +1,6 @@
 ---
 title: Dakuten
 layout: post
-nav_order: 3
 ---
 
 {: .fs-6}

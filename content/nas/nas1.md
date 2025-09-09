@@ -2,7 +2,6 @@
 title: 1 - Building a NAS
 layout: post
 parent: NAS building log
-nav_order: 2
 ---
 
 {: .fs-6}

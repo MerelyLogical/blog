@@ -1,7 +1,6 @@
 ---
 title: Hexagonal Grid Pathfinding
 layout: post
-nav_order: 5
 ---
 
 {: .fs-6}

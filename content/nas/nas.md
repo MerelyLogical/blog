@@ -1,7 +1,6 @@
 ---
 title: NAS building log
 layout: post
-nav_order: 9
 has_children: true
 ---
 

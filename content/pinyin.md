@@ -1,7 +1,6 @@
 ---
 title: Pinyin Chart
 layout: post
-nav_order: 11
 ---
 
 interjections removed, zi/zhi merged with bi/di

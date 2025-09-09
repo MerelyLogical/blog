@@ -1,7 +1,6 @@
 ---
 title: Aruaru quiz
 layout: post
-nav_order: 7
 ---
 
 {: .fs-6}
