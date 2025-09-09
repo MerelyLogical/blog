@@ -135,7 +135,7 @@ function getSetJ(h, lw, phi, dec, n, M, L) {
 // calculates sun times for a given date, latitude/longitude, and, optionally,
 // the observer height (in meters) relative to the horizon
 
-SunCalc.getTimes = function (date, lat, lng, height) {
+export function SunCalcGetTimes(date, lat, lng, height) {
 
     height = height || 0;
 
