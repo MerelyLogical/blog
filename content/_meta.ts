@@ -38,10 +38,6 @@ export default {
     "ecalc": {
         title: "e Calculator",
     },
-    "pixels": {
-        title: "Pi Player",
-        display: 'hidden'
-    },
     "404": {
         title: "404",
         display: 'hidden'
