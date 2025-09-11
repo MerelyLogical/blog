@@ -10,6 +10,8 @@ pnpm build not yet tested
 
 TODO:
 
+- [x] dev environment
+- [x] set up template
 - [ ] clocks
   - [x] timer refreshes
   - [ ] different clocks
