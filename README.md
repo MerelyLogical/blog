@@ -43,8 +43,9 @@ TODO:
 - [x] nas
 - [ ] picalc
 - [x] pinyin
-- [ ] mapgen
-  - [ ] fix perf issue, laggy af
+- [x] mapgen
+  - [x] fix perf issue, laggy af
+  - [x] add refresh button
 - [ ] marketsim
 - [x] physics
   - [x] base engine

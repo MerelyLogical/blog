@@ -1,14 +1,28 @@
-'use client'
+'use client';
 
-var size = 25;
+import React, { useState, useMemo } from 'react';
 
-var nodes: Node[] = [];
-var edges: number[][] = [];
-var dist_matrix: number[][] = [];
-var solution: number[][] = [];
+const INF = 999;
 
-var start;
-var goal;
+class Node {
+    constructor(
+        public x: number,
+        public y: number,
+        public visited = false,
+        public search_dist = INF,
+        public search_last = INF
+    ) {}
+}
+
+type Edge = [number, number];
+
+type Graph = {
+    nodes: Node[];
+    edges: Edge[];
+    dist: number[][];
+    start: number;
+    goal: number;
+};
 
 // 1. generate random nodes
 // 2. calculate distance between all nodes
@@ -20,34 +34,23 @@ var goal;
 // visualise pathfinding process?
 // error message to user + allow user config parameters
 
-class Node {
-    x: number;
-    y: number;
-    visited: boolean;
-    search_dist: number;
-    search_last: number;
-    constructor(x: number, y: number, visited=false, search_dist=999, search_last=999) {
-        this.x = x;
-        this.y = y;
-        this.visited = visited;
-        this.search_dist = search_dist;
-        this.search_last = search_last;
-    }
-}
+function generateGraph(size: number): Graph {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+    const dist: number[][] = [];
 
-function generateGraph() {
     // generate nodes
     for (let i = 0; i < size; i++) {
-        let randx = Math.random();
-        let randy = Math.random();
-        nodes.push(new Node(randx, randy));
-
-        let dists = Array(size).fill(999);
+        const x = Math.random();
+        const y = Math.random();
+        nodes.push(new Node(x, y));
+        const row = Array(size).fill(INF);
         for (let j = 0; j < i; j++) {
-            let dist = Math.sqrt(((randx - nodes[j].x) ** 2) + (randy - nodes[j].y) ** 2);
-            dists[j] = dist;
+            const d = Math.hypot(x - nodes[j].x, y - nodes[j].y);
+            row[j] = d;
         }
-        dist_matrix.push(dists);
+        row[i] = 0;
+        dist.push(row);
     }
 
     // generate edges
@@ -55,20 +58,17 @@ function generateGraph() {
         let connections = 0;
         for (let j = 0; j < i; j++) {
             // probability linear against distance and number of existing connections. consider using Sigmoid?
-            let roll = Math.random() / 2.5;
-            let threshold = (dist_matrix[i][j] / Math.sqrt(2)) + (connections / size);
-            // console.log(i, j, roll, threshold, roll > threshold);
+            const roll = Math.random() / 2.5;
+            const threshold = dist[i][j] / Math.SQRT2 + connections / size;
             if (roll > threshold) {
                 edges.push([i, j]);
-                dist_matrix[j][i] = dist_matrix[i][j];
+                dist[j][i] = dist[i][j];
                 connections++;
             } else {
                 // disconnect the nodes
-                dist_matrix[i][j] = 999;
+                dist[i][j] = INF;
             }
         }
-        // complete the distance matrix
-        dist_matrix[i][i] = 0;
     }
 
     // for (let i = 0; i < size; i++) {
@@ -85,143 +85,146 @@ function generateGraph() {
     // }
 
     // pick start and end points
-    start = Math.floor(Math.random() * size);
+    const start = Math.floor(Math.random() * size);
     nodes[start].search_dist = 0;
     nodes[start].search_last = start;
-    goal  = Math.floor(Math.random() * (size-1));
-    if (goal >= start) { goal++ };
+
+    const goalRaw = Math.floor(Math.random() * (size - 1));
+    const goal = goalRaw >= start ? goalRaw + 1 : goalRaw;
+
+    return { nodes, edges, dist, start, goal };
 }
 
-// this is broken when there is no possible path from start to end
-function findPath() {
-    let visiting_node = start;
-    let visiting_dist = 0;
-    let search_prios = Array(size).fill(999);
+function findPath(g: Graph): Edge[] {
+    const { nodes, dist, start, goal } = g;
+    const size = nodes.length;
+    const search_prios = Array(size).fill(INF);
     search_prios[start] = 0;
-    console.log("start, goal:", start, goal);
 
-    for (let cnt = 0; cnt < size; cnt++) {
+    for (let step = 0; step < size; step++) {
         // visit closest point to start that has not been visited
-
-        console.log("search priorities:", search_prios);
-        visiting_node = search_prios.indexOf(Math.min(...search_prios));
-        visiting_dist = nodes[visiting_node].search_dist;
-        console.log("visiting:", visiting_node, visiting_dist);
-
+        let min = INF;
+        let visiting = -1;
+        for (let i = 0; i < size; i++) {
+            if (!nodes[i].visited && search_prios[i] < min) {
+                min = search_prios[i];
+                visiting = i;
+            }
+        }
+        // stop if we have no where to search
+        if (visiting === -1 || min === INF) break;
         // stop if we have reached the goal node
-        if (visiting_node == goal) {break;}
-        if (nodes[visiting_node].visited) {break;}
+        if (visiting === goal) break;
 
         // visit all neighbours and update if a shorter path is found
+        const base = nodes[visiting].search_dist;
         for (let i = 0; i < size; i++) {
             if (!nodes[i].visited) {
-                let new_dist = visiting_dist + dist_matrix[visiting_node][i];
-                console.log("exploring:", i, new_dist, nodes[i].search_dist);
-                if (new_dist < nodes[i].search_dist) {
-                    nodes[i].search_dist = new_dist;
-                    search_prios[i] = new_dist;
-                    nodes[i].search_last = visiting_node;
+                const nd = base + dist[visiting][i];
+                if (nd < nodes[i].search_dist) {
+                    nodes[i].search_dist = nd;
+                    nodes[i].search_last = visiting;
+                    search_prios[i] = nd;
                 }
             }
         }
-
         // mark node as visited
-        nodes[visiting_node].visited = true;
-        search_prios[visiting_node] = 999;
+        nodes[visiting].visited = true;
+        search_prios[visiting] = INF;
     }
 
-    console.log(nodes);
-}
-
-function connectPath() {
-    let current_node = goal;
-    while (current_node != start && current_node != 999) {
-        let next_node = nodes[current_node].search_last;
-        solution.push([current_node, next_node]);
-        current_node = next_node;
+    // reconstruct (guard against no path)
+    const path: Edge[] = [];
+    if (nodes[goal].search_dist === INF) return path; // unreachable
+    let cur = goal;
+    while (cur !== start) {
+        const prev = nodes[cur].search_last;
+        if (prev === INF) break; // safety
+        path.push([cur, prev]);
+        cur = prev;
     }
-    console.log(solution);
+    return path;
 }
 
 type CircElem = {
-  id: string;
-  cx: number;
-  cy: number;
-  r: number;
-  fill: string;
+    id: string;
+    cx: number;
+    cy: number;
+    r: number;
+    fill: string;
 };
 
-type EdgeElem = {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  stroke: string;
-  strokeWidth: number;
+type LineElem = {
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    stroke: string;
+    strokeWidth: number;
 };
 
-export function DrawGraph() {
+function DrawGraph({ size = 25 }: { size?: number }) {
+    // compute once per (size, seed)
+    const { circles, lines } = useMemo(() => {
+        const g = generateGraph(size);
+        const solution = findPath(g);
 
-    generateGraph();
-    findPath();
-    connectPath();
+        const circles: CircElem[] = g.nodes.map((n, i) => ({
+            id: `c-${i}`,
+            cx: n.x,
+            cy: n.y,
+            r: i === g.start || i === g.goal ? 0.010 : 0.005,
+            fill: i === g.start ? '#AA00AA' :
+                  i === g.goal  ? '#00AA00' :
+                                  '#AAAAAA'
+        }));
 
-    let i, node;
-    let circs: CircElem[] = [];
-    for ([i, node] of nodes.entries()) {
-        circs.push({
-            id: `c${i}`,
-            cx: node.x,
-            cy: node.y,
-            r:  i == start ? 0.010 :
-                i == goal  ? 0.010 :
-                             0.005,
-            fill: i == start ? "#AA00AA" :
-                  i == goal  ? "#00AA00" :
-                               "#AAAAAA"
-        })
-    }
+        const lines: LineElem[] = [
+            ...g.edges.map(([a, b]) => ({
+                id: `e-${a}-${b}`,
+                x1: g.nodes[a].x,
+                y1: g.nodes[a].y,
+                x2: g.nodes[b].x,
+                y2: g.nodes[b].y,
+                stroke: '#AAAAAA',
+                strokeWidth: 0.003,
+            })),
+            // just draw thicker line over old edges cause i'm lazy
+            ...solution.map(([a, b], idx) => ({
+                id: `p-${a}-${b}-${idx}`,
+                x1: g.nodes[a].x,
+                y1: g.nodes[a].y,
+                x2: g.nodes[b].x,
+                y2: g.nodes[b].y,
+                stroke: '#00AAAA',
+                strokeWidth: 0.005,
+            })),
+        ];
 
-    let lines: EdgeElem[] = [];
-    for (let edge of edges) {
-        lines.push({
-            id: `m${i}`,
-            x1:nodes[edge[0]].x,
-            y1:nodes[edge[0]].y,
-            x2:nodes[edge[1]].x,
-            y2:nodes[edge[1]].y,
-            stroke:"#AAAAAA",
-            strokeWidth:0.003
-        })
-    }
-
-    // just draw thicker line over old edges cause i'm lazy
-    if (solution[solution.length - 1][1] != start) {
-        console.log("no solutions found");
-    } else {
-        for (let edge of solution) {
-            lines.push({
-                id: `n${i}`,
-                x1:nodes[edge[0]].x,
-                y1:nodes[edge[0]].y,
-                x2:nodes[edge[1]].x,
-                y2:nodes[edge[1]].y,
-                stroke:"#00AAAA",
-                strokeWidth:0.005
-            })
-        }
-    }
+        return { circles, lines };
+    }, [size]);
 
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
-            {circs.map((e) => (
-                <circle id={e.id} cx={e.cx} cy={e.cy} r={e.r} />
-            ))}
-            {lines.map((e) => (
-                <line id={e.id} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2} stroke={e.stroke} strokeWidth={e.strokeWidth}/>
-            ))}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"
+        style={{ display: 'block', maxWidth: '100%', pointerEvents: 'none' }} >
+        {circles.map((e) => (
+            <circle key={e.id} id={e.id} cx={e.cx} cy={e.cy} r={e.r} fill={e.fill} />
+        ))}
+        {lines.map((e) => (
+            <line key={e.id} id={e.id} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2} stroke={e.stroke} strokeWidth={e.strokeWidth} />
+        ))}
         </svg>
     );
 }
 
+export function RefreshGraph() {
+  const [version, setVersion] = useState(0);
+
+  return (
+    <div>
+      <button onClick={() => setVersion(v => v + 1)}>New graph</button>
+      <DrawGraph key={version} size={25} />
+    </div>
+  );
+}
