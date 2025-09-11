@@ -1,4 +1,15 @@
-Personal blog + learning how to github page.
+Personal blog + learning how to webdev.
+
+stack:
+~~jekyll~~
+~~just the docs~~
+~~md~~
+~~js~~
+
+next.js
+react
+mdx
+ts
 
 Published at https://merelylogical.github.io/blog/
 
@@ -9,7 +20,11 @@ pnpm dev
 TODO:
 
 - [x] dev environment
-- [x] set up template
+- [ ] set up template
+  - [x] routing posts
+  - [ ] switch between blogs and docs
+  - [ ] search engine
+  - [ ] image routing
 - [ ] set up pnpm build
 - [ ] clocks
   - [x] timer refreshes
@@ -21,6 +36,7 @@ TODO:
 - [x] moment
 - [ ] aruaru
 - [ ] nas
+  - [ ] mdx tricks
 - [ ] picalc
 - [ ] pinyin
 - [ ] mapgen
