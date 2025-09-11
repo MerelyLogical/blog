@@ -1,0 +1,117 @@
+'use client'
+
+import { useState } from 'react';
+
+function dakuten(input: string): string {
+    // ﾞ \uFF9E  ﾟ \uFF9F
+    // split this into different levels of muriyari?
+    var lut = { // English (maybe make this follow latin?)
+            'g': 'kﾞ',
+            'z': 'sﾞ',
+            'd': 'tﾞ',
+            'b': 'hﾞ',
+            'p': 'hﾟ',
+            'v': 'fﾞ',
+            'j': 'cﾞ',
+            'ng': 'kﾟ',
+            // Greek (modern greek)
+            'μπ': 'πﾞ',
+            'ντ': 'τﾞ',
+            'γκ': 'κﾞ',
+            'β': 'φﾞ',
+            'δ': 'θﾞ',
+            'ζ': 'σﾞ',
+            'γ': 'χﾞ',
+            // Cyrillic
+            'б': 'пﾞ',
+            'в': 'фﾞ',
+            'г': 'кﾞ',
+            'д': 'тﾞ',
+            'ж': 'шﾞ',
+            'з': 'сﾞ',
+            // Armenian (b(daku)-p(handaku)-ph, h exists but unused)
+            'բ': 'փﾞ',
+            'պ': 'փﾟ',
+            'դ': 'թﾞ',
+            'տ': 'թﾟ',
+            'գ': 'քﾞ',
+            'կ': 'քﾟ',
+            'ձ': 'ցﾞ',
+            'ծ': 'ցﾟ',
+            'ջ': 'չﾞ',
+            'ճ': 'չﾟ',
+            'վ': 'ֆﾞ',
+            'զ': 'սﾞ',
+            'ժ': 'շﾞ',
+            'ղ': 'խﾞ',
+        },
+        reg = Object.keys(lut).join('|'),
+        matcher = new RegExp(reg, 'gi');
+
+    let output = input.replace(matcher, function (m) {
+        let k = m.toLowerCase();
+        if (k == m) {
+            return lut[k];
+        } else {
+            return lut[k].toUpperCase();
+        };
+    });
+    return output;
+}
+
+const placeholder = "The quick brown fox jumps over the lazy dog.\n\n"
+        +"Διαφυλάξτε γενικά τη ζωή σας από βαθειά ψυχικά τραύματα.\n\n"
+        +"В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n\n"
+        +"Բել դղյակի ձախ ժամն օֆ ազգությանը ցպահանջ չճշտած վնաս էր եւ փառք"
+
+export function DakutenBox() {
+  const [input, setInput] = useState(placeholder);
+  const [output, setOutput] = useState("");
+
+  function tsukeru() {
+    setOutput(dakuten(input));
+  }
+
+  return (
+    <div>
+      <textarea
+        style={{
+          display: "block",
+          marginLeft: "auto",
+          marginRight: "auto",
+          backgroundColor: "#88888888",
+          width: "90%",
+        }}
+        rows={10}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={placeholder}
+      />
+      <br />
+      <button
+        style={{
+          display: "block",
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+        onClick={tsukeru}
+      >
+        つける！
+      </button>
+      <br />
+      <textarea
+        style={{
+          display: "block",
+          marginLeft: "auto",
+          marginRight: "auto",
+          backgroundColor: "#88888888",
+          width: "90%",
+        }}
+        rows={10}
+        value={output}
+        readOnly
+      />
+      <br />
+    </div>
+  );
+}
