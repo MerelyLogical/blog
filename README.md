@@ -43,7 +43,7 @@ TODO:
 - [ ] nas
   - [ ] mdx tricks
 - [ ] picalc
-- [ ] pinyin
+- [x] pinyin
 - [ ] mapgen
 - [ ] marketsim
 - [x] physics
