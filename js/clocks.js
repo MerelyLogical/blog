@@ -68,7 +68,7 @@ function toTkyh(h) {
     let tkyhlut = ['未明', '明け方', '朝', '昼前', '昼過ぎ', '夕方', '夜のはじめ頃', '夜遅く'];
     return tkyhlut[Math.floor(h/3)];
 }
-    
+
 
 // input is Date and form
 // TODO: stop calculating dawn/dusk time every tick
