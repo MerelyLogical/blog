@@ -40,8 +40,7 @@ TODO:
 - [ ] hex2
 - [x] moment
 - [ ] aruaru
-- [ ] nas
-  - [ ] mdx tricks
+- [x] nas
 - [ ] picalc
 - [x] pinyin
 - [ ] mapgen
