@@ -44,12 +44,13 @@ TODO:
 - [ ] picalc
 - [x] pinyin
 - [ ] mapgen
+  - [ ] fix perf issue, laggy af
 - [ ] marketsim
 - [x] physics
   - [x] base engine
   - [ ] energy calculations
   - [ ] arrow key control
 - [ ] ecalc
-- [ ] pixels
+- ~~[ ] pixels~~
 - [ ] 404
 
