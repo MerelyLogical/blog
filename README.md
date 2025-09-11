@@ -31,6 +31,8 @@ TODO:
   - [ ] different clocks
   - [ ] time travel
 - [ ] dakuten
+  - [ ] default value disappear on click
+  - [ ] fancier looking button
 - [ ] hex
 - [ ] hex2
 - [x] moment
