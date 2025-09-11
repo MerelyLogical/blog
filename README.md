@@ -6,12 +6,11 @@ Published at https://merelylogical.github.io/blog/
 pnpm dev
 ```
 
-pnpm build not yet tested
-
 TODO:
 
 - [x] dev environment
 - [x] set up template
+- [ ] set up pnpm build
 - [ ] clocks
   - [x] timer refreshes
   - [ ] different clocks
