@@ -258,7 +258,7 @@ for (let i = 0; i < heart.length; i++) {
     tempty = (Math.floor(i / HEART_WIDTH) + 0.5) / HEART_HEIGHT;
 
     pts[i] = new Point(x = Math.random(),
-                       y = Math.random(), 
+                       y = Math.random(),
                        u = 0,
                        v = 0,
                        colour = tempcolour,

@@ -1,11 +1,11 @@
-var graph = document.getElementById("map");
+'use client'
 
 var size = 25;
 
-var nodes = [];
-var edges = [];
-var dist_matrix = [];
-var solution = [];
+var nodes: Node[] = [];
+var edges: number[][] = [];
+var dist_matrix: number[][] = [];
+var solution: number[][] = [];
 
 var start;
 var goal;
@@ -21,7 +21,12 @@ var goal;
 // error message to user + allow user config parameters
 
 class Node {
-    constructor(x, y, visited=false, search_dist=999, search_last=999) {
+    x: number;
+    y: number;
+    visited: boolean;
+    search_dist: number;
+    search_last: number;
+    constructor(x: number, y: number, visited=false, search_dist=999, search_last=999) {
         this.x = x;
         this.y = y;
         this.visited = visited;
@@ -138,61 +143,85 @@ function connectPath() {
     console.log(solution);
 }
 
-function drawGraph() {
+type CircElem = {
+  id: string;
+  cx: number;
+  cy: number;
+  r: number;
+  fill: string;
+};
+
+type EdgeElem = {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  stroke: string;
+  strokeWidth: number;
+};
+
+export function DrawGraph() {
+
+    generateGraph();
+    findPath();
+    connectPath();
+
+    let i, node;
+    let circs: CircElem[] = [];
     for ([i, node] of nodes.entries()) {
-        let c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        if (i == start) {
-            c.setAttribute("r", 0.010);
-            c.style.fill = "#AA00AA";
-        } else if (i == goal) {
-            c.setAttribute("r", 0.010);
-            c.style.fill = "#00AA00";
-        } else {
-            c.setAttribute("r", 0.005);
-            c.style.fill = "#AAAAAA";
-        };
-        c.setAttribute("cx", node.x);
-        c.setAttribute("cy", node.y);
-        graph.appendChild(c);
+        circs.push({
+            id: `c${i}`,
+            cx: node.x,
+            cy: node.y,
+            r:  i == start ? 0.010 :
+                i == goal  ? 0.010 :
+                             0.005,
+            fill: i == start ? "#AA00AA" :
+                  i == goal  ? "#00AA00" :
+                               "#AAAAAA"
+        })
     }
 
-    for (edge of edges) {
-        let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-        newLine.setAttribute("x1", nodes[edge[0]].x);
-        newLine.setAttribute("y1", nodes[edge[0]].y);
-        newLine.setAttribute("x2", nodes[edge[1]].x);
-        newLine.setAttribute("y2", nodes[edge[1]].y);
-        newLine.setAttribute("stroke", "#AAAAAA")
-        newLine.setAttribute("stroke-width", 0.003)
-        graph.appendChild(newLine);
+    let lines: EdgeElem[] = [];
+    for (let edge of edges) {
+        lines.push({
+            id: `m${i}`,
+            x1:nodes[edge[0]].x,
+            y1:nodes[edge[0]].y,
+            x2:nodes[edge[1]].x,
+            y2:nodes[edge[1]].y,
+            stroke:"#AAAAAA",
+            strokeWidth:0.003
+        })
     }
 
     // just draw thicker line over old edges cause i'm lazy
     if (solution[solution.length - 1][1] != start) {
         console.log("no solutions found");
     } else {
-        for (edge of solution) {
-            let newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-            newLine.setAttribute("x1", nodes[edge[0]].x);
-            newLine.setAttribute("y1", nodes[edge[0]].y);
-            newLine.setAttribute("x2", nodes[edge[1]].x);
-            newLine.setAttribute("y2", nodes[edge[1]].y);
-            newLine.setAttribute("stroke", "#00AAAA")
-            newLine.setAttribute("stroke-width", 0.005)
-            graph.appendChild(newLine);
+        for (let edge of solution) {
+            lines.push({
+                id: `n${i}`,
+                x1:nodes[edge[0]].x,
+                y1:nodes[edge[0]].y,
+                x2:nodes[edge[1]].x,
+                y2:nodes[edge[1]].y,
+                stroke:"#00AAAA",
+                strokeWidth:0.005
+            })
         }
     }
+
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
+            {circs.map((e) => (
+                <circle id={e.id} cx={e.cx} cy={e.cy} r={e.r} />
+            ))}
+            {lines.map((e) => (
+                <line id={e.id} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2} stroke={e.stroke} strokeWidth={e.strokeWidth}/>
+            ))}
+        </svg>
+    );
 }
 
-function main() {
-    nodes = [];
-    edges = [];
-    dist_matrix = [];
-    solution = [];
-    graph.innerHTML = "";
-
-    generateGraph();
-    findPath();
-    connectPath();
-    drawGraph();
-}
