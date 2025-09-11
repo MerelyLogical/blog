@@ -2,14 +2,33 @@ Personal blog + learning how to github page.
 
 Published at https://merelylogical.github.io/blog/
 
-If first time set up bundle:
+```bash
+pnpm dev
+```
 
-bundle config set --local path '.bundle'
+pnpm build not yet tested
 
-Then:
+TODO:
 
-bundle update
+- [ ] clocks
+  - [x] timer refreshes
+  - [ ] different clocks
+  - [ ] time travel
+- [ ] dakuten
+- [ ] hex
+- [ ] hex2
+- [x] moment
+- [ ] aruaru
+- [ ] nas
+- [ ] picalc
+- [ ] pinyin
+- [ ] mapgen
+- [ ] marketsim
+- [ ] physics
+  - [x] base engine
+  - [ ] energy calculations
+  - [ ] arrow key control
+- [ ] ecalc
+- [ ] pixels
+- [ ] 404
 
-bundle install
-
-bundle exec jekyll s
