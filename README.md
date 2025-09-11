@@ -7,6 +7,7 @@ stack:
 ~~js~~
 
 next.js
+nextra
 react
 mdx
 ts
@@ -20,17 +21,18 @@ pnpm dev
 TODO:
 
 - [x] dev environment
-- [ ] set up template
+- [x] set up template
   - [x] routing posts
+  - [ ] better home page
   - [ ] switch between blogs and docs
   - [ ] search engine
   - [ ] image routing
 - [ ] set up pnpm build
-- [ ] clocks
+- [x] clocks
   - [x] timer refreshes
   - [ ] different clocks
   - [ ] time travel
-- [ ] dakuten
+- [x] dakuten
   - [ ] default value disappear on click
   - [ ] fancier looking button
 - [ ] hex
@@ -43,7 +45,7 @@ TODO:
 - [ ] pinyin
 - [ ] mapgen
 - [ ] marketsim
-- [ ] physics
+- [x] physics
   - [x] base engine
   - [ ] energy calculations
   - [ ] arrow key control
