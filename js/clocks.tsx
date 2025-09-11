@@ -1,8 +1,7 @@
 'use client'
 
 import { SunCalcGetTimes } from "./suncalc/suncalc";
-import { createContext, useContext, useEffect, useState,
-    useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 function zeroPad(s) {
     return String(s).padStart(2, '0');
