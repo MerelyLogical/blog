@@ -53,4 +53,5 @@ TODO:
 - [ ] ecalc
 - ~~[ ] pixels~~
 - [ ] 404
+- [ ] add kofi link
 
