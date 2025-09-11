@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { Button } from 'nextra/components';
 
 function dakuten(input: string): string {
     // ﾞ \uFF9E  ﾟ \uFF9F
@@ -89,7 +90,7 @@ export function DakutenBox() {
         placeholder={placeholder}
       />
       <br />
-      <button
+      <Button
         style={{
           display: "block",
           marginLeft: "auto",
@@ -98,7 +99,7 @@ export function DakutenBox() {
         onClick={tsukeru}
       >
         つける！
-      </button>
+      </Button>
       <br />
       <textarea
         style={{
