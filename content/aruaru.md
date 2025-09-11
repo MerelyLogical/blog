@@ -6,7 +6,7 @@ layout: post
 {: .fs-6}
 Guess what the two categories are, and find a word that fits in both!
 
-{: .note}
+<Callout>
 Click on the empty rows to reveal additional hints pairs.
 
 ## Example Question

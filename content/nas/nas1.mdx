@@ -1,16 +1,8 @@
----
-title: 1 - Building a NAS
-layout: post
-parent: NAS building log
----
+import { Callout } from 'nextra/components';
 
-{: .fs-6}
-Building a NAS
+# Building a NAS
 
-1. TOC
-{:toc}
-
-# Build more of the computer
+## Build more of the computer
 
 The case has 6 mounting bays for 3.5 inch drives, but the motherboard only has 4 sata ports.
 One of them is disabled if the M.2 slot is used, so there're only have 3 usable.
@@ -30,23 +22,26 @@ to see connected drives separately.
 | Total       |                                                            |   201.53 |
 | Grand Total |                                                            |   618.17 |
 
-{: .note}
-> SATA expansion cards is also a thing, but
-> [this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
-> gives a convincing argument why HBA cards should be used instead.
+<Callout>
+SATA expansion cards is also a thing, but
+[this](https://unraid-guides.com/2020/12/07/dont-ever-use-cheap-pci-e-sata-expansion-cards-with-unraid/)
+gives a convincing argument why HBA cards should be used instead.
+</Callout>
 
-{: .highlight}
-> Took me multiple times before it POST'ed again after installing the HDDs.
-> I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
-> it didn't go back in properly.
->
-> Cable management is a lot more difficult with such a small case and a lot of drives.
+<Callout type='info'>
+Took me multiple times before it POST'ed again after installing the HDDs.
+I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
+it didn't go back in properly.
 
-{: .todo}
-> Boot time seems to have slowed down a lot after installing the three drives?
+Cable management is a lot more difficult with such a small case and a lot of drives.
+</Callout>
+
+<Callout type='warning'>
+Boot time seems to have slowed down a lot after installing the three drives?
+</Callout>
 
 
-# Badblocks
+## Badblocks
 
 Test out to see if the drives are good:
 
@@ -57,25 +52,27 @@ badblocks -b 4096 -wsv /dev/sdX
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
 It took about 18 hours for the 1TB HDD, and about 50 hours for the 4TB HDDs.
 
-{: .note}
-> Don't know how to use screens? Well you shouldn't have skipped the Terraria section :)
+<Callout>
+Don't know how to use screens? Well you shouldn't have skipped the Terraria section :)
+</Callout>
 
-{: .highlight}
-> A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
-> With the electricity price at 35p/kW, and assuming the power draw averages at 30W,
-> the running cost works out to be around £8 per month.
+<Callout type='info'>
+A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
+With the electricity price at 35p/kW, and assuming the power draw averages at 30W,
+the running cost works out to be around £8 per month.
+</Callout>
 
 
-# Formatting the drives
+## Formatting the drives
 
 To check which drive is which:
 
 ```bash
 $ ll /dev/disk/by-id
 ...
-ata-HGST_[----------------] -> ../../sda
-ata-ST4000[-----------]2[-] -> ../../sdb
-ata-ST4000[-----------]3[-] -> ../../sdc
+ata-HGST_[----------------] -../../sda
+ata-ST4000[-----------]2[-] -../../sdb
+ata-ST4000[-----------]3[-] -../../sdc
 ```
 
 Using `gdisk` to partition the drives:
@@ -109,7 +106,7 @@ sudo mkfs.ext4 /dev/sda1
 ```
 
 
-# Setting up MergerFS
+## Setting up MergerFS
 
 Install MergerFS:
 
@@ -122,12 +119,12 @@ Confirming the ID of our partitions:
 ```bash
 $ ll /dev/disk/by-id
 ...
-ata-HGST_[----------------] -> ../../sda
-ata-HGST_[----------------]-part1 -> ../../sda1
-ata-ST4000[-----------]2[-] -> ../../sdb
-ata-ST4000[-----------]2[-]-part1 -> ../../sdb1
-ata-ST4000[-----------]3[-] -> ../../sdc
-ata-ST4000[-----------]3[-]-part1 -> ../../sdc1
+ata-HGST_[----------------] -../../sda
+ata-HGST_[----------------]-part1 -../../sda1
+ata-ST4000[-----------]2[-] -../../sdb
+ata-ST4000[-----------]2[-]-part1 -../../sdb1
+ata-ST4000[-----------]3[-] -../../sdc
+ata-ST4000[-----------]3[-]-part1 -../../sdc1
 ```
 
 The parity drive should be of the size of the largest drive, so the plan is to use one of the
@@ -138,7 +135,7 @@ MergerFS is configured with `/etc/fstab`:
 ```bash
 $ sudo vim /etc/fstab
 ...
-# <file system>                                   <mount point> <type> <options> <dump> <pass>
+# <file system                                  <mount point<type<options<dump<pass>
 /dev/disk/by-id/ata-ST4000[-----------]2[-]-part1 /mnt/parity0  ext4   defaults  0      0
 /dev/disk/by-id/ata-ST4000[-----------]3[-]-part1 /mnt/disk0    ext4   defaults  0      0
 /dev/disk/by-id/ata-HGST_[----------------]-part1 /mnt/disk1    ext4   defaults  0      0
@@ -163,16 +160,18 @@ Filesystem      Size  Used Avail Use% Mounted on
 mergerfs        4.5T   56K  4.3T   1% /mnt/main
 ```
 
-{: .note}
-> If you made the mistake of using `sudo mkdir /mnt/<name>` like me, to pass the ownership of
-> the mount points back to the user, use:
-> `sudo chown -R <user>:<user> /mnt/<name>`
+<Callout>
+If you made the mistake of using `sudo mkdir /mnt/<name>` like me, to pass the ownership of
+the mount points back to the user, use:
+`sudo chown -R <user>:<user/mnt/<name>`
+</Callout>
 
 
-# Remove snap
+## Remove snap
 
-{: .note}
-> This is probably not a good idea, but let's remove `snap`.
+<Callout>
+This is probably not a good idea, but let's remove `snap`.
+</Callout>
 
 First disable all `snapd` services:
 
@@ -213,11 +212,12 @@ Pin-Priority: -10
 ```
 
 
-# Install fancy CLI system monitors
+## Install fancy CLI system monitors
 
-{: .highlight}
-> I've been hearing a consistent but low amount of disk activity since mounting the drives,
-> so let's install a few good (looking) system monitors to figure out why.
+<Callout type='info'>
+I've been hearing a consistent but low amount of disk activity since mounting the drives,
+so let's install a few good (looking) system monitors to figure out why.
+</Callout>
 
 To install `btop` and `iotop`:
 
@@ -226,12 +226,13 @@ sudo apt install btop
 sudo apt install iotop-c
 ```
 
-{: .highlight}
-> With `iotop` I see that `jbd2/sd*` is regularly writing to the new drives.
-> That means `ext4` is still initialising, so there's nothing to worry about.
+<Callout type='info'>
+With `iotop` I see that `jbd2/sd*` is regularly writing to the new drives.
+That means `ext4` is still initialising, so there's nothing to worry about.
+</Callout>
 
 
-# Check connection speeds
+## Check connection speeds
 
 To test the connection speeds between the machines, we can use `iperf3`:
 
@@ -248,7 +249,7 @@ $ iperf3 -s -p <port>
 Then we launch the test from the client side:
 
 ```bash
-$ iperf3 -c <ipaddress> -p <port>
+$ iperf3 -c <ipaddress-p <port>
 ...
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  1.10 GBytes   944 Mbits/sec    0             sender
@@ -258,7 +259,7 @@ iperf Done.
 ```
 
 
-# Setting up SnapRAID
+## Setting up SnapRAID
 
 Install SnapRAID as usual:
 
@@ -268,8 +269,9 @@ sudo apt install snapraid
 
 Checking its versions directly returns `vnone`, but checking it through `apt` gives a more sensible result:
 
-{: .note}
-> What could go possibly wrong?
+<Callout>
+What could go possibly wrong?
+</Callout>
 
 ```bash
 $ snapraid --version
@@ -304,6 +306,7 @@ Now we just need to run:
 snapraid sync
 ```
 
-{: .note}
-> use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
-> since `snapraid sync` should not require `sudo`.
+<Callout>
+use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
+since `snapraid sync` should not require `sudo`.
+</Callout>

@@ -1,17 +1,8 @@
----
-title: 2 - Improving the NAS
-layout: post
-parent: NAS building log
----
+import { Callout } from 'nextra/components';
 
-{: .fs-6}
-Improving the NAS
+# Improving the NAS
 
-1. TOC
-{:toc}
-
-
-# Configure disk spin down
+## Configure disk spin down
 
 Although spinning the disks up and down repeatedly causes more wear and tear than keeping it spinning,
 if the drives are not used for a long time it can still be beneficial as it will reduce power consumption and noise.
@@ -117,13 +108,14 @@ To check the number of start/stop and load/unload cycles:
 $ sudo ./openSeaChest_SMART -d /dev/sdb --smartAttributes raw | grep  -E "Start/Stop|Load-Unload"
 ```
 
-{: .todo}
-> there's also a low current spin up feature, but that's mostly used to prevent current spike when you spin up
-> too many drives at the same time.
+<Callout type='warning'>
+there's also a low current spin up feature, but that's mostly used to prevent current spike when you spin up
+too many drives at the same time.
+</Callout>
 
-# Setting up Prometheus
+## Setting up Prometheus
 
-## Prometheus
+### Prometheus
 
 Install prometheus:
 
@@ -228,7 +220,7 @@ sudo ufw allow <prometheus-port>
 
 Now we should be able to access it from `192.168.0.<nas-ip>:<prometheus-port>`.
 
-## Prometheus-node-exporter
+### Prometheus-node-exporter
 
 To obtain system data, we create a service running node-exporter by editing
 `/etc/systemd/system/prometheus-node-exporter.service`.
@@ -249,8 +241,9 @@ ExecStart=/usr/bin/prometheus-node-exporter \
 WantedBy=multi-user.target
 ```
 
-{: .note}
-> To change the port used, add `--web.listen-address=:<node-port>`
+<Callout>
+To change the port used, add `--web.listen-address=:<node-port>`
+</Callout>
 
 
 To restart a service:
@@ -263,7 +256,7 @@ sudo systemctl restart prometheus
 Now we start prometheus-node-exporter, and new data points should become available.
 
 
-# Setting up Grafana
+## Setting up Grafana
 
 Prometheus provides some basic visualisation but its nothing compared to what
 Grafana can do.
@@ -283,7 +276,7 @@ http_port = <grafana-port>
 After allowing the port with ufw, we can now access it at `192.168.0.<nas-ip>:<grafana-port>`.
 
 
-# Monitor Drive Power Mode
+## Monitor Drive Power Mode
 
 First we need to modify the `node-exporter` service to enable reading from textfiles.
 
@@ -307,15 +300,16 @@ Write a script to extract the power mode data and feed it to Prometheus:
 $ sudo vim /usr/local/bin/drive_powermode.sh
 ```
 
-{: .highlight}
-> This script is tweaked from: https://andrejacobs.org/linux/installing-prometheus-on-ubuntu-20-04/
+<Callout type='info'>
+This script is tweaked from: https://andrejacobs.org/linux/installing-prometheus-on-ubuntu-20-04/
+</Callout>
 
 ```bash
 #!/bin/bash
 # Check drive states and report it as metrics for the node exporter textfile collector
 
-echo '# HELP andre_drive_powermode Report the power mode of the /dev/sd? drives' > /var/lib/prometheus/textfiles/drive_powermode.prom
-echo '# TYPE andre_drive_powermode gauge' >> /var/lib/prometheus/textfiles/drive_powermode.prom
+echo '# HELP andre_drive_powermode Report the power mode of the /dev/sd? drives' /var/lib/prometheus/textfiles/drive_powermode.prom
+echo '# TYPE andre_drive_powermode gauge' >/var/lib/prometheus/textfiles/drive_powermode.prom
 
 function checkPowerMode() {
     local guage=10
@@ -333,7 +327,7 @@ function checkPowerMode() {
         guage=3
     fi
 
-    echo "andre_drive_powermode{dev=\"$1\"} $guage" >> /var/lib/prometheus/textfiles/drive_powermode.prom
+    echo "andre_drive_powermode{dev=\"$1\"} $guage" >/var/lib/prometheus/textfiles/drive_powermode.prom
 }
 
 for drive in /dev/sd? ; do
