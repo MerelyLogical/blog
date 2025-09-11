@@ -62,14 +62,15 @@ function dakuten(input: string): string {
 const placeholder = "The quick brown fox jumps over the lazy dog.\n\n"
         +"Διαφυλάξτε γενικά τη ζωή σας από βαθειά ψυχικά τραύματα.\n\n"
         +"В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!\n\n"
-        +"Բել դղյակի ձախ ժամն օֆ ազգությանը ցպահանջ չճշտած վնաս էր եւ փառք"
+        +"Բել դղյակի ձախ ժամն օֆ ազգությանը ցպահանջ չճշտած վնաս էր եւ փառք։"
 
 export function DakutenBox() {
-  const [input, setInput] = useState(placeholder);
+  const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
 
   function tsukeru() {
-    setOutput(dakuten(input));
+    const t = input.trim() === "" ? placeholder : input;
+    setOutput(dakuten(t));
   }
 
   return (
@@ -79,7 +80,7 @@ export function DakutenBox() {
           display: "block",
           marginLeft: "auto",
           marginRight: "auto",
-          backgroundColor: "#88888888",
+          backgroundColor: "#888888",
           width: "90%",
         }}
         rows={10}
@@ -104,7 +105,7 @@ export function DakutenBox() {
           display: "block",
           marginLeft: "auto",
           marginRight: "auto",
-          backgroundColor: "#88888888",
+          backgroundColor: "#888888",
           width: "90%",
         }}
         rows={10}
