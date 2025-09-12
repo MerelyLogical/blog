@@ -24,6 +24,7 @@ TODO:
 - [x] set up template
   - [x] routing posts
   - [ ] better home page
+  - [ ] figure out styles for components like buttons
   - [ ] switch between blogs and docs
   - [ ] search engine
   - [ ] image routing
@@ -34,7 +35,6 @@ TODO:
   - [ ] time travel
 - [x] dakuten
   - [x] default value disappear on click
-  - [ ] fancier looking button
   - [ ] adaptive colour for boxes
 - [ ] hex
 - [ ] hex2
