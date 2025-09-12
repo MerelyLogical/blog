@@ -1,0 +1,106 @@
+import { Question } from '@/js/aruaru'
+import { Callout } from 'nextra/components'
+
+# Guess what the two categories are, and find a word that fits in both!
+
+<Callout>
+Click on the empty rows to reveal additional hints pairs.
+</Callout>
+
+## Example Question
+
+| Category 1 | Category 2 |
+| ---------- | ---------- |
+| Assets     | Diversity  |
+| Liability  | Inclusion  |
+
+* Category 1: Terms in the accounting equation
+* Category 2: Corporate jargon
+* Answer: Equity
+
+<br/>
+---
+
+## Question 1
+
+<Question
+  headers={["Category 1", "Category 2"]}
+  rows={[
+    { cells: ["Thistle", "Sparkling"] },
+    { cells: ["Shamrock", "White"], hidden: true },
+    { cells: ["Daffodil", "Red"], hidden: true },
+  ]}
+  notes={[
+    {
+      label: "Category 1",
+      content: "National flowers of the UK's constituent countries",
+      hidden: true,
+    },
+    { label: "Category 2", content: "Types of wine", hidden: true },
+    { label: "Answer", content: "Rose", hidden: true },
+  ]}
+/>
+
+<br/>
+---
+
+## Question 2
+
+<Question
+  headers={["Category 1", "Category 2"]}
+  rows={[
+    { cells: ["Astonish", "Motif"] },
+    { cells: ["Shadow Ball", "Melody"], hidden: true },
+    { cells: ["Confuse Ray", "Movement"], hidden: true },
+    { cells: ["Curse", "Riff"], hidden: true },
+  ]}
+  notes={[
+    { label: "Category 1", content: "Pokemon ghost type moves", hidden: true },
+    { label: "Category 2", content: "Musical forms and development", hidden: true },
+    { label: "Answer", content: "Lick", hidden: true },
+  ]}
+/>
+
+<br/>
+---
+
+## Question 3
+
+<Question
+  headers={["Category 1", "Category 2"]}
+  rows={[
+    { cells: ["Run", "Sofia"] },
+    { cells: ["Nugget", "Bucharest"], hidden: true },
+    { cells: ["Tikka masala", "Warsaw"], hidden: true },
+  ]}
+  notes={[
+    { label: "Category 1", content: "Chicken -", hidden: true },
+    { label: "Category 2", content: "Eastern European capitals", hidden: true },
+    { label: "Answer", content: "Kyiv", hidden: true },
+  ]}
+/>
+
+<br/>
+---
+
+## Question 4
+
+<Question
+  headers={["Category 1", "Category 2"]}
+  rows={[
+    { cells: ["McIntosh", "Bukit Timah"] },
+    { cells: ["Gala", "Kilimanjaro"], hidden: true },
+    { cells: ["Pink Lady", "Ben Nevis"], hidden: true },
+    { cells: ["Honeycrisp", "Mont Blanc / Monte Bianco"], hidden: true },
+  ]}
+  notes={[
+    { label: "Category 1", content: "Apple varieties", hidden: true },
+    { label: "Category 2", content: "Highest mountain of countries", hidden: true },
+    { label: "Answer", content: "Fuji", hidden: true },
+  ]}
+/>
+
+<br/>
+---
+
+Inspired by [｢あるなしクイズ｣じゃなくて｢あるあるクイズ｣やってみた]("https://www.youtube.com/watch?v=bHkQo_YqP40">).
