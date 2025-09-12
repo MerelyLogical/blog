@@ -39,7 +39,7 @@ TODO:
 - [ ] hex
 - [ ] hex2
 - [x] moment
-- [ ] aruaru
+- [x] aruaru
 - [x] nas
 - [ ] picalc
 - [x] pinyin
