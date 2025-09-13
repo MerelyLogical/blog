@@ -3,6 +3,8 @@
 import { useState, ReactNode } from "react";
 import { Table } from 'nextra/components';
 
+// TODO lol this is dumb, why not have hidden as default
+
 // Reveal as a <span>
 function RevealSpan({
   children,

@@ -51,7 +51,8 @@ TODO:
   - [x] base engine
   - [ ] energy calculations
   - [ ] arrow key control
-- [ ] ecalc
+- [x] ecalc
+  - [ ] move link before bench string
 - ~~[ ] pixels~~
 - [ ] 404
 - [ ] add kofi link
