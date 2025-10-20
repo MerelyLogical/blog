@@ -59,7 +59,7 @@ function simulate(size: number) {
 
 // TODO: either split component or
 //       include link in this component
-export function ECalc({ defaultSize = 10000 }: { defaultSize?: number }) {
+export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
     const [size, setSize] = useState<number>(defaultSize);
     const [version, setVersion] = useState(0); // bump to reshuffle with same size
     const { benchString, e, count } = useMemo(() => simulate(size), [size, version]);
