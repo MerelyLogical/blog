@@ -1,4 +1,4 @@
-base_url: "/ml"
+base_url: "/blog"
 url: "https://merelylogical.github.io"
 title: "ML's BF's Website"
 remote_theme: "just-the-docs/just-the-docs@v0.4.0.rc3"
