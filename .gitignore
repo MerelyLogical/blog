@@ -1,3 +1,4 @@
 *:Zone.Identifier
 node_modules/
 .next/
+out/
