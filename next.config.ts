@@ -10,7 +10,7 @@ const withNextra = nextra({
 // Export the final Next.js config with Nextra included
 const nextConfig: NextConfig = {
     output: 'export',
-    basePath: '/blog',
+    basePath: '/ml',
     trailingSlash: true,
     images: {
         unoptimized: true,

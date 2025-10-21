@@ -10,12 +10,12 @@ export const metadata = {
 }
 
 // const banner = <Banner storageKey="some-key">This template was created with 🩸 and 💦 by <Link href="https://github.com/phucbm">PHUCBM</Link> 🐧</Banner>
+
 const navbar = (
-    <Navbar
-        logo={<img src="images/logo.jpg" alt="Logo" width={100} height={20}/>}
-        // ... Your additional navbar options
-    />
-)
+  <Navbar logo={<img src="images/logo.jpg" alt="Logo" width={100} height={20} />}>
+  </Navbar>
+);
+
 const footer = <Footer>MIT {new Date().getFullYear()} © Nextra.</Footer>
 
 export default async function RootLayout({children}) {

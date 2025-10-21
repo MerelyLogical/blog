@@ -12,7 +12,7 @@ react
 mdx
 ts
 
-Published at https://merelylogical.github.io/blog/
+Published at https://merelylogical.github.io/ml/
 
 ```bash
 pnpm dev

@@ -1,6 +1,6 @@
-base_url: "/blog"
+base_url: "/ml"
 url: "https://merelylogical.github.io"
-title: "ML's BF's Blog"
+title: "ML's BF's Website"
 remote_theme: "just-the-docs/just-the-docs@v0.4.0.rc3"
 sass:
   style: compressed
