@@ -1,15 +1,19 @@
 {
 	"scripts": {
 		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
-		"build": "next build"
+		"build": "next build",
+		"postbuild": "pagefind --site ./out/blog"
 	},
 	"dependencies": {
+		"@types/node": "24.3.1",
+		"@types/react": "19.1.12",
 		"next": "^15.5.2",
 		"nextra": "^4.4.0",
 		"nextra-theme-docs": "^4.4.0",
 		"react": "^19.1.1",
-		"react-dom": "^19.1.1",
-		"@types/node": "24.3.1",
-		"@types/react": "19.1.12"
+		"react-dom": "^19.1.1"
+	},
+	"devDependencies": {
+		"pagefind": "^1.4.0"
 	}
 }
