@@ -11,7 +11,7 @@ export const metadata = {
 const navbar = (
     <Navbar logo={
         <>
-            <img src="@/images/logo.jpg" alt="Logo" width={100} height={20} />
+            <img src="/blog/images/logo.jpg" alt="Logo" width={100} height={20} />
             <span style={{ marginLeft: '1em', fontWeight: 600 }}>
                 ML's BF's Website!
             </span>
@@ -31,7 +31,7 @@ export default async function RootLayout({children}) {
         suppressHydrationWarning
         >
         <Head>
-            <link rel="shortcut icon" href="@/images/favicon.ico"/>
+            <link rel="shortcut icon" href="/blog/images/favicon.ico"/>
         </Head>
         <body>
         <Layout
