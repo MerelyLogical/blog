@@ -1,6 +1,6 @@
 export default {
     "index": {
-        title: "Home",
+        title: "Home"
     },
     "letsplay": {
         title: "Let's Play",
@@ -8,15 +8,21 @@ export default {
     "nas": {
         title: "NAS Build Log",
         items: {
-            "nas0": { title: "0 - Building a Server" },
+            "nas0": { title: "0 - Building a Server"},
             "nas1": { title: "1 - Building a NAS" },
             "nas2": { title: "2 - Improving the NAS" },
             "nas3": { title: "🚧 3 - Optimising the NAS" },
         },
     },
+    '--': {
+        type: "separator",
+    },
     "playground": {
         title: "Playground",
         type: "page",
+        theme: {
+            pagination: false // Hide pagination on this page
+        },
         items: {
             "clocks":    { title: "🚧 Clocks" },
             "dakuten":   { title: "🚧 Dakuten" },
@@ -32,7 +38,7 @@ export default {
             "ecalc":     { title: "e Calculator" },
         }
     },
-    "404": {
+    "not-found": {
         title: "404",
         display: 'hidden'
     }
