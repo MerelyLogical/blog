@@ -3,16 +3,16 @@ export default {
         title: "Home"
     },
     "letsplay": {
-        title: "Let's Play",
+        title: "🚧 Let's Play",
         items: {
             "game1": {
-                title: "Game 1",
+                title: "🚧 Game 1",
                 items: {
                     "game1_1": { title: "🚧 Game 1 - Test" },
                 }
             },
             "game2": {
-                title: "Game 2",
+                title: "🚧 Game 2",
                 items: {
                     "game2_1": { title: "🚧 Game 2 - Test" },
                 }
@@ -41,7 +41,7 @@ export default {
             "clocks":    { title: "🚧 Clocks" },
             "dakuten":   { title: "🚧 Dakuten" },
             "hex":       { title: "Hexagonal Grid" },
-            "hex2":      { title: "🚧 Hexagonal Grid Pathfinding" },
+            "hex2":      { title: "Hexagonal Grid Pathfinding" },
             "moment":    { title: "A Moment of Time" },
             "aruaru":    { title: "Aruaru Quiz" },
             "picalc":    { title: "🚧 Pi Calculator" },
