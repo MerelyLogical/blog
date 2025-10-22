@@ -37,7 +37,7 @@ TODO:
   - [x] default value disappear on click
   - [ ] adaptive colour for boxes
 - [x] hex
-- [ ] hex2
+- [x] hex2
 - [x] moment
 - [x] aruaru
 - [x] nas
