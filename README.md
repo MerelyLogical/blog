@@ -36,7 +36,7 @@ TODO:
 - [x] dakuten
   - [x] default value disappear on click
   - [ ] adaptive colour for boxes
-- [ ] hex
+- [x] hex
 - [ ] hex2
 - [x] moment
 - [x] aruaru
