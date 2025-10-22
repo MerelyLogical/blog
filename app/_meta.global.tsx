@@ -48,7 +48,7 @@ export default {
             "pinyin":    { title: "Pinyin Chart" },
             "mapgen":    { title: "Random Map Pathfinding" },
             "marketsim": { title: "🚧 Stock Market Simulator" },
-            "physics":   { title: "🚧 Physics Engine" },
+            "physics":   { title: "Physics Engine" },
             "ecalc":     { title: "e Calculator" },
         }
     },
