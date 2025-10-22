@@ -54,6 +54,7 @@ TODO:
 - [x] ecalc
   - [ ] move link before bench string
 - ~~[ ] pixels~~
-- [ ] 404
+- [x] 404
+  - [ ] logo image routing in 404 page
 - [ ] add kofi link
 

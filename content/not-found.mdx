@@ -1,7 +1,18 @@
-# 404
+import { NotFoundPage } from "nextra-theme-docs";
 
-<ruby>迷子<rt>まいご</rt></ruby>になったよ
+export default function NotFound() {
+  return (
+    <NotFoundPage content={null}>
+      <h1>404</h1>
+      <p>
+        <ruby>
+          迷子<rt>まいご</rt>
+        </ruby>
+        になったよ
+      </p>
+      <p>オーマイゴッド</p>
+      <p>:o</p>
+    </NotFoundPage>
+  );
+}
 
-オーマイゴッド
-
-:o
