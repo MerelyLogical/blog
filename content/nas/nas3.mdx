@@ -1,0 +1,14 @@
+import { Callout } from 'nextra/components';
+
+# Optimising the NAS
+
+## Install new disk
+
+## Remove disk spin down
+
+``` bash
+$ sudo ./openSeaChest_PowerControl --device /dev/sdx  --idle_a default --idle_b default --idle_c default --standby_z disable
+$ sudo ./openSeaChest_PowerControl -d /dev/sdx --showEPCSettings
+```
+
+## Set up deluge
