@@ -4,6 +4,20 @@ export default {
     },
     "letsplay": {
         title: "Let's Play",
+        items: {
+            "game1": {
+                title: "Game 1",
+                items: {
+                    "game1_1": { title: "🚧 Game 1 - Test" },
+                }
+            },
+            "game2": {
+                title: "Game 2",
+                items: {
+                    "game2_1": { title: "🚧 Game 2 - Test" },
+                }
+            }
+        },
     },
     "nas": {
         title: "NAS Build Log",
