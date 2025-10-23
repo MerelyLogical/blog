@@ -139,6 +139,21 @@ function toPeriodic(hhmmss) {
 //     document.getElementById(id).style.display = "none";
 // }
 
+function getDecimalParts(secondsSinceMidnight: number) {
+    const decimalSeconds = secondsSinceMidnight / 0.864;
+    const rounded = Math.round(decimalSeconds);
+    const str = rounded.toString().padStart(5, '0');
+    const hours = str.slice(0, -4) || '0';
+    const minutes = str.slice(-4, -2) || '0';
+    const seconds = str.slice(-2) || '0';
+    return {
+        decimalSeconds,
+        hours,
+        minutes,
+        seconds,
+    };
+}
+
 export function useTicker(ms = 100): Date {
   const [t, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -158,10 +173,13 @@ export function Timer() {
 
 export function DTimer() {
     let t = useTicker();
-    let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const secondsSinceMidnight = msSinceMidnight(t) / 1000;
+    const decimal = getDecimalParts(secondsSinceMidnight);
+    return (
+        <span>
+            {`${zeroPad(decimal.hours)}:${zeroPad(decimal.minutes)}:${zeroPad(decimal.seconds)}`}
+        </span>
+    );
 }
 
 export function RTimer() {
@@ -169,47 +187,43 @@ export function RTimer() {
     let h = t.getHours();
     let m = t.getMinutes();
     let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    let l = t.getMilliseconds();
+    const roman = toRoman(100 * h + m + s / 100 + l / 100000);
+    return <span>{roman}</span>;
 }
 
 export function RdTimer() {
     let t = useTicker();
-    let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const secondsSinceMidnight = msSinceMidnight(t) / 1000;
+    const decimal = getDecimalParts(secondsSinceMidnight);
+    const romanDecimal = toRoman(decimal.decimalSeconds / 100);
+    return <span>{romanDecimal}</span>;
 }
 
 export function ZTimer() {
     let t = useTicker();
-    let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const secondsSinceMidnight = msSinceMidnight(t) / 1000;
+    const zodiac = toZodiac(secondsSinceMidnight / 60);
+    return <span>{zodiac}</span>;
 }
 
 export function JTimer() {
     let t = useTicker();
     let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const jma = toTkyh(h);
+    return <span>{jma}</span>;
 }
 
 export function ETimer() {
     let t = useTicker();
-    let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const edo = toEdo(t, 'j');
+    return <span>{edo}</span>;
 }
 
 export function ReTimer() {
     let t = useTicker();
-    let h = t.getHours();
-    let m = t.getMinutes();
-    let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const edoRoman = toEdo(t, 'r');
+    return <span>{edoRoman}</span>;
 }
 
 export function PTimer() {
@@ -217,7 +231,8 @@ export function PTimer() {
     let h = t.getHours();
     let m = t.getMinutes();
     let s = t.getSeconds();
-    return <span>{zeroPad(h) + ":" + zeroPad(m) + ":" + zeroPad(s)}</span>
+    const periodic = toPeriodic(h.toString() + m.toString() + s.toString());
+    return <span>{periodic}</span>;
 }
 
 

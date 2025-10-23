@@ -31,7 +31,7 @@ TODO:
 - [ ] set up pnpm build
 - [x] clocks
   - [x] timer refreshes
-  - [ ] different clocks
+  - [x] different clocks
   - [ ] time travel
 - [x] dakuten
   - [x] default value disappear on click
