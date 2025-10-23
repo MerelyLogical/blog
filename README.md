@@ -32,7 +32,7 @@ TODO:
 - [x] clocks
   - [x] timer refreshes
   - [x] different clocks
-  - [ ] time travel
+  - [x] time travel
 - [x] dakuten
   - [x] default value disappear on click
   - [ ] adaptive colour for boxes

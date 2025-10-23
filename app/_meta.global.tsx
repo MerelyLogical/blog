@@ -38,7 +38,7 @@ export default {
             pagination: false // Hide pagination on this page
         },
         items: {
-            "clocks":    { title: "🚧 Clocks" },
+            "clocks":    { title: "Clocks" },
             "dakuten":   { title: "🚧 Dakuten" },
             "hex":       { title: "Hexagonal Grid" },
             "hex2":      { title: "Hexagonal Grid Pathfinding" },
