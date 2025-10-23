@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react';
+import { Button } from '@/js/ui/Button';
 
 // shuffle seating order
 function shuffle(arr) {
@@ -67,41 +68,42 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
 
     return (
         <div className="space-y-4">
-        <div>
-        <button
-        type="button"
-        onClick={() => setVersion((v) => v + 1)}
-        className="rounded-2xl px-4 py-2 shadow border hover:shadow-md active:translate-y-px transition"
-        >
-        Reshuffle
-        </button></div>
-        <form
-        onSubmit={(e) => e.preventDefault()}
-        className="flex items-center gap-3 flex-wrap"
-        aria-label="Bench controls"
-        >
-        <label htmlFor="sizeinput" className="font-medium">
-        Bench size:
-        </label>
-        <input
-        id="sizeinput"
-        type="number"
-        value={size}
-        min={0}
-        onChange={(e) => setSize(Number(e.target.value))}
-        className="border rounded px-3 py-1"
-        />
-        </form>
+            <div>
+                <Button
+                    type="button"
+                    onClick={() => setVersion((v) => v + 1)}
+                    className="rounded-2xl px-4 py-2 shadow border hover:shadow-md active:translate-y-px transition"
+                >
+                    Reshuffle
+                </Button>
+            </div>
+            <form
+                onSubmit={(e) => e.preventDefault()}
+                className="flex items-center gap-3 flex-wrap"
+                aria-label="Bench controls"
+            >
+                <label htmlFor="sizeinput" className="font-medium">
+                    Bench size:
+                </label>
+                <input
+                    id="sizeinput"
+                    type="number"
+                    value={size}
+                    min={0}
+                    onChange={(e) => setSize(Number(e.target.value))}
+                    className="border rounded px-3 py-1"
+                />
+            </form>
 
-        <div>
-        <i>e</i> = <span aria-live="polite">{Number.isFinite(e) ? e.toPrecision(6) : "∞"}</span>
-        </div>
+            <div>
+                <i>e</i> = <span aria-live="polite">{Number.isFinite(e) ? e.toPrecision(6) : "∞"}</span>
+            </div>
 
-        <div>
-        <div className="font-mono break-all whitespace-pre-wrap" aria-live="polite">
-        {benchString}
-        </div>
-        </div>
+            <div>
+                <div className="font-mono break-all whitespace-pre-wrap" aria-live="polite">
+                {benchString}
+                </div>
+            </div>
         </div>
     );
 }

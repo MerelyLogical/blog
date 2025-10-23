@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Button } from 'nextra/components';
+import { Button } from '@/js/ui/Button';
 
 function dakuten(input: string): string {
     // ﾞ \uFF9E  ﾟ \uFF9F

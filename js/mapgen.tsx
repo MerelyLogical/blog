@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { Button } from '@/js/ui/Button';
 
 const INF = 999;
 
@@ -223,7 +224,7 @@ export function RefreshGraph() {
 
   return (
     <div>
-      <button onClick={() => setVersion(v => v + 1)}>New graph</button>
+      <Button onClick={() => setVersion(v => v + 1)}>New graph</Button>
       <DrawGraph key={version} size={25} />
     </div>
   );
