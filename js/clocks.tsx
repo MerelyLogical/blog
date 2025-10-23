@@ -166,9 +166,9 @@ function clampTimePart(value: string, max: number) {
 
 export function TimeTravelControls({ children }: { children: ReactNode }) {
     const [enabled, setEnabled] = useState(false);
-    const [hours, setHours] = useState('12');
-    const [minutes, setMinutes] = useState('34');
-    const [seconds, setSeconds] = useState('56');
+    const [h, setH] = useState('12');
+    const [m, setM] = useState('34');
+    const [s, setS] = useState('56');
 
     const overrideDate = useMemo(() => {
         if (!enabled) {
@@ -176,13 +176,13 @@ export function TimeTravelControls({ children }: { children: ReactNode }) {
         }
         const base = new Date();
         base.setHours(
-            clampTimePart(hours, 23),
-            clampTimePart(minutes, 59),
-            clampTimePart(seconds, 59),
+            clampTimePart(h, 23),
+            clampTimePart(m, 59),
+            clampTimePart(s, 59),
             0
         );
         return base;
-    }, [enabled, hours, minutes, seconds]);
+    }, [enabled, h, m, s]);
 
     return (
         <TimeOverrideProvider currentTime={overrideDate}>
@@ -209,8 +209,8 @@ export function TimeTravelControls({ children }: { children: ReactNode }) {
             min="0"
             max="23"
             style={{ width: '5ch' }}
-            value={hours}
-            onChange={(event) => setHours(event.target.value)}
+            value={h}
+            onChange={(event) => setH(event.target.value)}
             />
             :
             <input
@@ -218,8 +218,8 @@ export function TimeTravelControls({ children }: { children: ReactNode }) {
             min="0"
             max="59"
             style={{ width: '5ch' }}
-            value={minutes}
-            onChange={(event) => setMinutes(event.target.value)}
+            value={m}
+            onChange={(event) => setM(event.target.value)}
             />
             :
             <input
@@ -227,8 +227,8 @@ export function TimeTravelControls({ children }: { children: ReactNode }) {
             min="0"
             max="59"
             style={{ width: '5ch' }}
-            value={seconds}
-            onChange={(event) => setSeconds(event.target.value)}
+            value={s}
+            onChange={(event) => setS(event.target.value)}
             />
             </form>
             </div>
@@ -243,15 +243,10 @@ function getDecimalParts(secondsSinceMidnight: number) {
     const decimalSeconds = secondsSinceMidnight / 0.864;
     const rounded = Math.round(decimalSeconds);
     const str = rounded.toString().padStart(5, '0');
-    const hours = str.slice(0, -4) || '0';
-    const minutes = str.slice(-4, -2) || '0';
-    const seconds = str.slice(-2) || '0';
-    return {
-        decimalSeconds,
-        hours,
-        minutes,
-        seconds,
-    };
+    const h = str.slice(0, -4) || '0';
+    const m = str.slice(-4, -2) || '0';
+    const s = str.slice(-2) || '0';
+    return { decimalSeconds, h, m, s };
 }
 
 export function useTicker(ms = 100): Date {
@@ -281,7 +276,7 @@ export function DTimer() {
     const decimal = getDecimalParts(secondsSinceMidnight);
     return (
         <span>
-        {`${zeroPad(decimal.hours)}:${zeroPad(decimal.minutes)}:${zeroPad(decimal.seconds)}`}
+        {`${zeroPad(decimal.h)}:${zeroPad(decimal.m)}:${zeroPad(decimal.s)}`}
         </span>
     );
 }
