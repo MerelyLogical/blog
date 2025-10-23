@@ -75,45 +75,23 @@ export function DakutenBox() {
   }
 
   return (
-    <div>
+    <div className="app-dakuten">
       <textarea
-        style={{
-          display: "block",
-          marginLeft: "auto",
-          marginRight: "auto",
-          backgroundColor: "#888888",
-          width: "90%",
-        }}
+        className="app-textarea"
         rows={10}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder={placeholder}
       />
-      <br />
-      <Button
-        style={{
-          display: "block",
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-        onClick={tsukeru}
-      >
-        つける！
-      </Button>
-      <br />
+      <div className="app-form-actions">
+        <Button onClick={tsukeru}>つける！</Button>
+      </div>
       <textarea
-        style={{
-          display: "block",
-          marginLeft: "auto",
-          marginRight: "auto",
-          backgroundColor: "#888888",
-          width: "90%",
-        }}
+        className="app-textarea"
         rows={10}
         value={output}
         readOnly
       />
-      <br />
     </div>
   );
 }

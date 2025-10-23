@@ -90,6 +90,7 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
                     type="number"
                     value={size}
                     min={0}
+                    max={1506}
                     onChange={(e) => setSize(Number(e.target.value))}
                     className="border rounded px-3 py-1"
                 />

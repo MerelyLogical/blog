@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Button } from '@/js/ui/Button';
 
 var grid: SVGSVGElement | null = null;
 var fly_dist: HTMLSpanElement | null = null;
@@ -425,7 +426,7 @@ export function HexGridPathfinding() {
                 Walking distance from start(blue) to end(green) is:{" "}
                 <span ref={walkDistRef} />
             </p>
-            <button ref={calcButtonRef} onClick={calculate}>Calculate</button>
+            <Button ref={calcButtonRef} onClick={calculate}>Calculate</Button>
             <svg
                 ref={svgRef}
                 id="grid"
