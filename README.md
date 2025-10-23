@@ -40,6 +40,7 @@ TODO:
 - [x] hex2
 - [x] moment
 - [x] aruaru
+  - [ ] better formatting
 - [x] nas
 - [ ] picalc
 - [x] pinyin

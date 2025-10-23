@@ -39,11 +39,11 @@ export default {
         },
         items: {
             "clocks":    { title: "Clocks" },
-            "dakuten":   { title: "🚧 Dakuten" },
+            "dakuten":   { title: "Dakuten" },
             "hex":       { title: "Hexagonal Grid" },
             "hex2":      { title: "Hexagonal Grid Pathfinding" },
             "moment":    { title: "A Moment of Time" },
-            "aruaru":    { title: "Aruaru Quiz" },
+            "aruaru":    { title: "🚧 Aruaru Quiz" },
             "picalc":    { title: "🚧 Pi Calculator" },
             "pinyin":    { title: "Pinyin Chart" },
             "mapgen":    { title: "Random Map Pathfinding" },

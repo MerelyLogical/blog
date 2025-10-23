@@ -60,11 +60,27 @@ function simulate(size: number) {
 
 // TODO: either split component or
 //       include link in this component
+const MIN_SIZE = 0;
+const MAX_SIZE = 150697;
+
 export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
-    const [size, setSize] = useState<number>(defaultSize);
+    const initialSize = Math.min(
+        MAX_SIZE,
+        Math.max(MIN_SIZE, Math.floor(defaultSize))
+    );
+    const [size, setSize] = useState<number>(initialSize);
     const [version, setVersion] = useState(0); // bump to reshuffle with same size
     const { benchString, e, count } = useMemo(() => simulate(size), [size, version]);
 
+    const handleSizeChange = (value: string) => {
+        const parsed = Number(value);
+        if (Number.isNaN(parsed)) {
+            setSize(MIN_SIZE);
+            return;
+        }
+        const clamped = Math.min(MAX_SIZE, Math.max(MIN_SIZE, Math.floor(parsed)));
+        setSize(clamped);
+    };
 
     return (
         <div className="space-y-4">
@@ -89,9 +105,9 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
                     id="sizeinput"
                     type="number"
                     value={size}
-                    min={0}
-                    max={1506}
-                    onChange={(e) => setSize(Number(e.target.value))}
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    onChange={(e) => handleSizeChange(e.target.value)}
                     className="border rounded px-3 py-1"
                 />
             </form>
@@ -108,4 +124,3 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
         </div>
     );
 }
-
