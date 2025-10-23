@@ -1,18 +1,17 @@
 'use client'
 
-import { Button as NextraButton } from 'nextra/components'
 import { forwardRef } from 'react'
-import type { ComponentPropsWithRef, ComponentPropsWithoutRef } from 'react'
+import type { ButtonHTMLAttributes } from 'react'
 
-type ButtonProps = ComponentPropsWithoutRef<typeof NextraButton>
-type ButtonRef = ComponentPropsWithRef<typeof NextraButton>['ref']
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 const DEFAULT_CLASSNAME = 'app-button'
+const DEFAULT_TYPE = 'button'
 
-export const Button = forwardRef(function Button(
-  { className, ...props }: ButtonProps,
-  ref: ButtonRef,
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, type = DEFAULT_TYPE, ...props },
+  ref,
 ) {
   const composed = className ? `${DEFAULT_CLASSNAME} ${className}` : DEFAULT_CLASSNAME
-  return <NextraButton ref={ref} className={composed} {...props} />
+  return <button ref={ref} className={composed} type={type} {...props} />
 })
