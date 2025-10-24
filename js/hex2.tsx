@@ -387,7 +387,7 @@ function initializeBoard() {
     setButtonLabel("Calculate");
     if (grid) {
         grid.replaceChildren();
-        drawGrid(15, 18);
+        drawGrid(22, 32);
     }
 }
 
@@ -417,7 +417,7 @@ export function HexGridPathfinding() {
 
     return (
         <div>
-            <p className="fs-6">Pathfinding on a SVG-based Hexagonal Grid</p>
+            <Button ref={calcButtonRef} onClick={calculate}>Calculate</Button>
             <p>
                 Flying distance from start(blue) to end(green) is:{" "}
                 <span ref={flyDistRef} />
@@ -426,13 +426,10 @@ export function HexGridPathfinding() {
                 Walking distance from start(blue) to end(green) is:{" "}
                 <span ref={walkDistRef} />
             </p>
-            <Button ref={calcButtonRef} onClick={calculate}>Calculate</Button>
             <svg
                 ref={svgRef}
                 id="grid"
-                viewBox="0 0 500 600"
-                height={500}
-                width={600}
+                viewBox="0 0 1000 1000"
                 style={{ display: "block", marginTop: "1rem" }}
             />
         </div>
