@@ -24,25 +24,25 @@ TODO:
 - [x] set up template
   - [x] routing posts
   - [ ] better home page
-  - [ ] figure out styles for components like buttons
+  - [x] figure out styles for components like buttons
   - [ ] switch between blogs and docs
-  - [ ] search engine
-  - [ ] image routing
-- [ ] set up pnpm build
+  - [x] search engine
+  - [x] image routing
+- [x] set up pnpm build
 - [x] clocks
   - [x] timer refreshes
   - [x] different clocks
   - [x] time travel
 - [x] dakuten
   - [x] default value disappear on click
-  - [ ] adaptive colour for boxes
+  - [x] adaptive colour for boxes
 - [x] hex
 - [x] hex2
 - [x] moment
 - [x] aruaru
   - [ ] better formatting
 - [x] nas
-- [ ] picalc
+- [x] picalc
 - [x] pinyin
 - [x] mapgen
   - [x] fix perf issue, laggy af
@@ -56,6 +56,6 @@ TODO:
   - [ ] move link before bench string
 - ~~[ ] pixels~~
 - [x] 404
-  - [ ] logo image routing in 404 page
+  - [x] logo image routing in 404 page
 - [ ] add kofi link
 

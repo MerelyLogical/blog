@@ -115,7 +115,7 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
             <div>
                 <i>e</i> = <span aria-live="polite">{Number.isFinite(e) ? e.toPrecision(6) : "∞"}</span>
             </div>
-
+            <br/>
             <div>
                 <div className="font-mono break-all whitespace-pre-wrap" aria-live="polite">
                 {benchString}
