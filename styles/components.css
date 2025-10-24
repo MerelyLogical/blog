@@ -3,12 +3,13 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.55rem 1.2rem;
+  padding: 0.3rem 1rem;
+  margin: 1rem 0;
   border: none;
   border-radius: 9999px;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: #1d52c5;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
@@ -16,18 +17,13 @@
 }
 
 .app-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-3px);
   box-shadow: 0 16px 32px rgba(15, 23, 42, 0.3);
 }
 
 .app-button:active {
   transform: translateY(0);
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.22);
-}
-
-.app-button:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.75);
-  outline-offset: 3px;
 }
 
 :root {
@@ -96,15 +92,6 @@ html[data-theme='dark'] {
     background 150ms ease;
 }
 
-.app-textarea:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.6);
-  outline-offset: 3px;
-  border-color: rgba(37, 99, 235, 0.6);
-  box-shadow:
-    var(--app-textarea-shadow),
-    0 0 0 4px rgba(37, 99, 235, 0.08);
-}
-
 .app-textarea::placeholder {
   color: rgba(148, 163, 184, 0.8);
 }
@@ -113,10 +100,6 @@ html.dark .app-textarea::placeholder,
 :root[data-theme='dark'] .app-textarea::placeholder,
 html[data-theme='dark'] .app-textarea::placeholder {
   color: rgba(203, 213, 225, 0.6);
-}
-
-.app-dakuten .app-textarea:first-of-type {
-  margin-top: 0;
 }
 
 .app-form-actions {
