@@ -25,7 +25,7 @@ TODO:
   - [x] routing posts
   - [ ] better home page
   - [x] figure out styles for components like buttons
-  - [ ] switch between blogs and docs
+  - [ ] ~~switch between blogs and docs~~
   - [x] search engine
   - [x] image routing
 - [x] set up pnpm build
@@ -54,7 +54,7 @@ TODO:
   - [ ] arrow key control
 - [x] ecalc
   - [ ] move link before bench string
-- ~~[ ] pixels~~
+- [ ] ~~pixels~~
 - [x] 404
   - [x] logo image routing in 404 page
 - [ ] add kofi link
