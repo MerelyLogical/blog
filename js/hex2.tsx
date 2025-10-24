@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { Button } from '@/js/ui/Button';
 
+const ANIMATION_DELAY_MS = 33;
+
 var grid: SVGSVGElement | null = null;
 var fly_dist: HTMLSpanElement | null = null;
 var walk_dist: HTMLSpanElement | null = null;
@@ -37,6 +39,7 @@ var no_goal = true;
 var start: Tile | undefined;
 var goal: Tile | undefined;
 var path_found = false;
+var animationRunning = false;
 
 function ytoz(x: number, y: number) {
     return y + ceil(-x / 2);
@@ -163,6 +166,9 @@ function drawHexagon(i: number, j: number, k: number, x: number, y: number) {
     }
 
     hex.addEventListener("mouseover", function (e) {
+        if (animationRunning) {
+            return;
+        }
         if (e.buttons === 1 || e.buttons === 3) {
             cycleTypes(boardstate[i][j]);
         } else {
@@ -175,6 +181,9 @@ function drawHexagon(i: number, j: number, k: number, x: number, y: number) {
     }, false);
 
     hex.addEventListener("mousedown", function () {
+        if (animationRunning) {
+            return;
+        }
         cycleTypes(boardstate[i][j]);
     }, false);
 
@@ -308,45 +317,70 @@ function setWalkDistanceText(value: string) {
     }
 }
 
-function bfd(a: Tile, b: Tile) {
+function sleep(ms: number) {
+    return new Promise<void>((resolve) => {
+        window.setTimeout(resolve, ms);
+    });
+}
+
+function setGridInteractionsLocked(locked: boolean) {
+    animationRunning = locked;
+    if (calc_button) {
+        calc_button.disabled = locked;
+    }
+    if (grid) {
+        grid.style.pointerEvents = locked ? "none" : "";
+    }
+}
+
+async function bfd(a: Tile, b: Tile) {
     queue = [];
     var iter = 0;
     var pathlength = 0;
+    path_found = false;
+    setButtonLabel("Calculating...");
+    setGridInteractionsLocked(true);
     if (!a.visited) {
         queue.push(a);
         a.visited = true;
     }
-    while (queue.length !== 0 && iter < 750) {
-        var current = queue.shift();
-        if (!current) {
-            break;
-        }
-        current.inqueue = false;
-        if (try_cell(current, b)) {
-            while (current.previous !== null) {
-                current.path = true;
-                current = current.previous;
-                pathlength++;
+    try {
+        while (queue.length !== 0 && iter < 750) {
+            var current = queue.shift();
+            if (!current) {
+                break;
             }
+            current.inqueue = false;
+            if (try_cell(current, b)) {
+                while (current.previous !== null) {
+                    current.path = true;
+                    current = current.previous;
+                    pathlength++;
+                }
+                setButtonLabel("Reset");
+                path_found = true;
+                console.log("path found in " + iter + " iterations");
+                colorAll();
+                break;
+            }
+            iter++;
+            await sleep(ANIMATION_DELAY_MS);
+        }
+        if (path_found) {
+            return pathlength;
+        } else {
             setButtonLabel("Reset");
             path_found = true;
-            console.log("path found in " + iter + " iterations");
-            colorAll();
-            break;
+            console.log("no path found after " + iter + " iterations");
+            return -1;
         }
-        iter++;
-    }
-    if (path_found) {
-        return pathlength;
-    } else {
-        setButtonLabel("Reset");
-        path_found = true;
-        console.log("no path found after " + iter + " iterations");
-        return -1;
+    } finally {
+        setGridInteractionsLocked(false);
     }
 }
 
 function resetBoardState() {
+    setGridInteractionsLocked(false);
     for (var col of boardstate) {
         for (var tile of col) {
             tile.visited = false;
@@ -358,7 +392,10 @@ function resetBoardState() {
     colorAll();
 }
 
-function calculate() {
+async function calculate() {
+    if (animationRunning) {
+        return;
+    }
     if (path_found) {
         resetBoardState();
         setButtonLabel("Calculate");
@@ -369,7 +406,8 @@ function calculate() {
             setWalkDistanceText("ERROR: no start or no goal");
         } else {
             setFlyDistanceText(String(distance(start, goal)));
-            setWalkDistanceText(String(bfd(start, goal)));
+            var walkDistance = await bfd(start, goal);
+            setWalkDistanceText(String(walkDistance));
         }
     }
 }
@@ -385,6 +423,7 @@ function initializeBoard() {
     setFlyDistanceText("");
     setWalkDistanceText("");
     setButtonLabel("Calculate");
+    setGridInteractionsLocked(false);
     if (grid) {
         grid.replaceChildren();
         drawGrid(22, 32);
