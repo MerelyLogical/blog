@@ -1,6 +1,7 @@
 import { Layout, Navbar} from 'nextra-theme-docs'
 import { Head} from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
+import KoFiSidebarButton from '../components/KoFiSidebarButton'
 import 'nextra-theme-docs/style.css'
 import '../styles/components.css'
 
@@ -20,6 +21,8 @@ const navbar = (
     }>
     </Navbar>
 );
+
+const koFiEmbedHtml = `<iframe id="kofiframe" src="https://ko-fi.com/merelylogical/?hidefeed=true&widget=true&embed=true&preview=true" style="border:none;width:100%;height:100%;padding:4px;background:#f9f9f9;" height="712" title="merelylogical"></iframe>`;
 
 export default async function RootLayout({children}) {
     return (
@@ -42,6 +45,7 @@ export default async function RootLayout({children}) {
             feedback={{ content: null }}
             editLink={null}
         >
+        <KoFiSidebarButton iframe={koFiEmbedHtml} />
         {children}
         </Layout>
         </body>
