@@ -19,11 +19,11 @@ var a = 2 * PI / 6; // 60°
 var r = 20; // radius
 
 // color palette
-var back_c = "#333333",
+var empty_c = "#333333",
     wall_c = "#CCCCCC",
     hover_c = "#888888",
-    start_c = "#0000AA",
-    goal_c = "#00AA00",
+    start_c = "#00AA00",
+    goal_c = "#0000AA",
     error_c = "#FFAAAA",
     search_c = "#555577",
     path_c = "#557755",
@@ -81,7 +81,7 @@ function color(tile: Tile) {
     } else {
         switch (tile.s) {
             case "back":
-                tile.h.style.fill = back_c;
+                tile.h.style.fill = empty_c;
                 break;
             case "wall":
                 tile.h.style.fill = wall_c;
@@ -316,7 +316,7 @@ function bfd(a: Tile, b: Tile) {
         queue.push(a);
         a.visited = true;
     }
-    while (queue.length !== 0 && iter < 500) {
+    while (queue.length !== 0 && iter < 750) {
         var current = queue.shift();
         if (!current) {
             break;
@@ -419,19 +419,57 @@ export function HexGridPathfinding() {
         <div>
             <Button ref={calcButtonRef} onClick={calculate}>Calculate</Button>
             <p>
-                Flying distance from start(blue) to end(green) is:{" "}
-                <span ref={flyDistRef} />
+                Flying distance from start to end is: <span ref={flyDistRef} />
             </p>
             <p>
-                Walking distance from start(blue) to end(green) is:{" "}
-                <span ref={walkDistRef} />
+                Walking distance from start to end is: <span ref={walkDistRef} />
             </p>
+            <Legend />
             <svg
                 ref={svgRef}
                 id="grid"
                 viewBox="0 0 1000 1000"
                 style={{ display: "block", marginTop: "1rem" }}
             />
+        </div>
+    );
+}
+function Legend() {
+    const items = [
+        { label: "Start", color: start_c, textColor: "#ffffff" },
+        { label: "End", color: goal_c, textColor: "#ffffff" },
+        { label: "Empty", color: empty_c, textColor: "#ffffff" },
+        { label: "Wall", color: wall_c, textColor: "#000000" },
+        { label: "Visited", color: search_c, textColor: "#ffffff" },
+        { label: "Queued", color: queue_c, textColor: "#ffffff" },
+        { label: "Path", color: path_c, textColor: "#ffffff" }
+    ];
+    const pillStyle = {
+        padding: "0.2rem 0.6rem",
+        borderRadius: "0.375rem",
+        fontWeight: 600,
+        display: "inline-flex",
+        alignItems: "center",
+    } as const;
+
+    return (
+        <div
+            className="app-form-inline app-form-inline--compact"
+            style={{ alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}
+        >
+            <strong>Legend:</strong>
+            {items.map((item) => (
+                <span
+                    key={item.label}
+                    style={{
+                        ...pillStyle,
+                        backgroundColor: item.color,
+                        color: item.textColor,
+                    }}
+                >
+                    {item.label}
+                </span>
+            ))}
         </div>
     );
 }
