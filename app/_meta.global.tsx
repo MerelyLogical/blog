@@ -44,7 +44,7 @@ export default {
             "hex2":      { title: "Hexagonal Grid Pathfinding" },
             "moment":    { title: "A Moment of Time" },
             "aruaru":    { title: "🚧 Aruaru Quiz" },
-            "picalc":    { title: "🚧 Pi Calculator" },
+            "picalc":    { title: "Pi Calculator" },
             "pinyin":    { title: "Pinyin Chart" },
             "mapgen":    { title: "Random Map Pathfinding" },
             "marketsim": { title: "🚧 Stock Market Simulator" },
