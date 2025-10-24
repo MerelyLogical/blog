@@ -202,32 +202,39 @@ export function TimeTravelControls({ children }: { children: ReactNode }) {
             <strong>Select current time:</strong>
             <form
             onSubmit={(event) => event.preventDefault()}
-            style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            className="app-form-inline app-form-inline--compact"
             >
             <input
             type="number"
             min="0"
             max="23"
-            style={{ width: '5ch' }}
+            className="app-input app-input--compact"
             value={h}
+            aria-label="Hours"
             onChange={(event) => setH(event.target.value)}
             />
+            <span className="app-form-separator" aria-hidden="true">
             :
+            </span>
             <input
             type="number"
             min="0"
             max="59"
-            style={{ width: '5ch' }}
+            className="app-input app-input--compact"
             value={m}
+            aria-label="Minutes"
             onChange={(event) => setM(event.target.value)}
             />
+            <span className="app-form-separator" aria-hidden="true">
             :
+            </span>
             <input
             type="number"
             min="0"
             max="59"
-            style={{ width: '5ch' }}
+            className="app-input app-input--compact"
             value={s}
+            aria-label="Seconds"
             onChange={(event) => setS(event.target.value)}
             />
             </form>

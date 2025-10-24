@@ -95,10 +95,10 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
             </div>
             <form
                 onSubmit={(e) => e.preventDefault()}
-                className="flex items-center gap-3 flex-wrap"
+                className="app-form-inline"
                 aria-label="Bench controls"
             >
-                <label htmlFor="sizeinput" className="font-medium">
+                <label htmlFor="sizeinput" className="app-form-label">
                     Bench size:
                 </label>
                 <input
@@ -108,7 +108,7 @@ export function ECalc({ defaultSize = 1000 }: { defaultSize?: number }) {
                     min={MIN_SIZE}
                     max={MAX_SIZE}
                     onChange={(e) => handleSizeChange(e.target.value)}
-                    className="border rounded px-3 py-1"
+                    className="app-input"
                 />
             </form>
 

@@ -82,24 +82,31 @@ export function RefreshHex() {
 
   return (
     <div>
-      <form>
+      <form
+        className="app-form-inline app-form-inline--compact"
+        aria-label="Hex grid size controls"
+      >
         <input
           id="h"
           type="number"
-          style={{ width: "5ch" }}
+          className="app-input app-input--compact"
           min={0}
           max={99}
           value={heightCount}
+          aria-label="Grid height"
           onChange={handleHeightChange}
         />
-        {" × "}
+        <span className="app-form-separator" aria-hidden="true">
+          ×
+        </span>
         <input
           id="w"
           type="number"
-          style={{ width: "5ch" }}
+          className="app-input app-input--compact"
           min={0}
           max={99}
           value={widthCount}
+          aria-label="Grid width"
           onChange={handleWidthChange}
         />
       </form>
