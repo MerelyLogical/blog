@@ -41,7 +41,7 @@ TODO:
 - [x] hex2
 - [x] moment
 - [x] aruaru
-  - [ ] better formatting
+  - [x] better formatting
 - [x] nas
 - [x] picalc
 - [x] pinyin

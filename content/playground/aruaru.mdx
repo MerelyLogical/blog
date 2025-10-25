@@ -9,14 +9,18 @@ Click on the empty rows to reveal additional hints pairs.
 
 ## Example Question
 
-| Category 1 | Category 2 |
-| ---------- | ---------- |
-| Assets     | Diversity  |
-| Liability  | Inclusion  |
-
-* Category 1: Terms in the accounting equation
-* Category 2: Corporate jargon
-* Answer: Equity
+<Question
+  headers={["Category 1", "Category 2"]}
+  rows={[
+    { cells: ["Assets", "Diversity"] },
+    { cells: ["Liability", "Inclusion"] },
+  ]}
+  notes={[
+    { label: "Category 1", content: "Terms in the accounting equation" },
+    { label: "Category 2", content: "Corporate jargon" },
+    { label: "Answer", content: "Equity" },
+  ]}
+/>
 
 <br/>
 ---
@@ -103,4 +107,4 @@ Click on the empty rows to reveal additional hints pairs.
 <br/>
 ---
 
-Inspired by [｢あるなしクイズ｣じゃなくて｢あるあるクイズ｣やってみた]("https://www.youtube.com/watch?v=bHkQo_YqP40">).
+Inspired by [｢あるなしクイズ｣じゃなくて｢あるあるクイズ｣やってみた]("https://www.youtube.com/watch?v=bHkQo_YqP40").
