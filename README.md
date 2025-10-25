@@ -15,6 +15,7 @@ ts
 Published at https://merelylogical.github.io/blog/
 
 ```bash
+pnpm install
 pnpm dev
 ```
 
@@ -50,12 +51,12 @@ TODO:
 - [ ] marketsim
 - [x] physics
   - [x] base engine
-  - [ ] energy calculations
-  - [ ] arrow key control
+  - [x] energy calculations
+  - [x] arrow key control
 - [x] ecalc
   - [ ] move link before bench string
 - [ ] ~~pixels~~
 - [x] 404
   - [x] logo image routing in 404 page
-- [ ] add kofi link
+- [x] add kofi link
 
