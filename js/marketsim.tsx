@@ -23,7 +23,7 @@ import { Button } from '@/js/ui/Button';
 // [x] split files
 // [ ] keyboard shortcuts
 
-type MarketNumbers = {
+export type MarketNumbers = {
     price: number;
     cash: number;
     shares: number;
@@ -46,38 +46,62 @@ const inflation     = 0.00015;
 const loan_rate     = 0.00030;
 const savings_rate  = 0.00010;
 
-type NetworthListener = () => void;
-
-let networthValue = 0;
-const networthListeners = new Set<NetworthListener>();
-
-function getNetworthSnapshot() {
-    return networthValue;
-}
-
-function subscribeNetworth(listener: NetworthListener) {
-    networthListeners.add(listener);
-    return () => {
-        networthListeners.delete(listener);
+function createDefaultNumbers(): MarketNumbers {
+    return {
+        price: 10,
+        cash: 0,
+        shares: 0,
+        avg_cost: 0,
+        tick: 0,
+        networth: 0,
+        savings: 0,
+        loan: 0,
     };
 }
 
-function setNetworth(value: number) {
-    networthValue = value;
-    networthListeners.forEach((listener) => listener());
+type MarketNumbersListener = () => void;
+
+let marketNumbersSnapshot: MarketNumbers = createDefaultNumbers();
+const marketNumbersListeners = new Set<MarketNumbersListener>();
+
+function getMarketNumbersSnapshot() {
+    return marketNumbersSnapshot;
 }
 
-type NetworthDisplayProps = {
+function subscribeMarketNumbers(listener: MarketNumbersListener) {
+    marketNumbersListeners.add(listener);
+    return () => {
+        marketNumbersListeners.delete(listener);
+    };
+}
+
+function setMarketNumbersSnapshot(numbers: MarketNumbers) {
+    marketNumbersSnapshot = {...numbers};
+    marketNumbersListeners.forEach((listener) => listener());
+}
+
+function formatNumber(value: number, decimals?: number) {
+    return decimals === undefined ? `${value}` : value.toFixed(decimals);
+}
+
+export function useMarketNumbers() {
+    return useSyncExternalStore(
+        subscribeMarketNumbers,
+        getMarketNumbersSnapshot,
+        getMarketNumbersSnapshot
+    );
+}
+
+type MarketNumberProps = {
+    field: keyof MarketNumbers;
     decimals?: number;
 };
 
-export function NetworthDisplay({ decimals = 2 }: NetworthDisplayProps) {
-    const networth = useSyncExternalStore(
-        subscribeNetworth,
-        getNetworthSnapshot,
-        getNetworthSnapshot
-    );
-    return <span aria-live="polite">{networth.toFixed(decimals)}</span>;
+export function MarketNumber({ field, decimals }: MarketNumberProps) {
+    const numbers = useMarketNumbers();
+    const value = numbers[field];
+    const resolvedDecimals = decimals ?? (Number.isInteger(value) ? 0 : 2);
+    return <span aria-live="polite">{formatNumber(value, resolvedDecimals)}</span>;
 }
 
 const chartJsCdn = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js";
@@ -115,16 +139,7 @@ function gaussianRandom() {
 }
 
 export function MarketSim() {
-    const market_numbers = useRef<MarketNumbers>({
-        price: 10,
-        cash: 0,
-        shares: 0,
-        avg_cost: 0,
-        tick: 0,
-        networth: 0,
-        savings: 0,
-        loan: 0,
-    });
+    const market_numbers = useRef<MarketNumbers>(createDefaultNumbers());
     const game_state = useRef<GameState>({grind: true, market: false, bank: false});
     const stock_chart = useRef<any>(null);
     const net_chart = useRef<any>(null);
@@ -132,6 +147,10 @@ export function MarketSim() {
     const stockCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const netCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const [, forceRender] = useState(0);
+
+    function emitNumbers() {
+        setMarketNumbersSnapshot(market_numbers.current);
+    }
 
     function refreshDoc() {
         forceRender((v) => v + 1);
@@ -203,18 +222,9 @@ export function MarketSim() {
     }
 
     function initialiseDoc() {
-        market_numbers.current = {
-            price: 10,
-            cash: 0,
-            shares: 0,
-            avg_cost: 0,
-            tick: 0,
-            networth: 0,
-            savings: 0,
-            loan: 0,
-        };
+        market_numbers.current = createDefaultNumbers();
         game_state.current = {grind: true, market: false, bank: false};
-        setNetworth(market_numbers.current.networth);
+        emitNumbers();
         refreshDoc();
     }
 
@@ -252,7 +262,7 @@ export function MarketSim() {
         numbers.networth = numbers.cash + numbers.shares * numbers.price + numbers.savings - numbers.loan;
         numbers.savings *= 1 + savings_rate;
         numbers.loan    *= 1 + loan_rate;
-        setNetworth(numbers.networth);
+        emitNumbers();
         progress();
         refreshDoc();
         refreshchart();
@@ -279,6 +289,7 @@ export function MarketSim() {
             numbers.cash -= numbers.price;
             numbers.avg_cost = (numbers.avg_cost * numbers.shares + numbers.price * 1) / (numbers.shares + 1);
             numbers.shares++;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -288,6 +299,7 @@ export function MarketSim() {
         if (numbers.shares > 0) {
             numbers.cash += numbers.price;
             numbers.shares--;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -297,6 +309,7 @@ export function MarketSim() {
         if (numbers.cash >= 100) {
             numbers.cash -= 100;
             numbers.savings += 100;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -306,10 +319,12 @@ export function MarketSim() {
         if (numbers.savings >= 100) {
             numbers.cash += 100;
             numbers.savings -= 100;
+            emitNumbers();
             refreshDoc();
         } else if (0 < numbers.savings && numbers.savings < 100) {
             numbers.cash += numbers.savings;
             numbers.savings = 0;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -319,6 +334,7 @@ export function MarketSim() {
         if (numbers.loan + 100 <= numbers.networth * ltv) {
             numbers.cash += 100;
             numbers.loan += 100;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -328,10 +344,12 @@ export function MarketSim() {
         if (numbers.cash >= 100 && numbers.loan >= 100) {
             numbers.cash -= 100;
             numbers.loan -= 100;
+            emitNumbers();
             refreshDoc();
         } else if (numbers.cash >= numbers.loan && 0 < numbers.loan && numbers.loan < 100) {
             numbers.cash -= numbers.loan;
             numbers.loan = 0;
+            emitNumbers();
             refreshDoc();
         }
     }
@@ -339,6 +357,7 @@ export function MarketSim() {
     function grind() {
         const numbers = market_numbers.current;
         numbers.cash++;
+        emitNumbers();
         refreshDoc();
     }
 
@@ -377,7 +396,7 @@ export function MarketSim() {
                 net_chart.current.destroy();
                 net_chart.current = null;
             }
-            setNetworth(0);
+            setMarketNumbersSnapshot(createDefaultNumbers());
         };
     }, []);
 
@@ -386,6 +405,9 @@ export function MarketSim() {
 
     return (
         <div className="space-y-4">
+            <div>
+                Networth: £<MarketNumber field="networth" />
+            </div>
             <canvas
                 ref={netCanvasRef}
                 style={{height: "50%", width: "100%"}}

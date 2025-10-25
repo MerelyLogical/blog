@@ -1,7 +1,20 @@
-import { MarketSim, NetworthDisplay } from '@/js/marketsim'
+import { MarketSim, MarketNumber } from '@/js/marketsim'
+
+{/*/ export type MarketNumbers = {
+//     price: number;
+//     cash: number;
+//     shares: number;
+//     avg_cost: number;
+//     tick: number;
+//     networth: number;
+//     savings: number;
+//     loan: number;*/}
 
 # Stock Market Simulator
 
-## Networth: £<NetworthDisplay />
+## Networth: £<MarketNumber field="networth" />
+
+### Cash: £<MarketNumber field="cash" />
+### Shares: £<MarketNumber field="shares" />
 
 <MarketSim />
