@@ -48,7 +48,8 @@ TODO:
 - [x] mapgen
   - [x] fix perf issue, laggy af
   - [x] add refresh button
-- [ ] marketsim
+- [x] marketsim
+  - [ ] better formatting
 - [x] physics
   - [x] base engine
   - [x] energy calculations

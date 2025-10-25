@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Button } from '@/js/ui/Button';
 
 // TODO:
 // [x] record price history
@@ -44,6 +45,40 @@ const ltv           = 0.60;
 const inflation     = 0.00015;
 const loan_rate     = 0.00030;
 const savings_rate  = 0.00010;
+
+type NetworthListener = () => void;
+
+let networthValue = 0;
+const networthListeners = new Set<NetworthListener>();
+
+function getNetworthSnapshot() {
+    return networthValue;
+}
+
+function subscribeNetworth(listener: NetworthListener) {
+    networthListeners.add(listener);
+    return () => {
+        networthListeners.delete(listener);
+    };
+}
+
+function setNetworth(value: number) {
+    networthValue = value;
+    networthListeners.forEach((listener) => listener());
+}
+
+type NetworthDisplayProps = {
+    decimals?: number;
+};
+
+export function NetworthDisplay({ decimals = 2 }: NetworthDisplayProps) {
+    const networth = useSyncExternalStore(
+        subscribeNetworth,
+        getNetworthSnapshot,
+        getNetworthSnapshot
+    );
+    return <span aria-live="polite">{networth.toFixed(decimals)}</span>;
+}
 
 const chartJsCdn = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js";
 
@@ -179,6 +214,7 @@ export function MarketSim() {
             loan: 0,
         };
         game_state.current = {grind: true, market: false, bank: false};
+        setNetworth(market_numbers.current.networth);
         refreshDoc();
     }
 
@@ -216,6 +252,7 @@ export function MarketSim() {
         numbers.networth = numbers.cash + numbers.shares * numbers.price + numbers.savings - numbers.loan;
         numbers.savings *= 1 + savings_rate;
         numbers.loan    *= 1 + loan_rate;
+        setNetworth(numbers.networth);
         progress();
         refreshDoc();
         refreshchart();
@@ -340,6 +377,7 @@ export function MarketSim() {
                 net_chart.current.destroy();
                 net_chart.current = null;
             }
+            setNetworth(0);
         };
     }, []);
 
@@ -348,16 +386,13 @@ export function MarketSim() {
 
     return (
         <div className="space-y-4">
-            <div>
-                Networth: £<span aria-live="polite">{numbers.networth.toFixed(2)}</span>
-            </div>
             <canvas
                 ref={netCanvasRef}
                 style={{height: "50%", width: "100%"}}
             />
-            <button type="button" onClick={grind} className="app-button">
+            <Button onClick={grind}>
                 grind
-            </button>
+            </Button>
 
             <div
                 className="space-y-3"
@@ -383,8 +418,8 @@ export function MarketSim() {
                     </table>
                 </div>
                 <p>
-                    <button type="button" onClick={buy} className="app-button">buy</button>{' '}
-                    <button type="button" onClick={sell} className="app-button">sell</button>
+                    <Button onClick={buy}>buy</Button>{' '}
+                    <Button onClick={sell}>sell</Button>
                 </p>
             </div>
 
@@ -405,12 +440,12 @@ export function MarketSim() {
                             </tr>
                             <tr>
                                 <td>
-                                    <button type="button" onClick={borrow} className="app-button">borrow</button>{' '}
-                                    <button type="button" onClick={repay} className="app-button">repay</button>
+                                    <Button onClick={borrow}>borrow</Button>{' '}
+                                    <Button onClick={repay}>repay</Button>
                                 </td>
                                 <td>
-                                    <button type="button" onClick={save} className="app-button">save</button>{' '}
-                                    <button type="button" onClick={withdraw} className="app-button">withdraw</button>
+                                    <Button onClick={save}>save</Button>{' '}
+                                    <Button onClick={withdraw}>withdraw</Button>
                                 </td>
                             </tr>
                             <tr>
