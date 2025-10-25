@@ -54,7 +54,7 @@ TODO:
   - [x] energy calculations
   - [x] arrow key control
 - [x] ecalc
-  - [ ] move link before bench string
+  - [x] move link before bench string
 - [ ] ~~pixels~~
 - [x] 404
   - [x] logo image routing in 404 page
