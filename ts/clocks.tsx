@@ -91,26 +91,31 @@ function toEdo(today, form) {
     var fakeLng = today.getTimezoneOffset() / 60 * (-15) + 0.76,
     times = SunCalcGetTimes(today, 35.02, fakeLng, 47),
     dawn = times.dawn,
-    dusk = times.dusk;
+    dusk = times.dusk,
+    todayMs = today.getTime(),
+    dawnMs = dawn.getTime(),
+    duskMs = dusk.getTime();
     if (today < dawn) {
         var ytd = new Date();
         ytd.setDate(today.getDate() - 1);
         var timesYtd = SunCalcGetTimes(ytd, 35.02, fakeLng, 47),
         duskYtd = timesYtd.dusk,
-        hourLength = (dawn - duskYtd) / 12,
-        hoursSinceDusk = (today - duskYtd) / hourLength;
+        duskYtdMs = duskYtd.getTime(),
+        hourLength = (dawnMs - duskYtdMs) / 12,
+        hoursSinceDusk = (todayMs - duskYtdMs) / hourLength;
         return nightlut[Math.floor(hoursSinceDusk)];
     } else if (today < dusk) {
-        var hourLength = (dusk - dawn) / 12,
-        hoursSinceDawn = (today - dawn) / hourLength;
+        var hourLength = (duskMs - dawnMs) / 12,
+        hoursSinceDawn = (todayMs - dawnMs) / hourLength;
         return daylut[Math.floor(hoursSinceDawn)];
     } else {
         var tmr = new Date();
         tmr.setDate(today.getDate() + 1);
         var timesTmr = SunCalcGetTimes(tmr, 35.02, fakeLng, 47),
         dawnTmr = timesTmr.dawn,
-        hourLength = (dawnTmr - dusk) / 12,
-        hoursSinceDusk = (today - dusk) / hourLength;
+        dawnTmrMs = dawnTmr.getTime(),
+        hourLength = (dawnTmrMs - duskMs) / 12,
+        hoursSinceDusk = (todayMs - duskMs) / hourLength;
         return nightlut[Math.floor(hoursSinceDusk)];
     }
 }
