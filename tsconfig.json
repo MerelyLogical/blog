@@ -36,7 +36,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    "docs/types/**/*.ts"
+    "docs/types/**/*.ts",
+    "mdx-components.js"
   ],
   "exclude": [
     "node_modules"

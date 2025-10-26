@@ -19,6 +19,13 @@ pnpm install
 pnpm dev
 ```
 
+needs node v24 due to bug in v25.
+
+remove this in /etc/pacman.conf when v25 works:
+```
+IgnorePkg = node
+```
+
 TODO:
 
 - [x] dev environment
