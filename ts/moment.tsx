@@ -6,7 +6,8 @@ export function moment() {
     let times = SunCalcGetTimes(today, 51.501, -0.125, 11);
     let sunrise = times.sunrise;
     let sunset = times.sunset;
-    let mlen = (sunset - sunrise) / 480000;
+    let daylightMs = sunset.getTime() - sunrise.getTime();
+    let mlen = daylightMs / 480000;
 
     // TODO: read coord from user and calculate
     return mlen.toFixed(1);
