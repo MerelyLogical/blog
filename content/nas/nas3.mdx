@@ -1,14 +1,64 @@
-import { Callout } from 'nextra/components';
+import { Callout } from 'nextra/components'
 
 # Optimising the NAS
 
-## Install new disk
+## Set up Deluge
+
+Deluge has a cool web interface, so we don't need to SSH to the NAS for monitoring.
+
+So let's follow the tutorial for a Headless install:
+
+```bash
+$ sudo apt install deluged deluge-web deluge-console
+```
+
+Now we just need to open the ports used for the webUI on ufw:
+
+```bash
+sudo ufw allow <port>
+sudo ufw enable
+
+sudo ufw status
+```
+
+and the rest of it can be easily configured through the WebUI, very convenient!
+
+## Install new disk and new card
+
+Having a 1TB disk in the cluster is a little sad, and since we've been using `mfs` as the
+file creation policy, the 1TB drive has been empty anyways.
+So we can just swap it out for a new 4TB drive!
+
+9.3% price increase... not to bad!
+
+After installing , I'm always getting errors accessing the new drive,
+and changing SATA cables doesn't seem to work, so I suspect the error is with the HBA card.
+
+ACTIMED PCI-E to 4 SATA port expansion card/ Marvell 88SE9215 chipset £24.99
+
+Updated version of the NAS costs table:
+
+|             |                                                            | Price(£) |
+| ----------- | ---------------------------------------------------------- | -------: |
+| ~~HBA~~     | ~~LSI SAS 9212-4i4e~~                                      |    30.00 |
+| exp card    | ACTIMED expansion card                                     |    24.99 |
+| HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
+| HDD         | Seagate Ironwolf 4TB                                       |    83.99 |
+| ~~HDD~~     | ~~HGST Travelstar(?) 1TB (pulled from old laptop)~~        |          |
+| HDD         | WD Blue 4TB (pulled from another computer)                 |          |
+| HDD         | Seagate Ironwolf 4TB                                       |    91.80 |
+| Total       |                                                            |   314.77 |
+| Grand Total |                                                            |   731.41 |
+
+Now everything works quite smoothly!
+We can also switch the policy back to `epmfs`.
 
 ## Remove disk spin down
+
+Since we are now using the NAS as a 24/7 torrent machine, we don't want disk to
+repeated spin up and down anymore, so let's switch it off.
 
 ``` bash
 $ sudo ./openSeaChest_PowerControl --device /dev/sdx  --idle_a default --idle_b default --idle_c default --standby_z disable
 $ sudo ./openSeaChest_PowerControl -d /dev/sdx --showEPCSettings
 ```
-
-## Set up deluge
