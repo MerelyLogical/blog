@@ -73,11 +73,11 @@ function sunCoords(d) {
     };
 }
 
-var SunCalc = {};
+const SunCalc: any = {};
 
 // calculates sun position for a given date and latitude/longitude
 
-SunCalc.getPosition = function (date, lat, lng) {
+SunCalc.getPosition = function (date: Date, lat: number, lng: number) {
 
     var lw  = rad * -lng,
         phi = rad * lat,
@@ -135,9 +135,7 @@ function getSetJ(h, lw, phi, dec, n, M, L) {
 // calculates sun times for a given date, latitude/longitude, and, optionally,
 // the observer height (in meters) relative to the horizon
 
-export function SunCalcGetTimes(date, lat, lng, height) {
-
-    height = height || 0;
+export function SunCalcGetTimes(date: Date, lat: number, lng: number, height: number = 0) {
 
     var lw = rad * -lng,
         phi = rad * lat,

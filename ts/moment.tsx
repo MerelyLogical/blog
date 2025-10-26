@@ -1,4 +1,4 @@
-import { SunCalcGetTimes } from "./suncalc/suncalc.js"
+import { SunCalcGetTimes } from "./suncalc/suncalc"
 
 export function moment() {
     // roughly where Big Ben is
