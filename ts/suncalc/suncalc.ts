@@ -75,6 +75,12 @@ function sunCoords(d) {
 
 const SunCalc: any = {};
 
+export type SunCalcTimes = {
+    solarNoon: Date;
+    nadir: Date;
+    [key: string]: Date;
+};
+
 // calculates sun position for a given date and latitude/longitude
 
 SunCalc.getPosition = function (date: Date, lat: number, lng: number) {
@@ -135,7 +141,7 @@ function getSetJ(h, lw, phi, dec, n, M, L) {
 // calculates sun times for a given date, latitude/longitude, and, optionally,
 // the observer height (in meters) relative to the horizon
 
-export function SunCalcGetTimes(date: Date, lat: number, lng: number, height: number = 0) {
+export function SunCalcGetTimes(date: Date, lat: number, lng: number, height: number = 0): SunCalcTimes {
 
     var lw = rad * -lng,
         phi = rad * lat,
@@ -155,7 +161,7 @@ export function SunCalcGetTimes(date: Date, lat: number, lng: number, height: nu
         i, len, time, h0, Jset, Jrise;
 
 
-    var result = {
+    const result: SunCalcTimes = {
         solarNoon: fromJulian(Jnoon),
         nadir: fromJulian(Jnoon - 0.5)
     };
