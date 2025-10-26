@@ -56,7 +56,7 @@ TODO:
   - [x] fix perf issue, laggy af
   - [x] add refresh button
 - [x] marketsim
-  - [ ] better formatting
+  - [x] better formatting
 - [x] physics
   - [x] base engine
   - [x] energy calculations

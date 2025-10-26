@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Table } from 'nextra/components';
 import { Button } from '@/js/ui/Button';
 
 // TODO:
@@ -370,7 +371,7 @@ export function MarketSim() {
             }
             reset();
             refreshDoc();
-            step_inter.current = window.setInterval(step, 200);
+            step_inter.current = window.setInterval(step, 500);
         };
 
         loadChartJs()
@@ -405,9 +406,7 @@ export function MarketSim() {
 
     return (
         <div className="space-y-4">
-            <div>
-                Networth: £<MarketNumber field="networth" />
-            </div>
+            <br/>
             <canvas
                 ref={netCanvasRef}
                 style={{height: "50%", width: "100%"}}
@@ -423,22 +422,24 @@ export function MarketSim() {
             >
                 <canvas
                     ref={stockCanvasRef}
-                    style={{width: "100%"}}
+                    style={{height: "80%", width: "100%"}}
                 />
-                <div className="table-wrapper">
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td> Cash: £<span>{numbers.cash.toFixed(2)}</span></td>
-                                <td> Stock price: £<span>{numbers.price.toFixed(2)}</span></td>
-                            </tr>
-                            <tr>
-                                <td> Shares: <span>{numbers.shares}</span></td>
-                                <td> Average cost: £<span>{numbers.avg_cost.toFixed(2)}</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <Table>
+                    <thead>
+                        <Table.Tr>
+                            <Table.Th>Shares</Table.Th>
+                            <Table.Th>Average Cost</Table.Th>
+                            <Table.Th>Stock Price</Table.Th>
+                        </Table.Tr>
+                    </thead>
+                    <tbody>
+                        <Table.Tr>
+                            <Table.Td><MarketNumber field="shares" /></Table.Td>
+                            <Table.Td>£<MarketNumber field="avg_cost" /></Table.Td>
+                            <Table.Td>£<MarketNumber field="price" /></Table.Td>
+                        </Table.Tr>
+                    </tbody>
+                </Table>
                 <p>
                     <Button onClick={buy}>buy</Button>{' '}
                     <Button onClick={sell}>sell</Button>
@@ -451,32 +452,30 @@ export function MarketSim() {
                 aria-hidden={!state.bank}
             >
                 <p> Bank will only allow you to borrow up to {(100*ltv).toFixed(0)}% of your networth.</p>
-                <p> Current inflation rate is {(100*(((1+inflation) ** 365) - 1)).toFixed(2)}% per 365 ticks</p>
+                <p> Current inflation rate is {(100*(((1+inflation) ** 365) - 1)).toFixed(2)}% per year</p>
 
-                <div className="table-wrapper">
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td> Loan: £<span>{numbers.loan.toFixed(2)}</span></td>
-                                <td> Savings: £<span>{numbers.savings.toFixed(2)}</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <Button onClick={borrow}>borrow</Button>{' '}
-                                    <Button onClick={repay}>repay</Button>
-                                </td>
-                                <td>
-                                    <Button onClick={save}>save</Button>{' '}
-                                    <Button onClick={withdraw}>withdraw</Button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td> Loan interest rate: {(100*(((1+loan_rate) ** 365) - 1)).toFixed(2)}% per 365 ticks</td>
-                                <td> Savings interest rate: {(100*(((1+savings_rate) ** 365) - 1)).toFixed(2)}% per 365 ticks</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <Table>
+                    <tbody>
+                        <Table.Tr>
+                            <Table.Td> Loan: £<span>{numbers.loan.toFixed(2)}</span></Table.Td>
+                            <Table.Td> Savings: £<span>{numbers.savings.toFixed(2)}</span></Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                            <Table.Td>
+                                <Button onClick={borrow}>borrow</Button>{' '}
+                                <Button onClick={repay}>repay</Button>
+                            </Table.Td>
+                            <Table.Td>
+                                <Button onClick={save}>save</Button>{' '}
+                                <Button onClick={withdraw}>withdraw</Button>
+                            </Table.Td>
+                        </Table.Tr>
+                        <Table.Tr>
+                            <Table.Td> Loan interest rate: {(100*(((1+loan_rate) ** 365) - 1)).toFixed(2)}% per year</Table.Td>
+                            <Table.Td> Savings interest rate: {(100*(((1+savings_rate) ** 365) - 1)).toFixed(2)}% per year</Table.Td>
+                        </Table.Tr>
+                    </tbody>
+                </Table>
             </div>
         </div>
     );
