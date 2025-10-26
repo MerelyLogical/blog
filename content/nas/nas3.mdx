@@ -1,4 +1,6 @@
-import { Callout } from 'nextra/components'
+export const lastUpdated = '26 Oct 2025'
+
+import { Callout } from 'nextra/components';
 
 # Optimising the NAS
 
@@ -62,3 +64,5 @@ repeated spin up and down anymore, so let's switch it off.
 $ sudo ./openSeaChest_PowerControl --device /dev/sdx  --idle_a default --idle_b default --idle_c default --standby_z disable
 $ sudo ./openSeaChest_PowerControl -d /dev/sdx --showEPCSettings
 ```
+
+<TimeStamp date={lastUpdated} />

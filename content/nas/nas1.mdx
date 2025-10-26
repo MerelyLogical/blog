@@ -1,3 +1,5 @@
+export const lastUpdated = '01 Jan 0001'
+
 import { Callout } from 'nextra/components';
 
 # Building a NAS
@@ -310,3 +312,5 @@ snapraid sync
 use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
 since `snapraid sync` should not require `sudo`.
 </Callout>
+
+<TimeStamp date={lastUpdated} />

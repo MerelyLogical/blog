@@ -1,4 +1,9 @@
 export default {
+    "*": {
+        theme: {
+            timestamp: false
+        }
+    },
     "index": {
         title: "Home"
     },
@@ -25,7 +30,7 @@ export default {
             "nas0": { title: "0 - Building a Server"},
             "nas1": { title: "1 - Building a NAS" },
             "nas2": { title: "2 - Improving the NAS" },
-            "nas3": { title: "🚧 3 - Optimising the NAS" },
+            "nas3": { title: "3 - Optimising the NAS" },
         },
     },
     '--': {
