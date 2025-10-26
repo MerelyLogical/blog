@@ -1,7 +1,7 @@
 import { Layout, Navbar} from 'nextra-theme-docs'
 import { Head} from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
-import KoFiSidebarButton from '../components/KoFiSidebarButton'
+import KoFiSidebarButton from '../ts/components/KoFiSidebarButton'
 import 'nextra-theme-docs/style.css'
 import '../styles/components.css'
 

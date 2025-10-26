@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Table } from 'nextra/components';
-import { Button } from '@/js/ui/Button';
+import { Button } from '@/ts/ui/Button';
 
 // TODO:
 // [x] record price history
@@ -422,7 +422,7 @@ export function MarketSim() {
             >
                 <canvas
                     ref={stockCanvasRef}
-                    style={{height: "80%", width: "100%"}}
+                    style={{height: "75%", width: "100%"}}
                 />
                 <Table>
                     <thead>

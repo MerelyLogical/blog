@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Button } from '@/js/ui/Button';
+import { Button } from '@/ts/ui/Button';
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 

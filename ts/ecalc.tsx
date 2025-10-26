@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react';
-import { Button } from '@/js/ui/Button';
+import { Button } from '@/ts/ui/Button';
 
 // shuffle seating order
 function shuffle(arr) {

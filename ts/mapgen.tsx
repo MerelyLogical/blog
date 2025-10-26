@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Button } from '@/js/ui/Button';
+import { Button } from '@/ts/ui/Button';
 
 const INF = 999;
 

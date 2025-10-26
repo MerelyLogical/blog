@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Button } from '@/js/ui/Button';
+import { Button } from '@/ts/ui/Button';
 
 const ANIMATION_DELAY_MS = 33;
 
