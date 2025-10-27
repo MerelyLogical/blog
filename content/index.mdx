@@ -1,9 +1,47 @@
-export const lastUpdated = '01 Jan 0001'
+---
+title: Welcome
+theme:
+    sidebar: false
+    toc: false
+---
 
-# Welcome!
+export const lastUpdated = '27 Oct 2025'
+
+<div
+    className="hero-wrapper"
+    style={{ '--hero-image': "url('/blog/images/hero.png')" }}
+>
+    <div className="hero-wrapper__content">
+        <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '1rem' }}>
+            Welcome!
+        </h1>
+        <p style={{ fontSize: '1.1rem', maxWidth: '42rem', margin: '0 auto 2rem' }}>
+            You've found the best website on the internet (according to me, at least).
+        </p>
+        <a
+            href="#details"
+            style={{
+                display: 'inline-block',
+                padding: '0.75rem 2.5rem',
+                borderRadius: '999px',
+                background: 'var(--nextra-primary-hue, #2563eb)',
+                color: '#fff',
+                fontWeight: 600,
+                textDecoration: 'none',
+                boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+            }}
+        >
+            Jump In
+        </a>
+    </div>
+</div>
+
+<section id="details">
 
 ## You've found the best website on the internet!
 
 (According to me at least)
 
 <TimeStamp date={lastUpdated} />
+
+</section>
