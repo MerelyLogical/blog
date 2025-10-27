@@ -183,3 +183,44 @@ html[data-theme='dark'] .app-input::placeholder {
   margin: 0.75rem 0;
   padding: 0;
 }
+
+.hero-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  min-height: 70vh;
+  padding: clamp(4rem, 8vw, 6rem) clamp(1rem, 4vw, 3rem);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  width: 100vw;
+  isolation: isolate;
+}
+
+@supports (width: 100dvw) {
+  .hero-wrapper {
+    margin-left: calc(50% - 50dvw);
+    margin-right: calc(50% - 50dvw);
+    width: 100dvw;
+  }
+}
+
+.hero-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    var(--hero-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+}
+
+.hero-wrapper__content {
+  max-width: 48rem;
+  margin: 0 auto;
+}
