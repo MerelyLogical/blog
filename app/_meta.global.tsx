@@ -14,6 +14,7 @@ export default {
                 title: "🚧 Game 1",
                 items: {
                     "game1_1": { title: "🚧 Game 1 - Test" },
+                    "game1_2": { title: "🚧 Game 1 - 2 Doggo Test 🐾" },
                 }
             },
             "game2": {
