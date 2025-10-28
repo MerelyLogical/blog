@@ -31,7 +31,7 @@ TODO:
 - [x] dev environment
 - [x] set up template
   - [x] routing posts
-  - [ ] better home page
+  - [x] better home page
   - [x] figure out styles for components like buttons
   - [ ] ~~switch between blogs and docs~~
   - [x] search engine
