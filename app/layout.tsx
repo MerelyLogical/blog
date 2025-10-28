@@ -1,5 +1,5 @@
-import { Layout, Navbar} from 'nextra-theme-docs'
-import { Head} from 'nextra/components'
+import { Layout, Navbar } from 'nextra-theme-docs'
+import { Head, Search } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import KoFiSidebarButton from '../ts/components/KoFiSidebarButton'
 import 'nextra-theme-docs/style.css'
@@ -42,6 +42,7 @@ export default async function RootLayout({children}) {
             footer={null}
             feedback={{ content: null }}
             editLink={null}
+            search={<Search placeholder="🔍"/>}
         >
         <KoFiSidebarButton />
         {children}
