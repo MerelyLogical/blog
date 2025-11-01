@@ -1,4 +1,4 @@
-export const lastUpdated = '26 Oct 2025'
+export const lastUpdated = '01 Nov 2025'
 
 import { Callout } from 'nextra/components';
 
@@ -31,9 +31,9 @@ Having a 1TB disk in the cluster is a little sad, and since we've been using `mf
 file creation policy, the 1TB drive has been empty anyways.
 So we can just swap it out for a new 4TB drive!
 
-9.3% price increase... not to bad!
+9.3% price increase... not too bad!
 
-After installing , I'm always getting errors accessing the new drive,
+After installing, I'm always getting errors accessing the new drive,
 and changing SATA cables doesn't seem to work, so I suspect the error is with the HBA card.
 
 ACTIMED PCI-E to 4 SATA port expansion card/ Marvell 88SE9215 chipset £24.99
@@ -57,7 +57,7 @@ We can also switch the policy back to `epmfs`.
 
 ## Remove disk spin down
 
-Since we are now using the NAS as a 24/7 torrent machine, we don't want disk to
+Since we are now using the NAS as a 24/7 torrent machine, we don't want disks to
 repeated spin up and down anymore, so let's switch it off.
 
 ``` bash
@@ -65,4 +65,60 @@ $ sudo ./openSeaChest_PowerControl --device /dev/sdx  --idle_a default --idle_b 
 $ sudo ./openSeaChest_PowerControl -d /dev/sdx --showEPCSettings
 ```
 
+## Serve Static Images from S3
+
+I want to build a number of image based blog posts.
+These images certainly can be hosted directly in my GitHub repository,
+since each image is around 1MB, and GitHub's recommended repository size is at 1GB,
+we won't be angering our Overlords just yet.
+
+However, that limits our blog to {"<1000"} images, and if want to scale up at that point,
+it will be a lot more difficult to clean up if we make a mistake.
+
+One of the best option we have for host static images is using AWS.
+It's a useful tool to learn about for the future as well, so let's start!
+
+### S3
+
+Most of the initial set up is done with AWS's web interface.
+First we need to create a bucket in S3.
+We chose `us-east-2` (Ohio) because it's cool!
+`us-east-1` (N.Virginia) is probably the default, and they are the same price,
+but not using the default is cool!
+
+### Cloudfront
+
+Although we can directly download from the S3 bucket, and even expose URLs directly from there,
+it is probably a really bad idea to host images directly on S3.
+AWS also discourages us from doing so by setting a price for downloading from S3 from the first request,
+but giving us 1TB of data transfer out to the internet and 10,000,000 HTTP or HTTPS requests
+for free each month from Cloudfront.
+
+### Sync NAS folder to S3
+
+Now that we have a Cloudfront connected to our S3 bucket, the files in there are automatically
+exposed to the internet through the domain name provided.
+We can either upload the folder manually from the web interface, or we can use the AWS CLI.
+
+First we create an IAM user, and give it the `AmazonS3FullAccess` permission.
+Then we can just run this to sync our folders up to S3, thereby making it avaliable in the blog!
+
+```bash
+aws s3 sync "$LOCAL_FOLDER" "$S3_BUCKET" \
+  --cache-control "public, immutable, max-age=31536000" \
+  --content-type "image/jpeg" \
+  --size-only
+```
+
+We make use of some headers to reduce the number of requests made to our S3 bucket.
+
+We use 3 [Cache Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control)
+headers: `public` means everyone can keep a cache if they want to, and `immutable` with `max-age = 1 year`
+means if you have a cached copy, you don't have to make requests back to the server to check if it's good
+for an entire year.
+
+`size-only` just means when we sync, we don't unnecessarily check if the image has been modified.
+As long as the server's version has the same name and size, we skip uploading it from the NAS.
+
 <TimeStamp date={lastUpdated} />
+
