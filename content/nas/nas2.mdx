@@ -6,7 +6,7 @@ import { Callout } from 'nextra/components';
 
 ## Configure disk spin down
 
-Although spinning the disks up and down repeatedly causes more wear and tear than keeping it spinning,
+Although spinning the disks up and down repeatedly causes more wear and tear than keeping them spinning,
 if the drives are not used for a long time it can still be beneficial as it will reduce power consumption and noise.
 
 Set the auto spin down timer to 10 minutes:
@@ -18,7 +18,7 @@ $ sudo hdparm -S 120 /dev/sdc
 ```
 
 Nothing spinned down after 10 minutes, and the culprit is Advanced Power Management.
-APM levels above 128 does not allow drives to spin down.
+APM levels above 128 do not allow drives to spin down.
 
 ```bash
 $ sudo hdparm -B /dev/sda
@@ -32,7 +32,7 @@ $ sudo hdparm -B 127 /dev/sda
  APM_level	= 127
 ```
 
-It looks like `hdparm` settings is not persistent after reboot.
+It looks like `hdparm` settings are not persistent after reboot.
 To fix it, add this to `/etc/hdparm.conf`:
 
 ```
@@ -41,7 +41,6 @@ To fix it, add this to `/etc/hdparm.conf`:
         spindown_time = 96
 }
 ```
-
 
 However, this doesn't work on the Seagate drives:
 
@@ -53,7 +52,7 @@ SG_IO: bad/missing sense data, sb[]: ...
  APM_level	= not supported
 ```
 
-Seagate drives requires `openSeaChest`:
+Seagate drives require `openSeaChest`:
 
 ```bash
 sudo apt install make
@@ -70,7 +69,7 @@ $ sudo ./openSeaChest_PowerControl --device /dev/sdb  --EPCfeature enable
 $ sudo ./openSeaChest_PowerControl --device /dev/sdb  --idle_a 1000 --idle_b 120000 --idle_c 300000 --standby_z 900000
 ```
 
-To check that the current setting:
+To check the current setting:
 ```bash
 $ sudo ./openSeaChest_PowerControl -d /dev/sdb --showEPCSettings
 ==========================================================================================
@@ -260,7 +259,7 @@ Now we start prometheus-node-exporter, and new data points should become availab
 
 ## Setting up Grafana
 
-Prometheus provides some basic visualisation but its nothing compared to what
+Prometheus provides some basic visualisation but it's nothing compared to what
 Grafana can do.
 
 ```bash

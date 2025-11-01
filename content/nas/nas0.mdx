@@ -6,7 +6,7 @@ import { Callout } from 'nextra/components';
 
 ## Build the computer
 
-The target of this build is the Synology DS1522+ 5 bay desktop NAS which costs about £700.
+The target of this build is the Synology DS1522+ 5-bay desktop NAS which costs about £700.
 This will have a better CPU and one more bay for 60% of the cost.
 
 |       |                              | Price(£) |
@@ -23,9 +23,9 @@ This will have a better CPU and one more bay for 60% of the cost.
 
 <Callout type='info'>
 Built the whole thing in one go, but it didn't POST the first time.
-To troubleshoot I pulled out everything from the motherboard except the CPU, RAM,
+To troubleshoot, I pulled out everything from the motherboard except the CPU, RAM,
 power cables for CPU and MOBO, and HDMI cable.
-then it POST'ed successfully, so I tested repeatedly adding one connection
+Then it POST'ed successfully, so I tested repeatedly adding one connection
 at a time, and it POST'ed every time.
 
 No idea what the problem was.
@@ -35,12 +35,12 @@ No idea what the problem was.
 ## Setting up SSH
 
 <Callout type='info'>
-eventually I'd like to do everything remotely, so SSH should be a good first step.
+Eventually I'd like to do everything remotely, so SSH should be a good first step.
 It should allow connections from the local network only for now, not really planning
 to access this from the outside world any time soon.
 </Callout>
 
-download openssh-server and configure it:
+Download openssh-server and configure it:
 
 ```bash
 sudo apt install openssh-server
@@ -60,36 +60,37 @@ Match Address 192.168.0.*
         AllowUsers <user>
 ```
 
-remember to switch password authentication on temporarily to copy ssh keys.
+Remember to switch password authentication on temporarily to copy SSH keys.
 
-then to set up ssh key on client side:
+Then to set up SSH key on client side:
 
 ```bash
 ssh-copy-id -i ~/.ssh/<name>.pub -p 22 user@ipaddress
 ```
 
 <Callout type='info'>
-ssh keys might be overkill on top of matching 192.168,
+SSH keys might be overkill on top of matching 192.168,
 but I guess more security doesn't hurt.
 </Callout>
 
-to SSH into server, either configure router DHCP so that the nas gets a fixed IP:
+To SSH into server, either configure router DHCP so that the NAS gets a fixed IP:
 
 ```bash
 ssh user@ipaddress
 ```
 
 or if DNS works in the local network:
+
 ```
 ssh user@hostname
 ```
 
 <Callout type='warning'>
-this works on some of my local computers but not all?
+This works on some of my local computers but not all?
 </Callout>
 
 <Callout type='warning'>
-motherboard supports wake-on-lan, might want to try it out
+Motherboard supports Wake-on-LAN, might want to try it out.
 </Callout>
 
 
@@ -107,7 +108,7 @@ so might as well make use of them.
 Download and install NoMachine on both server and client.
 
 <Callout type='warning'>
-Nomachine provides a `.deb` file on its website, is there an easy way to check updates for it?
+NoMachine provides a `.deb` file on its website, is there an easy way to check updates for it?
 </Callout>
 
 Initially this just shows a blackscreen because Ubuntu is too smart:
@@ -120,7 +121,7 @@ sudo systemctl stop sddm
 sudo /etc/NX/nxserver --restart
 ```
 
-Alternatively run this screen after startup if GUI is not needed.
+Alternatively, run this command after startup if GUI is not needed.
 
 ```bash
 sudo systemctl stop sddm
@@ -144,7 +145,7 @@ sudo ufw enable
 sudo ufw status
 ```
 
-to check logs, first make sure logging is enabled:
+To check logs, first make sure logging is enabled:
 
 ```bash
 sudo ufw status verbose
@@ -152,7 +153,7 @@ sudo ufw status verbose
 
 then the log should be stored at `/var/log/ufw.log`.
 
-refer to this for more details on UFW logs:
+Refer to this for more details on UFW logs:
 
 [How Do I Check My UFW Log?](https://linuxhint.com/check-my-ufw-log/)
 
@@ -173,7 +174,7 @@ Upload the world save file with rsync:
 rsync -av Terraria/Worlds/ <ipaddress>:games/ts/
 ```
 
-download the server binary and set up a configuration file `server.conf`:
+Download the server binary and set up a configuration file `server.conf`:
 
 ```
 world=/home/<user>/games/ts/worlds/<world>.wld
@@ -188,11 +189,11 @@ npcstream=60
 ```
 
 <Callout>
-Setting maximum player to be exact seems to block players retrying connection after
-entering a wrong password
+Setting maximum number of players exactly as the actual number of players
+seems to block players retrying connection after entering a wrong password.
 </Callout>
 
-make sure the configuration file and the binary is in the same folder, and run:
+Make sure the configuration file and the binary is in the same folder, and run:
 
 ```bash
 ./TerrariaServer.bin.x86_64 -config server.conf

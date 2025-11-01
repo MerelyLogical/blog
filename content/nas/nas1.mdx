@@ -6,10 +6,10 @@ import { Callout } from 'nextra/components';
 
 ## Build more of the computer
 
-The case has 6 mounting bays for 3.5 inch drives, but the motherboard only has 4 sata ports.
-One of them is disabled if the M.2 slot is used, so there're only have 3 usable.
+The case has 6 mounting bays for 3.5-inch drives, but the motherboard only has 4 SATA ports.
+One of them is disabled if the M.2 slot is used, so there're only 3 usable.
 
-We have a spare PCIe slot, so to expand the number of ports, a HBA card can be installed:
+We have a spare PCIe slot, so to expand the number of ports, an HBA card can be installed:
 
 The firmware should be in IT/HBA mode instead of RAID mode, which would allow the system
 to see connected drives separately.
@@ -32,7 +32,7 @@ gives a convincing argument why HBA cards should be used instead.
 
 <Callout type='info'>
 Took me multiple times before it POST'ed again after installing the HDDs.
-I suspect the cause is me taking out the RAM stick out to make SATA slots more accessible, but
+I suspect the cause is me taking out the RAM stick to make SATA slots more accessible, but
 it didn't go back in properly.
 
 Cable management is a lot more difficult with such a small case and a lot of drives.
@@ -45,7 +45,7 @@ Boot time seems to have slowed down a lot after installing the three drives?
 
 ## Badblocks
 
-Test out to see if the drives are good:
+Test to see if the drives are good:
 
 ```bash
 badblocks -b 4096 -wsv /dev/sdX
@@ -59,7 +59,7 @@ Don't know how to use screens? Well you shouldn't have skipped the Terraria sect
 </Callout>
 
 <Callout type='info'>
-A pessimistic estimation of the power cosumption is 25W idle and 50W during badblocks.
+A pessimistic estimation of the power consumption is 25W idle and 50W during badblocks.
 With the electricity price at 35p/kW, and assuming the power draw averages at 30W,
 the running cost works out to be around £8 per month.
 </Callout>
@@ -145,7 +145,7 @@ $ sudo vim /etc/fstab
 /mnt/disk0:/mnt/disk1 /mnt/main fuse.mergerfs defaults,nonempty,allow_other,use_ino,cache.files=off,moveonenospc=true,dropcacheonclose=true,minfreespace=100G,category.create=mfs,fsname=mergerfs 0 0
 ```
 
-Check that the new lines in `/etc/fstab` works before rebooting the system:
+Check that the new lines in `/etc/fstab` work before rebooting the system:
 
 ```bash
 $ mkdir /mnt/parity0
@@ -165,7 +165,7 @@ mergerfs        4.5T   56K  4.3T   1% /mnt/main
 <Callout>
 If you made the mistake of using `sudo mkdir /mnt/<name>` like me, to pass the ownership of
 the mount points back to the user, use:
-`sudo chown -R <user>:<user/mnt/<name>`
+`sudo chown -R <user>:<user> /mnt/<name>`
 </Callout>
 
 
@@ -205,7 +205,7 @@ sudo apt autoremove --purge snapd
 rm -rf ~/snap/
 ```
 
-Create `/etc/apt/preferences.d/nosnap.perf` to make sure it doesn't accidentally comeback:
+Create `/etc/apt/preferences.d/nosnap.perf` to make sure it doesn't accidentally come back:
 
 ```bash
 Package: snapd
@@ -251,7 +251,7 @@ $ iperf3 -s -p <port>
 Then we launch the test from the client side:
 
 ```bash
-$ iperf3 -c <ipaddress-p <port>
+$ iperf3 -c <ipaddress> -p <port>
 ...
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  1.10 GBytes   944 Mbits/sec    0             sender
@@ -269,7 +269,7 @@ Install SnapRAID as usual:
 sudo apt install snapraid
 ```
 
-Checking its versions directly returns `vnone`, but checking it through `apt` gives a more sensible result:
+Checking its version directly returns `vnone`, but checking it through `apt` gives a more sensible result:
 
 <Callout>
 What could go possibly wrong?
@@ -309,7 +309,7 @@ snapraid sync
 ```
 
 <Callout>
-use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
+Use `chmod` to make sure the `.content` and `.parity` files are owned by the user,
 since `snapraid sync` should not require `sudo`.
 </Callout>
 
