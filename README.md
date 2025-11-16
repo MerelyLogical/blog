@@ -15,16 +15,12 @@ ts
 Published at https://merelylogical.github.io/blog/
 
 ```bash
+nvm use v24
 pnpm install
 pnpm dev
 ```
 
-needs node v24 due to bug in v25.
-
-remove this in /etc/pacman.conf when v25 works:
-```
-IgnorePkg = node
-```
+note to self, nvm is installed as a fisher script :)
 
 TODO:
 
