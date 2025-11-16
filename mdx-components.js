@@ -2,6 +2,7 @@ import { useMDXComponents as getThemeComponents } from 'nextra-theme-docs' // ne
 import { Button } from '@/ts/ui/Button'
 import { TimeStamp } from '@/ts/components/TimeStamp'
 import { MDXImage } from '@/ts/components/MDXImage'
+import { MDXSub } from '@/ts/components/MDXSub'
 
 // Get the default MDX components
 const themeComponents = getThemeComponents()
@@ -15,6 +16,8 @@ export function useMDXComponents(components) {
         TimeStamp,
         MDXImage,
         img: MDXImage,
+        MDXSub,
+        sub: MDXSub,
         ...components
     }
 }
