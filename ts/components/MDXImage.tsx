@@ -14,7 +14,7 @@ const ZoomableImage = ImageZoom as ComponentType<
 >
 
 export function MDXImage({ title, className, style, ...props }: MDXImageProps) {
-  const widthPercentage = title ? parseFloat(title) : 75
+  const widthPercentage = title ? parseFloat(title) : 85
   const composedClassName = className ? `mdx-image ${className}` : 'mdx-image'
 
   const mergedStyle: StyleWithCustomProperty = {

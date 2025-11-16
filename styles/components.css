@@ -202,9 +202,9 @@ html[data-theme='dark'] .app-input::placeholder {
 .mdx-image {
   display: block;
   height: auto;
-  margin: 1.5rem auto;
+  margin: auto;
   max-width: 100%;
-  width: var(--mdx-image-width, 75%);
+  width: var(--mdx-image-width, 85%);
 }
 
 @media (max-width: 768px) {

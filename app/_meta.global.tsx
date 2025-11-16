@@ -10,6 +10,17 @@ export default {
     "letsplay": {
         title: "🚧 Let's Play",
         items: {
+            "EU5": {
+                title: "⏳ Europa Universalis V",
+                items: {
+                    "Hungary": { 
+			title: "🇭🇺 Hungary" ,
+			items: {
+                		"EU5_H_1": { title: "Chapter 1 — Start!" }
+                        },
+	            },
+                 },
+            },
             "game1": {
                 title: "🚧 Game 1",
                 items: {
