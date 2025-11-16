@@ -199,6 +199,20 @@ html[data-theme='dark'] .app-input::placeholder {
   isolation: isolate;
 }
 
+.mdx-image {
+  display: block;
+  height: auto;
+  margin: 1.5rem auto;
+  max-width: 100%;
+  width: var(--mdx-image-width, 75%);
+}
+
+@media (max-width: 768px) {
+  .mdx-image {
+    width: 100%;
+  }
+}
+
 @supports (width: 100dvw) {
   .hero-wrapper {
     margin-left: calc(50% - 50dvw);
