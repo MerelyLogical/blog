@@ -1,6 +1,7 @@
 import { Layout, Navbar } from 'nextra-theme-docs'
 import { Head, Search } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
+import HomeThemeSwitch from '../ts/components/HomeThemeSwitch'
 import KoFiSidebarButton from '../ts/components/KoFiSidebarButton'
 import 'nextra-theme-docs/style.css'
 import '../styles/components.css'
@@ -19,6 +20,7 @@ const navbar = (
             </span>
         </>
     }>
+        <HomeThemeSwitch />
     </Navbar>
 );
 

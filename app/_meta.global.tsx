@@ -1,3 +1,5 @@
+import FlagTitle from '../ts/components/FlagTitle'
+
 export default {
   "*": {
     theme: {
@@ -14,7 +16,7 @@ export default {
         title: "⏳ Europa Universalis V",
         items: {
           "Hungary": {
-            title: "🇭🇺 Hungary" ,
+            title: <FlagTitle image="Flag_HUN_Anjou.png" label="Hungary" />,
             items: {
               "EU5_H_1": { title: "Chapter 1 — Start!" }
             },
