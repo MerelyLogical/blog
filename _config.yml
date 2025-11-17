@@ -1,5 +1,5 @@
-base_url: "/blog"
-url: "https://merelylogical.github.io"
+base_url: "/"
+url: "https://mlogical.co.uk"
 title: "ML's BF's Website"
 remote_theme: "just-the-docs/just-the-docs@v0.4.0.rc3"
 sass:
