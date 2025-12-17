@@ -18,8 +18,10 @@ const ATTACK_DAMAGE = 25;
 const ATTACK_COOLDOWN = 1; // seconds
 const IDLE_COLOR: HslColor = { h: 180, s: 100, l: 60 };
 const FIGHT_COLOR: HslColor = { h: 0, s: 100, l: 60 };
+const HEAL_COLOR: HslColor = { h: 120, s: 100, l: 60 };
+const HEAL_RATE = 10; // hp / second
 
-type AgentState = 'idle' | 'fight';
+type AgentState = 'idle' | 'fight' | 'heal';
 
 type Agent = {
     id: number;
@@ -68,8 +70,9 @@ export default function AiCanvas() {
 }
 
 function runSimulation(canvas: HTMLCanvasElement) {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return () => {};
+    const context = canvas.getContext('2d');
+    if (!context) return () => {};
+    const ctx = context;
 
     let agents = createAgents(NUM_AGENTS);
     resolveCollisions(agents);
@@ -114,21 +117,12 @@ function updateAgents(agents: Agent[], dt: number) {
     for (const agent of agents) {
         if (agent.blackboard.hp <= 0) continue;
         const { nearest, distance } = findNearest(agent, agents);
-        if (agent.state === 'idle') {
-            if (nearest && distance <= IDLE_TO_FIGHT_RANGE) {
-                agent.state = 'fight';
-            }
-        } else if (agent.state === 'fight') {
-            if (!nearest || distance > FIGHT_TO_IDLE_RANGE) {
-                agent.state = 'idle';
-                agent.directionTimer = 0;
-            }
-        }
+        updateState(agent, nearest, distance);
 
         let heading = agent.heading;
         if (agent.state === 'fight' && nearest) {
             heading = Math.atan2(nearest.y - agent.y, nearest.x - agent.x);
-        } else {
+        } else if (agent.state === 'idle') {
             agent.directionTimer -= dt;
             if (agent.directionTimer <= 0) {
                 heading = randRange(0, Math.PI * 2);
@@ -136,7 +130,7 @@ function updateAgents(agents: Agent[], dt: number) {
             }
         }
 
-        const speed = agent.state === 'fight' ? FIGHT_SPEED : IDLE_SPEED;
+        const speed = getSpeedForState(agent.state);
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
@@ -151,7 +145,7 @@ function updateAgents(agents: Agent[], dt: number) {
         agent.y = clamp(agent.y, AGENT_RADIUS, HEIGHT - AGENT_RADIUS);
         agent.heading = heading;
 
-        handleAttacks(agent, nearest, distance, dt);
+        handleStateActions(agent, nearest, distance, dt);
     }
 
     return agents.filter((agent) => agent.blackboard.hp > 0);
@@ -166,7 +160,7 @@ function drawAgents(ctx: CanvasRenderingContext2D, agents: Agent[]) {
         ctx.beginPath();
         ctx.arc(agent.x, agent.y, AGENT_RADIUS, 0, Math.PI * 2);
         const hpRatio = Math.max(0, Math.min(1, agent.blackboard.hp / MAX_HP));
-        const baseColor = agent.state === 'fight' ? FIGHT_COLOR : IDLE_COLOR;
+        const baseColor = getColorForState(agent.state);
         ctx.fillStyle = applySaturation(baseColor, hpRatio);
         ctx.fill();
     }
@@ -216,6 +210,55 @@ function resolveCollisions(agents: Agent[]) {
             }
         }
     }
+}
+
+function updateState(agent: Agent, nearest: Agent | null, distance: number) {
+    if (agent.state === 'heal') {
+        if (agent.blackboard.hp >= MAX_HP) {
+            agent.state = 'idle';
+        }
+        return;
+    }
+
+    if (agent.state === 'idle') {
+        if (nearest && distance <= IDLE_TO_FIGHT_RANGE) {
+            agent.state = 'fight';
+            return;
+        }
+        if (agent.blackboard.hp < MAX_HP) {
+            agent.state = 'heal';
+            return;
+        }
+    }
+
+    if (agent.state === 'fight') {
+        if (!nearest || distance > FIGHT_TO_IDLE_RANGE) {
+            agent.state = 'idle';
+            agent.directionTimer = 0;
+        }
+    }
+}
+
+function handleStateActions(agent: Agent, target: Agent | null, distance: number, dt: number) {
+    if (agent.state === 'fight') {
+        handleAttacks(agent, target, distance, dt);
+        return;
+    }
+    if (agent.state === 'heal') {
+        agent.blackboard.hp = Math.min(MAX_HP, agent.blackboard.hp + HEAL_RATE * dt);
+    }
+}
+
+function getSpeedForState(state: AgentState) {
+    if (state === 'fight') return FIGHT_SPEED;
+    if (state === 'heal') return 0;
+    return IDLE_SPEED;
+}
+
+function getColorForState(state: AgentState) {
+    if (state === 'fight') return FIGHT_COLOR;
+    if (state === 'heal') return HEAL_COLOR;
+    return IDLE_COLOR;
 }
 
 function handleAttacks(agent: Agent, target: Agent | null, distance: number, dt: number) {
