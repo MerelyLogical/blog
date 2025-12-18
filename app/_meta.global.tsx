@@ -51,6 +51,7 @@ export default {
       "hex2":      { title: "Hexagonal Grid Pathfinding" },
       "mapgen":    { title: "Random Map Pathfinding" },
       "physics":   { title: "Physics Engine" },
+      "aifight":   { title: "AI Arena" },
       "marketsim": { title: "Stock Market Simulator" },
       "moment":    { title: "A Moment of Time" },
       "picalc":    { title: "π Calculator" },
