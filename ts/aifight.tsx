@@ -7,8 +7,7 @@ const WIDTH = 1000;
 const WORLD_PADDING = 10;
 const NUM_AGENTS = 50;
 const NUM_TANKS = 8;
-const IDLE_TO_FIGHT_RANGE = 250;
-const FIGHT_TO_IDLE_RANGE = 250;
+const FIGHT_RANGE = 250;
 const ATTACK_RANGE = 10;
 const ATTACK_ANGLE = Math.PI / 12;
 const ATTACK_COOLDOWN = 1;
@@ -26,19 +25,21 @@ const FIGHTER_STATS = {
     attackDamage: 25,
     idleSpeed: 75,
     fightSpeed: 75,
-    turnRate: Math.PI,
+    turnRate: 4 * Math.PI,
+    fleeHpThreshold: 40,
 };
 
 const TANK_STATS = {
     radius: 20,
-    maxHp: 200,
-    attackDamage: 50,
-    idleSpeed: 25,
-    fightSpeed: 25,
+    maxHp: 500,
+    attackDamage: 33,
+    idleSpeed: 33,
+    fightSpeed: 33,
     turnRate: Math.PI / 2,
 };
 
 type AgentState = 'idle' | 'fight' | 'heal';
+type AgentKind = 'fighter' | 'tank';
 
 type Health = {
     hp: number;
@@ -69,6 +70,7 @@ type Agent = {
     x: number;
     y: number;
     radius: number;
+    kind: AgentKind;
     state: AgentState;
     behavior: AgentBehavior;
     health: Health;
@@ -89,7 +91,13 @@ type Particle = {
 
 type HslColor = { h: number; s: number; l: number };
 
-type Perception = { nearest: Agent | null; distance: number };
+type Perception = {
+    nearest: Agent | null;
+    distance: number;
+    nearestInFightRange: Agent | null;
+    nearestTankInFightRange: Agent | null;
+    countInFightRange: number;
+};
 
 type AgentBehavior = {
     decideState: (agent: Agent, perception: Perception) => AgentState;
@@ -159,13 +167,15 @@ function createAgents(count: number): Agent[] {
 
 function createAgent(id: number, isTank: boolean): Agent {
     const stats = isTank ? TANK_STATS : FIGHTER_STATS;
+    const kind: AgentKind = isTank ? 'tank' : 'fighter';
     return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
         radius: stats.radius,
+        kind,
         state: 'idle',
-        behavior: DEFAULT_BEHAVIOR,
+        behavior: kind === 'tank' ? TANK_BEHAVIOR : FIGHTER_BEHAVIOR,
         health: createHealth(stats.maxHp),
         combat: createCombat(stats.attackDamage),
         steering: createSteering(
@@ -313,21 +323,37 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
 }
 
 function senseAgents(agents: Agent[]): Perception[] {
-    return agents.map((agent) => findNearest(agent, agents));
-}
+    return agents.map((agent) => {
+        let nearest: Agent | null = null;
+        let distance = Infinity;
+        let nearestInFightRange: Agent | null = null;
+        let nearestTankInFightRange: Agent | null = null;
+        let distanceInFightRange = Infinity;
+        let distanceTankInFightRange = Infinity;
+        let countInFightRange = 0;
 
-function findNearest(agent: Agent, agents: Agent[]) {
-    let nearest: Agent | null = null;
-    let distance = Infinity;
-    for (const other of agents) {
-        if (other.id === agent.id || other.health.hp <= 0) continue;
-        const d = Math.hypot(other.x - agent.x, other.y - agent.y);
-        if (d < distance) {
-            distance = d;
-            nearest = other;
+        for (const other of agents) {
+            if (other.id === agent.id || other.health.hp <= 0) continue;
+            const d = Math.hypot(other.x - agent.x, other.y - agent.y);
+            if (d < distance) {
+                distance = d;
+                nearest = other;
+            }
+            if (d <= FIGHT_RANGE) {
+                countInFightRange += 1;
+                if (d < distanceInFightRange) {
+                    distanceInFightRange = d;
+                    nearestInFightRange = other;
+                }
+                if (other.kind === 'tank' && d < distanceTankInFightRange) {
+                    distanceTankInFightRange = d;
+                    nearestTankInFightRange = other;
+                }
+            }
         }
-    }
-    return { nearest, distance };
+
+        return { nearest, distance, nearestInFightRange, nearestTankInFightRange, countInFightRange };
+    });
 }
 
 function resolveCollisions(agents: Agent[]) {
@@ -348,11 +374,19 @@ function resolveCollisions(agents: Agent[]) {
     }
 }
 
-const DEFAULT_BEHAVIOR: AgentBehavior = {
+const FIGHTER_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
-    chooseHeading: (agent, perception, dt) => chooseHeading(agent, perception, dt),
+    chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
     getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => act(agent, perception, dt, particlesRef),
+    act: (agent, perception, dt, particlesRef) => actFighter(agent, perception, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
+
+const TANK_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeadingTank(agent, perception, dt),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, perception, dt, particlesRef) => actTank(agent, perception, dt, particlesRef),
     getColor: (agent) => getColor(agent),
 };
 
@@ -362,7 +396,7 @@ function decideState(agent: Agent, perception: Perception): AgentState {
         return 'heal';
     }
     if (agent.state === 'idle') {
-        if (perception.nearest && perception.distance <= IDLE_TO_FIGHT_RANGE) {
+        if (perception.nearest && perception.distance <= FIGHT_RANGE) {
             return 'fight';
         }
         if (agent.health.hp < agent.health.maxHp) {
@@ -370,17 +404,24 @@ function decideState(agent: Agent, perception: Perception): AgentState {
         }
         return 'idle';
     }
-    if (!perception.nearest || perception.distance > FIGHT_TO_IDLE_RANGE) {
+    if (!perception.nearest || perception.distance > FIGHT_RANGE) {
         agent.steering.directionTimer = 0;
         return 'idle';
     }
     return 'fight';
 }
 
-function chooseHeading(agent: Agent, perception: Perception, dt: number) {
+function chooseHeadingFighter(agent: Agent, perception: Perception, dt: number) {
     let heading = agent.steering.targetHeading;
-    if (agent.state === 'fight' && perception.nearest) {
-        heading = Math.atan2(perception.nearest.y - agent.y, perception.nearest.x - agent.x);
+    if (agent.state === 'fight') {
+        if (agent.health.hp < FIGHTER_STATS.fleeHpThreshold && perception.nearest) {
+            heading = Math.atan2(agent.y - perception.nearest.y, agent.x - perception.nearest.x);
+        } else {
+            const target = selectFightTarget(agent, perception);
+            if (target) {
+                heading = Math.atan2(target.y - agent.y, target.x - agent.x);
+            }
+        }
     } else if (agent.state === 'idle') {
         agent.steering.directionTimer -= dt;
         if (agent.steering.directionTimer <= 0) {
@@ -391,16 +432,43 @@ function chooseHeading(agent: Agent, perception: Perception, dt: number) {
     return heading;
 }
 
-function act(agent: Agent, perception: Perception, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
+function chooseHeadingTank(agent: Agent, perception: Perception, dt: number) {
+    let heading = agent.steering.targetHeading;
+    if (agent.state === 'fight') {
+        if (perception.nearest) {
+            heading = Math.atan2(perception.nearest.y - agent.y, perception.nearest.x - agent.x);
+        }
+    } else if (agent.state === 'idle') {
+        agent.steering.directionTimer -= dt;
+        if (agent.steering.directionTimer <= 0) {
+            heading = randRange(0, Math.PI * 2);
+            agent.steering.directionTimer = randRange(0.75, 2.5);
+        }
+    }
+    return heading;
+}
+
+function actFighter(agent: Agent, perception: Perception, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
+    const target = selectFightTarget(agent, perception);
+    actCombat(agent, target, dt, particlesRef);
+    actHeal(agent, dt);
+}
+
+function actTank(agent: Agent, perception: Perception, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
+    actCombat(agent, perception.nearest, dt, particlesRef);
+    actHeal(agent, dt);
+}
+
+function actCombat(agent: Agent, target: Agent | null, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
     if (agent.state === 'fight') {
         const combat = agent.combat;
         combat.cooldownRemaining = Math.max(0, combat.cooldownRemaining - dt);
-        const target = perception.nearest;
         const reach = target ? combat.attackRange + agent.radius + target.radius : 0;
         const directionToTarget = target ? Math.atan2(target.y - agent.y, target.x - agent.x) : 0;
         const headingDelta = Math.abs(wrapAngle(directionToTarget - agent.steering.heading));
         const facingTarget = headingDelta <= ATTACK_ANGLE;
-        if (target && perception.distance <= reach && facingTarget && combat.cooldownRemaining <= 0) {
+        const distanceToTarget = target ? Math.hypot(target.x - agent.x, target.y - agent.y) : Infinity;
+        if (target && distanceToTarget <= reach && facingTarget && combat.cooldownRemaining <= 0) {
             target.health.hp -= combat.attackDamage;
             
             if (target.health.hp <= 0 && !target.health.hasDied) {
@@ -412,7 +480,11 @@ function act(agent: Agent, perception: Perception, dt: number, particlesRef: Rea
             
             combat.cooldownRemaining = combat.attackCooldown;
         }
-    } else if (agent.state === 'heal') {
+    }
+}
+
+function actHeal(agent: Agent, dt: number) {
+    if (agent.state === 'heal') {
         agent.health.hp = Math.min(agent.health.maxHp, agent.health.hp + agent.health.healRate * dt);
     }
 }
@@ -427,6 +499,13 @@ function getColor(agent: Agent) {
 
 function applySaturation(color: HslColor, ratio: number) {
     return `hsl(${color.h}, ${Math.max(0, ratio * color.s)}%, ${color.l}%)`;
+}
+
+function selectFightTarget(agent: Agent, perception: Perception) {
+    if (agent.kind === 'fighter' && perception.countInFightRange > 1 && perception.nearestTankInFightRange) {
+        return perception.nearestTankInFightRange;
+    }
+    return perception.nearestInFightRange ?? perception.nearest;
 }
 
 function turnTowards(current: number, target: number, maxDelta: number) {
