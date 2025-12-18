@@ -1,152 +1,49 @@
-'use client';
+import type { RefObject } from 'react';
 
-import { useEffect, useRef } from 'react';
-
-const HEIGHT = 1000;
-const WIDTH = 1000;
-const WORLD_PADDING = 10;
-const NUM_AGENTS = 50;
-const NUM_TANKS = 8;
-const FIGHT_RANGE = 250;
-const FLEE_RANGE = 150;
-const ATTACK_RANGE = 10;
-const ATTACK_ANGLE = Math.PI / 12;
-const ATTACK_COOLDOWN = 1;
-const IDLE_COLOR: HslColor = { h: 180, s: 100, l: 60 };
-const FIGHT_COLOR: HslColor = { h: 0, s: 100, l: 60 };
-const HEAL_COLOR: HslColor = { h: 120, s: 100, l: 60 };
-const FLEE_COLOR: HslColor = { h: 270, s: 100, l: 60 };
-const HEAL_RATE = 10;
-const FLASH_DURATION = 0.1;
-const PARTICLE_LIFESPAN = 0.5;
-const PARTICLE_COUNT = 12;
-
-type AgentStats = {
-    radius: number;
-    maxHp: number;
-    attackDamage: number;
-    idleSpeed: number;
-    fightSpeed: number;
-    turnRate: number;
-    fleeHpThreshold: number;
-};
-
-const FIGHTER_STATS: AgentStats = {
-    radius: 10,
-    maxHp: 100,
-    attackDamage: 25,
-    idleSpeed: 75,
-    fightSpeed: 75,
-    turnRate: 4 * Math.PI,
-    fleeHpThreshold: 30,
-};
-
-const TANK_STATS: AgentStats = {
-    radius: 20,
-    maxHp: 500,
-    attackDamage: 50,
-    idleSpeed: 33,
-    fightSpeed: 33,
-    turnRate: Math.PI,
-    fleeHpThreshold: -1,
-};
-
-type AgentState = 'idle' | 'fight' | 'heal' | 'flee';
-type AgentKind = 'fighter' | 'tank';
-
-type Health = {
-    hp: number;
-    maxHp: number;
-    healRate: number;
-    flashTimer: number;
-    hasDied: boolean;
-};
-
-type Combat = {
-    attackDamage: number;
-    attackCooldown: number;
-    attackRange: number;
-    cooldownRemaining: number;
-};
-
-type Steering = {
-    heading: number;
-    targetHeading: number;
-    directionTimer: number;
-    idleSpeed: number;
-    fightSpeed: number;
-    turnRate: number;
-};
-
-type Agent = {
-    id: number;
-    x: number;
-    y: number;
-    radius: number;
-    kind: AgentKind;
-    state: AgentState;
-    behavior: AgentBehavior;
-    health: Health;
-    combat: Combat;
-    steering: Steering;
-    fleeHpThreshold: number;
-};
-
-type Particle = {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    life: number;
-    h: number;
-    s: number;
-    l: number;
-};
-
-type HslColor = { h: number; s: number; l: number };
-
-type Perception = {
-    nearest: Agent | null;
-    distance: number;
-    nearestInFightRange: Agent | null;
-    nearestTankInFightRange: Agent | null;
-    countInFightRange: number;
-};
-
-type AgentBehavior = {
-    decideState: (agent: Agent, perception: Perception) => AgentState;
-    chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
-    getSpeed: (agent: Agent) => number;
-    act: (agent: Agent, perception: Perception, dt: number, particlesRef: React.RefObject<Particle[]>) => void;
-    getColor: (agent: Agent) => HslColor;
-};
+import {
+    ATTACK_ANGLE,
+    ATTACK_COOLDOWN,
+    ATTACK_RANGE,
+    FIGHT_COLOR,
+    FIGHT_RANGE,
+    FLEE_COLOR,
+    FLEE_RANGE,
+    FLASH_DURATION,
+    FIGHTER_STATS,
+    HEAL_COLOR,
+    HEAL_RATE,
+    HEIGHT,
+    IDLE_COLOR,
+    NUM_AGENTS,
+    NUM_TANKS,
+    PARTICLE_COUNT,
+    PARTICLE_LIFESPAN,
+    TANK_STATS,
+    WIDTH,
+    WORLD_PADDING,
+} from './constants';
+import type { Agent, AgentBehavior, AgentState, HslColor, Particle, Perception } from './types';
 
 const randRange = (min: number, max: number) => Math.random() * (max - min) + min;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-export default function AiCanvas() {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    // Move particles into a ref to avoid global pollution and fix lag
-    const particlesRef = useRef<Particle[]>([]);
+const FIGHTER_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, perception, dt, particlesRef) => actFighter(agent, perception, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const teardown = runSimulation(canvas, particlesRef);
-        return teardown;
-    }, []);
+const TANK_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeadingTank(agent, perception, dt),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, perception, dt, particlesRef) => actTank(agent, perception, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
 
-    return (
-        <canvas
-            ref={canvasRef}
-            width={WIDTH}
-            height={HEIGHT}
-            style={{ width: '100%', height: '100%', margin: 0 }}
-        />
-    );
-}
-
-function runSimulation(canvas: HTMLCanvasElement, particlesRef: React.RefObject<Particle[]>) {
+export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject<Particle[]>) {
     const context = canvas.getContext('2d');
     if (!context) return () => {};
     const ctx = context;
@@ -161,12 +58,9 @@ function runSimulation(canvas: HTMLCanvasElement, particlesRef: React.RefObject<
         const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
         lastTimestamp = timestamp;
 
-        // Logic updates
         agents = updateAgents(agents, dt, particlesRef);
         updateParticles(dt, particlesRef);
         resolveCollisions(agents);
-
-        // Render
         drawScene(ctx, agents, particlesRef.current);
 
         rafId = requestAnimationFrame(step);
@@ -181,7 +75,7 @@ function createAgents(count: number): Agent[] {
 
 function createAgent(id: number, isTank: boolean): Agent {
     const stats = isTank ? TANK_STATS : FIGHTER_STATS;
-    const kind: AgentKind = isTank ? 'tank' : 'fighter';
+    const kind = isTank ? 'tank' : 'fighter';
     return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
@@ -201,7 +95,7 @@ function createAgent(id: number, isTank: boolean): Agent {
     };
 }
 
-function createHealth(maxHp: number): Health {
+function createHealth(maxHp: number) {
     return {
         hp: maxHp,
         maxHp,
@@ -211,7 +105,7 @@ function createHealth(maxHp: number): Health {
     };
 }
 
-function createCombat(attackDamage: number): Combat {
+function createCombat(attackDamage: number) {
     return {
         attackDamage,
         attackCooldown: ATTACK_COOLDOWN,
@@ -220,7 +114,7 @@ function createCombat(attackDamage: number): Combat {
     };
 }
 
-function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number): Steering {
+function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number) {
     const heading = randRange(0, Math.PI * 2);
     return {
         heading,
@@ -232,7 +126,7 @@ function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number)
     };
 }
 
-function updateAgents(agents: Agent[], dt: number, particlesRef: React.RefObject<Particle[]>) {
+function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Particle[]>) {
     const preMovePerceptions = senseAgents(agents);
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
@@ -274,7 +168,7 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: React.RefObject
     return agents.filter((agent) => agent.health.hp > 0);
 }
 
-function spawnDeathParticles(x: number, y: number, color: HslColor, particlesRef: React.RefObject<Particle[]>) {
+function spawnDeathParticles(x: number, y: number, color: HslColor, particlesRef: RefObject<Particle[]>) {
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 120 + 40;
@@ -288,9 +182,8 @@ function spawnDeathParticles(x: number, y: number, color: HslColor, particlesRef
     }
 }
 
-function updateParticles(dt: number, particlesRef: React.RefObject<Particle[]>) {
-    // Prune earlier (0.05 instead of 0) to avoid processing invisible pixels
-    particlesRef.current = particlesRef.current.filter(p => p.life > 0.05);
+function updateParticles(dt: number, particlesRef: RefObject<Particle[]>) {
+    particlesRef.current = particlesRef.current.filter((p) => p.life > 0.05);
     for (const p of particlesRef.current) {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
@@ -303,7 +196,6 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
     ctx.fillStyle = '#202020';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    // Optimized Particle Rendering: No globalAlpha state changes
     for (const p of particles) {
         ctx.fillStyle = `hsla(${p.h}, ${p.s}%, ${p.l}%, ${p.life})`;
         ctx.beginPath();
@@ -389,22 +281,6 @@ function resolveCollisions(agents: Agent[]) {
     }
 }
 
-const FIGHTER_BEHAVIOR: AgentBehavior = {
-    decideState: (agent, perception) => decideState(agent, perception),
-    chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
-    getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actFighter(agent, perception, dt, particlesRef),
-    getColor: (agent) => getColor(agent),
-};
-
-const TANK_BEHAVIOR: AgentBehavior = {
-    decideState: (agent, perception) => decideState(agent, perception),
-    chooseHeading: (agent, perception, dt) => chooseHeadingTank(agent, perception, dt),
-    getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actTank(agent, perception, dt, particlesRef),
-    getColor: (agent) => getColor(agent),
-};
-
 function decideState(agent: Agent, perception: Perception): AgentState {
     const nearestEnemy = perception.nearest;
     const lowHealth = agent.fleeHpThreshold >= 0 && agent.health.hp < agent.fleeHpThreshold;
@@ -484,18 +360,18 @@ function chooseHeadingTank(agent: Agent, perception: Perception, dt: number) {
     return heading;
 }
 
-function actFighter(agent: Agent, perception: Perception, dt: number, particlesRef: React.RefObject<Particle[]>) {
+function actFighter(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
     const target = selectFightTarget(agent, perception);
     actCombat(agent, target, dt, particlesRef);
     actHeal(agent, dt);
 }
 
-function actTank(agent: Agent, perception: Perception, dt: number, particlesRef: React.RefObject<Particle[]>) {
+function actTank(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
     actCombat(agent, perception.nearest, dt, particlesRef);
     actHeal(agent, dt);
 }
 
-function actCombat(agent: Agent, target: Agent | null, dt: number, particlesRef: React.RefObject<Particle[]>) {
+function actCombat(agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) {
     if (agent.state === 'fight') {
         const combat = agent.combat;
         combat.cooldownRemaining = Math.max(0, combat.cooldownRemaining - dt);
