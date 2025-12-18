@@ -26,23 +26,37 @@ const PARTICLE_COUNT = 12;
 
 type AgentState = 'idle' | 'fight' | 'heal';
 
+type Health = {
+    hp: number;
+    maxHp: number;
+    healRate: number;
+    flashTimer: number;
+    hasDied: boolean;
+};
+
+type Combat = {
+    attackDamage: number;
+    attackCooldown: number;
+    attackRange: number;
+    cooldownRemaining: number;
+};
+
+type Steering = {
+    heading: number;
+    directionTimer: number;
+    idleSpeed: number;
+    fightSpeed: number;
+};
+
 type Agent = {
     id: number;
     x: number;
     y: number;
-    heading: number;
     state: AgentState;
-    directionTimer: number;
-    blackboard: Blackboard;
-};
-
-type Blackboard = {
-    hp: number;
-    attackDamage: number;
-    attackCooldown: number;
-    cooldownRemaining: number;
-    flashTimer: number;
-    hasDied: boolean;   
+    behavior: AgentBehavior;
+    health: Health;
+    combat: Combat;
+    steering: Steering;
 };
 
 type Particle = {
@@ -57,6 +71,16 @@ type Particle = {
 };
 
 type HslColor = { h: number; s: number; l: number };
+
+type Perception = { nearest: Agent | null; distance: number };
+
+type AgentBehavior = {
+    decideState: (agent: Agent, perception: Perception) => AgentState;
+    chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
+    getSpeed: (agent: Agent) => number;
+    act: (agent: Agent, perception: Perception, dt: number, particlesRef: React.MutableRefObject<Particle[]>) => void;
+    getColor: (agent: Agent) => HslColor;
+};
 
 const randRange = (min: number, max: number) => Math.random() * (max - min) + min;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
@@ -117,56 +141,80 @@ function createAgents(count: number): Agent[] {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
-        heading: randRange(0, Math.PI * 2),
         state: 'idle',
-        directionTimer: randRange(0.5, 2),
-        blackboard: createBlackboard(),
+        behavior: DEFAULT_BEHAVIOR,
+        health: createHealth(),
+        combat: createCombat(),
+        steering: createSteering(),
     }));
 }
 
-function createBlackboard(): Blackboard {
+function createHealth(): Health {
     return {
         hp: MAX_HP,
-        attackDamage: ATTACK_DAMAGE,
-        attackCooldown: ATTACK_COOLDOWN,
-        cooldownRemaining: 0,
+        maxHp: MAX_HP,
+        healRate: HEAL_RATE,
         flashTimer: 0,
         hasDied: false,
     };
 }
 
+function createCombat(): Combat {
+    return {
+        attackDamage: ATTACK_DAMAGE,
+        attackCooldown: ATTACK_COOLDOWN,
+        attackRange: ATTACK_RANGE,
+        cooldownRemaining: 0,
+    };
+}
+
+function createSteering(): Steering {
+    return {
+        heading: randRange(0, Math.PI * 2),
+        directionTimer: randRange(0.5, 2),
+        idleSpeed: IDLE_SPEED,
+        fightSpeed: FIGHT_SPEED,
+    };
+}
+
 function updateAgents(agents: Agent[], dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
-    for (const agent of agents) {
-        if (agent.blackboard.hp <= 0) continue;
-        const { nearest, distance } = findNearest(agent, agents);
-        updateState(agent, nearest, distance);
+    const preMovePerceptions = senseAgents(agents);
+    for (let i = 0; i < agents.length; i += 1) {
+        const agent = agents[i];
+        if (agent.health.hp <= 0) continue;
+        agent.state = agent.behavior.decideState(agent, preMovePerceptions[i]);
+    }
 
-        let heading = agent.heading;
-        if (agent.state === 'fight' && nearest) {
-            heading = Math.atan2(nearest.y - agent.y, nearest.x - agent.x);
-        } else if (agent.state === 'idle') {
-            agent.directionTimer -= dt;
-            if (agent.directionTimer <= 0) {
-                heading = randRange(0, Math.PI * 2);
-                agent.directionTimer = randRange(0.75, 2.5);
-            }
-        }
+    for (let i = 0; i < agents.length; i += 1) {
+        const agent = agents[i];
+        if (agent.health.hp <= 0) continue;
+        const heading = agent.behavior.chooseHeading(agent, preMovePerceptions[i], dt);
+        const speed = agent.behavior.getSpeed(agent);
 
-        const speed = getSpeedForState(agent.state);
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
-        if (agent.x < AGENT_RADIUS || agent.x > WIDTH - AGENT_RADIUS) heading = Math.PI - heading;
-        if (agent.y < AGENT_RADIUS || agent.y > HEIGHT - AGENT_RADIUS) heading = -heading;
+        let nextHeading = heading;
+        if (agent.x < AGENT_RADIUS || agent.x > WIDTH - AGENT_RADIUS) nextHeading = Math.PI - nextHeading;
+        if (agent.y < AGENT_RADIUS || agent.y > HEIGHT - AGENT_RADIUS) nextHeading = -nextHeading;
 
         agent.x = clamp(agent.x, AGENT_RADIUS, WIDTH - AGENT_RADIUS);
         agent.y = clamp(agent.y, AGENT_RADIUS, HEIGHT - AGENT_RADIUS);
-        agent.heading = heading;
+        agent.steering.heading = nextHeading;
 
-        handleStateActions(agent, nearest, distance, dt, particlesRef);
+        if (agent.health.flashTimer > 0) {
+            agent.health.flashTimer = Math.max(0, agent.health.flashTimer - dt);
+        }
     }
 
-    return agents.filter((agent) => agent.blackboard.hp > 0);
+    const postMovePerceptions = senseAgents(agents);
+    for (let i = 0; i < agents.length; i += 1) {
+        const agent = agents[i];
+        if (agent.health.hp <= 0) continue;
+        agent.behavior.act(agent, postMovePerceptions[i], dt, particlesRef);
+    }
+
+    return agents.filter((agent) => agent.health.hp > 0);
 }
 
 function spawnDeathParticles(x: number, y: number, color: HslColor, particlesRef: React.MutableRefObject<Particle[]>) {
@@ -210,12 +258,11 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         ctx.beginPath();
         ctx.arc(agent.x, agent.y, AGENT_RADIUS, 0, Math.PI * 2);
         
-        if (agent.blackboard.flashTimer > 0) {
+        if (agent.health.flashTimer > 0) {
             ctx.fillStyle = 'white';
-            agent.blackboard.flashTimer -= 0.016; 
         } else {
-            const hpRatio = Math.max(0, Math.min(1, agent.blackboard.hp / MAX_HP));
-            const baseColor = getColorForState(agent.state);
+            const hpRatio = Math.max(0, Math.min(1, agent.health.hp / agent.health.maxHp));
+            const baseColor = agent.behavior.getColor(agent);
             ctx.fillStyle = applySaturation(baseColor, hpRatio);
         }
         ctx.fill();
@@ -224,8 +271,8 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         ctx.beginPath();
         ctx.moveTo(agent.x, agent.y);
         ctx.lineTo(
-            agent.x + Math.cos(agent.heading) * lineLength,
-            agent.y + Math.sin(agent.heading) * lineLength
+            agent.x + Math.cos(agent.steering.heading) * lineLength,
+            agent.y + Math.sin(agent.steering.heading) * lineLength
         );
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2;
@@ -233,11 +280,15 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
     }
 }
 
+function senseAgents(agents: Agent[]): Perception[] {
+    return agents.map((agent) => findNearest(agent, agents));
+}
+
 function findNearest(agent: Agent, agents: Agent[]) {
     let nearest: Agent | null = null;
     let distance = Infinity;
     for (const other of agents) {
-        if (other.id === agent.id || other.blackboard.hp <= 0) continue;
+        if (other.id === agent.id || other.health.hp <= 0) continue;
         const d = Math.hypot(other.x - agent.x, other.y - agent.y);
         if (d < distance) {
             distance = d;
@@ -251,7 +302,7 @@ function resolveCollisions(agents: Agent[]) {
     for (let i = 0; i < agents.length; i += 1) {
         for (let j = i + 1; j < agents.length; j += 1) {
             const a = agents[i], b = agents[j];
-            if (a.blackboard.hp <= 0 || b.blackboard.hp <= 0) continue;
+            if (a.health.hp <= 0 || b.health.hp <= 0) continue;
             const dx = b.x - a.x, dy = b.y - a.y;
             let distance = Math.hypot(dx, dy) || 0.01;
             if (distance < MIN_DISTANCE) {
@@ -264,52 +315,76 @@ function resolveCollisions(agents: Agent[]) {
     }
 }
 
-function updateState(agent: Agent, nearest: Agent | null, distance: number) {
+const DEFAULT_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeading(agent, perception, dt),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, perception, dt, particlesRef) => act(agent, perception, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
+
+function decideState(agent: Agent, perception: Perception): AgentState {
     if (agent.state === 'heal') {
-        if (agent.blackboard.hp >= MAX_HP) agent.state = 'idle';
-        return;
+        if (agent.health.hp >= agent.health.maxHp) return 'idle';
+        return 'heal';
     }
     if (agent.state === 'idle') {
-        if (nearest && distance <= IDLE_TO_FIGHT_RANGE) {
-            agent.state = 'fight';
-        } else if (agent.blackboard.hp < MAX_HP) {
-            agent.state = 'heal';
+        if (perception.nearest && perception.distance <= IDLE_TO_FIGHT_RANGE) {
+            return 'fight';
         }
-    } else if (agent.state === 'fight') {
-        if (!nearest || distance > FIGHT_TO_IDLE_RANGE) {
-            agent.state = 'idle';
-            agent.directionTimer = 0;
+        if (agent.health.hp < agent.health.maxHp) {
+            return 'heal';
         }
+        return 'idle';
     }
+    if (!perception.nearest || perception.distance > FIGHT_TO_IDLE_RANGE) {
+        agent.steering.directionTimer = 0;
+        return 'idle';
+    }
+    return 'fight';
 }
 
-function handleStateActions(agent: Agent, target: Agent | null, distance: number, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
+function chooseHeading(agent: Agent, perception: Perception, dt: number) {
+    let heading = agent.steering.heading;
+    if (agent.state === 'fight' && perception.nearest) {
+        heading = Math.atan2(perception.nearest.y - agent.y, perception.nearest.x - agent.x);
+    } else if (agent.state === 'idle') {
+        agent.steering.directionTimer -= dt;
+        if (agent.steering.directionTimer <= 0) {
+            heading = randRange(0, Math.PI * 2);
+            agent.steering.directionTimer = randRange(0.75, 2.5);
+        }
+    }
+    return heading;
+}
+
+function act(agent: Agent, perception: Perception, dt: number, particlesRef: React.MutableRefObject<Particle[]>) {
     if (agent.state === 'fight') {
-        const board = agent.blackboard;
-        board.cooldownRemaining = Math.max(0, board.cooldownRemaining - dt);
-        if (target && distance <= ATTACK_RANGE && board.cooldownRemaining <= 0) {
-            target.blackboard.hp -= board.attackDamage;
+        const combat = agent.combat;
+        combat.cooldownRemaining = Math.max(0, combat.cooldownRemaining - dt);
+        if (perception.nearest && perception.distance <= combat.attackRange && combat.cooldownRemaining <= 0) {
+            perception.nearest.health.hp -= combat.attackDamage;
             
-            if (target.blackboard.hp <= 0 && !target.blackboard.hasDied) {
-                spawnDeathParticles(target.x, target.y, getColorForState(target.state), particlesRef);
-                target.blackboard.hasDied = true;
+            if (perception.nearest.health.hp <= 0 && !perception.nearest.health.hasDied) {
+                spawnDeathParticles(perception.nearest.x, perception.nearest.y, getColor(perception.nearest), particlesRef);
+                perception.nearest.health.hasDied = true;
             } else {
-                target.blackboard.flashTimer = FLASH_DURATION; 
+                perception.nearest.health.flashTimer = FLASH_DURATION;
             }
             
-            board.cooldownRemaining = board.attackCooldown;
+            combat.cooldownRemaining = combat.attackCooldown;
         }
     } else if (agent.state === 'heal') {
-        agent.blackboard.hp = Math.min(MAX_HP, agent.blackboard.hp + HEAL_RATE * dt);
+        agent.health.hp = Math.min(agent.health.maxHp, agent.health.hp + agent.health.healRate * dt);
     }
 }
 
-function getSpeedForState(state: AgentState) {
-    return state === 'fight' ? FIGHT_SPEED : state === 'heal' ? 0 : IDLE_SPEED;
+function getSpeed(agent: Agent) {
+    return agent.state === 'fight' ? agent.steering.fightSpeed : agent.state === 'heal' ? 0 : agent.steering.idleSpeed;
 }
 
-function getColorForState(state: AgentState) {
-    return state === 'fight' ? FIGHT_COLOR : state === 'heal' ? HEAL_COLOR : IDLE_COLOR;
+function getColor(agent: Agent) {
+    return agent.state === 'fight' ? FIGHT_COLOR : agent.state === 'heal' ? HEAL_COLOR : IDLE_COLOR;
 }
 
 function applySaturation(color: HslColor, ratio: number) {
