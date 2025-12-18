@@ -6,15 +6,18 @@ const HEIGHT = 1000;
 const WIDTH = 1000;
 const WORLD_PADDING = 10;
 const AGENT_RADIUS = 10;
+const TANK_RADIUS = 20;
 const NUM_AGENTS = 50;
+const NUM_TANKS = 8;
 const IDLE_SPEED = 50;
 const FIGHT_SPEED = 50;
 const IDLE_TO_FIGHT_RANGE = 250;
 const FIGHT_TO_IDLE_RANGE = 250;
-const MIN_DISTANCE = AGENT_RADIUS * 2;
-const ATTACK_RANGE = 32;
+const ATTACK_RANGE = 10;
 const MAX_HP = 100;
+const TANK_HP = 200;
 const ATTACK_DAMAGE = 25;
+const TANK_ATTACK_DAMAGE = 50;
 const ATTACK_COOLDOWN = 1;
 const IDLE_COLOR: HslColor = { h: 180, s: 100, l: 60 };
 const FIGHT_COLOR: HslColor = { h: 0, s: 100, l: 60 };
@@ -43,15 +46,18 @@ type Combat = {
 
 type Steering = {
     heading: number;
+    targetHeading: number;
     directionTimer: number;
     idleSpeed: number;
     fightSpeed: number;
+    turnRate: number;
 };
 
 type Agent = {
     id: number;
     x: number;
     y: number;
+    radius: number;
     state: AgentState;
     behavior: AgentBehavior;
     health: Health;
@@ -137,43 +143,55 @@ function runSimulation(canvas: HTMLCanvasElement, particlesRef: React.MutableRef
 }
 
 function createAgents(count: number): Agent[] {
-    return Array.from({ length: count }, (_, id) => ({
+    return Array.from({ length: count }, (_, id) => createAgent(id, id < NUM_TANKS));
+}
+
+function createAgent(id: number, isTank: boolean): Agent {
+    return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
+        radius: isTank ? TANK_RADIUS : AGENT_RADIUS,
         state: 'idle',
         behavior: DEFAULT_BEHAVIOR,
-        health: createHealth(),
-        combat: createCombat(),
-        steering: createSteering(),
-    }));
+        health: createHealth(isTank ? TANK_HP : MAX_HP),
+        combat: createCombat(isTank ? TANK_ATTACK_DAMAGE : ATTACK_DAMAGE),
+        steering: createSteering(
+            isTank ? Math.PI / 2 : Math.PI,
+            isTank ? IDLE_SPEED / 2 : IDLE_SPEED,
+            isTank ? FIGHT_SPEED / 2 : FIGHT_SPEED
+        ),
+    };
 }
 
-function createHealth(): Health {
+function createHealth(maxHp: number): Health {
     return {
-        hp: MAX_HP,
-        maxHp: MAX_HP,
+        hp: maxHp,
+        maxHp,
         healRate: HEAL_RATE,
         flashTimer: 0,
         hasDied: false,
     };
 }
 
-function createCombat(): Combat {
+function createCombat(attackDamage: number): Combat {
     return {
-        attackDamage: ATTACK_DAMAGE,
+        attackDamage,
         attackCooldown: ATTACK_COOLDOWN,
         attackRange: ATTACK_RANGE,
         cooldownRemaining: 0,
     };
 }
 
-function createSteering(): Steering {
+function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number): Steering {
+    const heading = randRange(0, Math.PI * 2);
     return {
-        heading: randRange(0, Math.PI * 2),
+        heading,
+        targetHeading: heading,
         directionTimer: randRange(0.5, 2),
-        idleSpeed: IDLE_SPEED,
-        fightSpeed: FIGHT_SPEED,
+        idleSpeed,
+        fightSpeed,
+        turnRate,
     };
 }
 
@@ -188,19 +206,21 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: React.MutableRe
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        const heading = agent.behavior.chooseHeading(agent, preMovePerceptions[i], dt);
+        const targetHeading = agent.behavior.chooseHeading(agent, preMovePerceptions[i], dt);
         const speed = agent.behavior.getSpeed(agent);
+        const heading = turnTowards(agent.steering.heading, targetHeading, agent.steering.turnRate * dt);
 
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
         let nextHeading = heading;
-        if (agent.x < AGENT_RADIUS || agent.x > WIDTH - AGENT_RADIUS) nextHeading = Math.PI - nextHeading;
-        if (agent.y < AGENT_RADIUS || agent.y > HEIGHT - AGENT_RADIUS) nextHeading = -nextHeading;
+        if (agent.x < agent.radius || agent.x > WIDTH - agent.radius) nextHeading = Math.PI - nextHeading;
+        if (agent.y < agent.radius || agent.y > HEIGHT - agent.radius) nextHeading = -nextHeading;
 
-        agent.x = clamp(agent.x, AGENT_RADIUS, WIDTH - AGENT_RADIUS);
-        agent.y = clamp(agent.y, AGENT_RADIUS, HEIGHT - AGENT_RADIUS);
+        agent.x = clamp(agent.x, agent.radius, WIDTH - agent.radius);
+        agent.y = clamp(agent.y, agent.radius, HEIGHT - agent.radius);
         agent.steering.heading = nextHeading;
+        agent.steering.targetHeading = targetHeading;
 
         if (agent.health.flashTimer > 0) {
             agent.health.flashTimer = Math.max(0, agent.health.flashTimer - dt);
@@ -256,7 +276,7 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
 
     for (const agent of agents) {
         ctx.beginPath();
-        ctx.arc(agent.x, agent.y, AGENT_RADIUS, 0, Math.PI * 2);
+        ctx.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
         
         if (agent.health.flashTimer > 0) {
             ctx.fillStyle = 'white';
@@ -267,7 +287,7 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         }
         ctx.fill();
 
-        const lineLength = AGENT_RADIUS + 5;
+        const lineLength = agent.radius + 5;
         ctx.beginPath();
         ctx.moveTo(agent.x, agent.y);
         ctx.lineTo(
@@ -305,8 +325,9 @@ function resolveCollisions(agents: Agent[]) {
             if (a.health.hp <= 0 || b.health.hp <= 0) continue;
             const dx = b.x - a.x, dy = b.y - a.y;
             let distance = Math.hypot(dx, dy) || 0.01;
-            if (distance < MIN_DISTANCE) {
-                const overlap = (MIN_DISTANCE - distance) / 2;
+            const minDistance = a.radius + b.radius;
+            if (distance < minDistance) {
+                const overlap = (minDistance - distance) / 2;
                 const nx = dx / distance, ny = dy / distance;
                 a.x -= nx * overlap; a.y -= ny * overlap;
                 b.x += nx * overlap; b.y += ny * overlap;
@@ -345,7 +366,7 @@ function decideState(agent: Agent, perception: Perception): AgentState {
 }
 
 function chooseHeading(agent: Agent, perception: Perception, dt: number) {
-    let heading = agent.steering.heading;
+    let heading = agent.steering.targetHeading;
     if (agent.state === 'fight' && perception.nearest) {
         heading = Math.atan2(perception.nearest.y - agent.y, perception.nearest.x - agent.x);
     } else if (agent.state === 'idle') {
@@ -362,14 +383,16 @@ function act(agent: Agent, perception: Perception, dt: number, particlesRef: Rea
     if (agent.state === 'fight') {
         const combat = agent.combat;
         combat.cooldownRemaining = Math.max(0, combat.cooldownRemaining - dt);
-        if (perception.nearest && perception.distance <= combat.attackRange && combat.cooldownRemaining <= 0) {
-            perception.nearest.health.hp -= combat.attackDamage;
+        const target = perception.nearest;
+        const reach = target ? combat.attackRange + agent.radius + target.radius : 0;
+        if (target && perception.distance <= reach && combat.cooldownRemaining <= 0) {
+            target.health.hp -= combat.attackDamage;
             
-            if (perception.nearest.health.hp <= 0 && !perception.nearest.health.hasDied) {
-                spawnDeathParticles(perception.nearest.x, perception.nearest.y, getColor(perception.nearest), particlesRef);
-                perception.nearest.health.hasDied = true;
+            if (target.health.hp <= 0 && !target.health.hasDied) {
+                spawnDeathParticles(target.x, target.y, getColor(target), particlesRef);
+                target.health.hasDied = true;
             } else {
-                perception.nearest.health.flashTimer = FLASH_DURATION;
+                target.health.flashTimer = FLASH_DURATION;
             }
             
             combat.cooldownRemaining = combat.attackCooldown;
@@ -389,4 +412,17 @@ function getColor(agent: Agent) {
 
 function applySaturation(color: HslColor, ratio: number) {
     return `hsl(${color.h}, ${Math.max(0, ratio * color.s)}%, ${color.l}%)`;
+}
+
+function turnTowards(current: number, target: number, maxDelta: number) {
+    const delta = wrapAngle(target - current);
+    if (Math.abs(delta) <= maxDelta) return target;
+    return current + Math.sign(delta) * maxDelta;
+}
+
+function wrapAngle(angle: number) {
+    let wrapped = angle;
+    while (wrapped > Math.PI) wrapped -= Math.PI * 2;
+    while (wrapped < -Math.PI) wrapped += Math.PI * 2;
+    return wrapped;
 }
