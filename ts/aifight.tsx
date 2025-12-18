@@ -5,20 +5,12 @@ import { useEffect, useRef } from 'react';
 const HEIGHT = 1000;
 const WIDTH = 1000;
 const WORLD_PADDING = 10;
-const AGENT_RADIUS = 10;
-const TANK_RADIUS = 20;
 const NUM_AGENTS = 50;
 const NUM_TANKS = 8;
-const IDLE_SPEED = 50;
-const FIGHT_SPEED = 50;
 const IDLE_TO_FIGHT_RANGE = 250;
 const FIGHT_TO_IDLE_RANGE = 250;
 const ATTACK_RANGE = 10;
 const ATTACK_ANGLE = Math.PI / 12;
-const MAX_HP = 100;
-const TANK_HP = 200;
-const ATTACK_DAMAGE = 25;
-const TANK_ATTACK_DAMAGE = 50;
 const ATTACK_COOLDOWN = 1;
 const IDLE_COLOR: HslColor = { h: 180, s: 100, l: 60 };
 const FIGHT_COLOR: HslColor = { h: 0, s: 100, l: 60 };
@@ -27,6 +19,24 @@ const HEAL_RATE = 10;
 const FLASH_DURATION = 0.1;
 const PARTICLE_LIFESPAN = 0.5;
 const PARTICLE_COUNT = 12;
+
+const FIGHTER_STATS = {
+    radius: 10,
+    maxHp: 100,
+    attackDamage: 25,
+    idleSpeed: 75,
+    fightSpeed: 75,
+    turnRate: Math.PI,
+};
+
+const TANK_STATS = {
+    radius: 20,
+    maxHp: 200,
+    attackDamage: 50,
+    idleSpeed: 25,
+    fightSpeed: 25,
+    turnRate: Math.PI / 2,
+};
 
 type AgentState = 'idle' | 'fight' | 'heal';
 
@@ -148,19 +158,20 @@ function createAgents(count: number): Agent[] {
 }
 
 function createAgent(id: number, isTank: boolean): Agent {
+    const stats = isTank ? TANK_STATS : FIGHTER_STATS;
     return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
-        radius: isTank ? TANK_RADIUS : AGENT_RADIUS,
+        radius: stats.radius,
         state: 'idle',
         behavior: DEFAULT_BEHAVIOR,
-        health: createHealth(isTank ? TANK_HP : MAX_HP),
-        combat: createCombat(isTank ? TANK_ATTACK_DAMAGE : ATTACK_DAMAGE),
+        health: createHealth(stats.maxHp),
+        combat: createCombat(stats.attackDamage),
         steering: createSteering(
-            isTank ? Math.PI / 2 : Math.PI,
-            isTank ? IDLE_SPEED / 2 : IDLE_SPEED,
-            isTank ? FIGHT_SPEED / 2 : FIGHT_SPEED
+            stats.turnRate,
+            stats.idleSpeed,
+            stats.fightSpeed
         ),
     };
 }
