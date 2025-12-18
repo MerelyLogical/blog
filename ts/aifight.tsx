@@ -14,6 +14,7 @@ const FIGHT_SPEED = 50;
 const IDLE_TO_FIGHT_RANGE = 250;
 const FIGHT_TO_IDLE_RANGE = 250;
 const ATTACK_RANGE = 10;
+const ATTACK_ANGLE = Math.PI / 12;
 const MAX_HP = 100;
 const TANK_HP = 200;
 const ATTACK_DAMAGE = 25;
@@ -385,7 +386,10 @@ function act(agent: Agent, perception: Perception, dt: number, particlesRef: Rea
         combat.cooldownRemaining = Math.max(0, combat.cooldownRemaining - dt);
         const target = perception.nearest;
         const reach = target ? combat.attackRange + agent.radius + target.radius : 0;
-        if (target && perception.distance <= reach && combat.cooldownRemaining <= 0) {
+        const directionToTarget = target ? Math.atan2(target.y - agent.y, target.x - agent.x) : 0;
+        const headingDelta = Math.abs(wrapAngle(directionToTarget - agent.steering.heading));
+        const facingTarget = headingDelta <= ATTACK_ANGLE;
+        if (target && perception.distance <= reach && facingTarget && combat.cooldownRemaining <= 0) {
             target.health.hp -= combat.attackDamage;
             
             if (target.health.hp <= 0 && !target.health.hasDied) {
