@@ -3,7 +3,8 @@ import type { RefObject } from 'react';
 import {
     ATTACK_ANGLE,
     ATTACK_COOLDOWN,
-    ATTACK_RANGE,
+    MELEE_ATTACK_RANGE,
+    RANGER_ATTACK_RANGE,
     FIGHTER_COLOR,
     AGENT_HUE_VARIANCE,
     AGENT_LIGHTNESS_RANGE,
@@ -15,9 +16,12 @@ import {
     HEAL_RATE,
     HEIGHT,
     NUM_FIGHTERS,
+    NUM_RANGERS,
     NUM_TANK,
     PARTICLE_COUNT,
     PARTICLE_LIFESPAN,
+    RANGER_COLOR,
+    RANGER_STATS,
     TANK_COLOR,
     TANK_STATS,
     WIDTH,
@@ -37,6 +41,15 @@ const FIGHTER_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
     chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
     pickTarget: (agent, perception) => pickTargetFighter(agent, perception),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, target, dt, particlesRef) => actFighter(agent, target, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
+
+const RANGER_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetRanger(agent, perception),
     getSpeed: (agent) => getSpeed(agent),
     act: (agent, target, dt, particlesRef) => actFighter(agent, target, dt, particlesRef),
     getColor: (agent) => getColor(agent),
@@ -98,19 +111,26 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
 
 function createAgents(): Agent[] {
     const agents: Agent[] = [];
+    let id = 0;
     for (let i = 0; i < NUM_TANK; i += 1) {
-        agents.push(createAgent(i, true));
+        agents.push(createAgent(id, 'tank'));
+        id += 1;
     }
     for (let i = 0; i < NUM_FIGHTERS; i += 1) {
-        agents.push(createAgent(i + NUM_TANK, false));
+        agents.push(createAgent(id, 'fighter'));
+        id += 1;
+    }
+    for (let i = 0; i < NUM_RANGERS; i += 1) {
+        agents.push(createAgent(id, 'ranger'));
+        id += 1;
     }
     return agents;
 }
 
-function createAgent(id: number, isTank: boolean): Agent {
-    const stats = isTank ? TANK_STATS : FIGHTER_STATS;
-    const kind = isTank ? 'tank' : 'fighter';
-    const baseColor = isTank ? TANK_COLOR : FIGHTER_COLOR;
+function createAgent(id: number, kind: Agent['kind']): Agent {
+    const stats = kind === 'tank' ? TANK_STATS : kind === 'ranger' ? RANGER_STATS : FIGHTER_STATS;
+    const baseColor = kind === 'tank' ? TANK_COLOR : kind === 'ranger' ? RANGER_COLOR : FIGHTER_COLOR;
+    const attackRange = kind === 'ranger' ? RANGER_ATTACK_RANGE : MELEE_ATTACK_RANGE;
     const hue = (baseColor.h + randRange(AGENT_HUE_VARIANCE.min, AGENT_HUE_VARIANCE.max) + 360) % 360;
     return {
         id,
@@ -124,9 +144,9 @@ function createAgent(id: number, isTank: boolean): Agent {
             l: randRange(AGENT_LIGHTNESS_RANGE.min, AGENT_LIGHTNESS_RANGE.max),
         },
         state: 'idle',
-        behavior: kind === 'tank' ? TANK_BEHAVIOR : FIGHTER_BEHAVIOR,
+        behavior: kind === 'tank' ? TANK_BEHAVIOR : kind === 'ranger' ? RANGER_BEHAVIOR : FIGHTER_BEHAVIOR,
         health: createHealth(stats.maxHp),
-        combat: createCombat(stats.attackDamage),
+        combat: createCombat(stats.attackDamage, attackRange),
         steering: createSteering(stats.turnRate, stats.speed),
         fleeHpThreshold: stats.fleeHpThreshold,
     };
@@ -142,11 +162,11 @@ function createHealth(maxHp: number) {
     };
 }
 
-function createCombat(attackDamage: number) {
+function createCombat(attackDamage: number, attackRange: number) {
     return {
         attackDamage,
         attackCooldown: ATTACK_COOLDOWN,
-        attackRange: ATTACK_RANGE,
+        attackRange,
         cooldownRemaining: 0,
         targetId: null,
     };
@@ -160,6 +180,7 @@ function createSteering(turnRate: number, speed: number) {
         directionTimer: randRange(0.5, 2),
         speed,
         turnRate,
+        holdRange: false,
     };
 }
 
@@ -173,6 +194,18 @@ function updateAgentBrains(agents: Agent[], dt: number) {
         agent.steering.targetHeading = agent.behavior.chooseHeading(agent, perception, dt);
         const target = agent.behavior.pickTarget(agent, perception);
         agent.combat.targetId = target ? target.id : null;
+        if (agent.kind === 'ranger' && agent.state === 'fight' && target) {
+            const distance = Math.hypot(target.x - agent.x, target.y - agent.y);
+            const holdDistance = agent.combat.attackRange * 0.7;
+            const chaseDistance = agent.combat.attackRange * 0.9;
+            if (distance <= holdDistance) {
+                agent.steering.holdRange = true;
+            } else if (distance >= chaseDistance) {
+                agent.steering.holdRange = false;
+            }
+        } else {
+            agent.steering.holdRange = false;
+        }
     }
 }
 
@@ -193,7 +226,7 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Parti
         );
 
         // TODO: track velocity/acceleration to support impulses (e.g., knockback) instead of direct position nudges.
-        // TODO: add projectiles and a ranged class (needs projectile simulation and collision).
+        // TODO: add projectiles for ranged attacks (needs projectile simulation and collision).
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
@@ -466,6 +499,9 @@ function getSpeed(agent: Agent) {
     if (agent.state === 'heal') {
         return 0;
     }
+    if (agent.kind === 'ranger' && agent.state === 'fight' && agent.steering.holdRange) {
+        return 0;
+    }
     return agent.steering.speed;
 }
 
@@ -475,7 +511,12 @@ function getColor(agent: Agent) {
 
 function pickTargetFighter(agent: Agent, perception: Perception) {
     if (agent.state !== 'fight') return null;
-    return selectFightTarget(agent, perception);
+    return perception.nearest;
+}
+
+function pickTargetRanger(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return perception.nearest;
 }
 
 function pickTargetTank(agent: Agent, perception: Perception) {
@@ -483,11 +524,8 @@ function pickTargetTank(agent: Agent, perception: Perception) {
     return perception.nearest;
 }
 
-function selectFightTarget(agent: Agent, perception: Perception) {
-    // TODO: refactor targeting into a proper behavior tree for fighters.
-    if (agent.kind === 'fighter' && perception.countInFightRange > 1 && perception.nearestTankInFightRange) {
-        return perception.nearestTankInFightRange;
-    }
+function selectFightTarget(_: Agent, perception: Perception) {
+    // TODO: refactor targeting into a proper behavior tree.
     return perception.nearestInFightRange ?? perception.nearest;
 }
 

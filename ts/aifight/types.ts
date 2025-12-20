@@ -10,7 +10,7 @@ export type AgentStats = {
 };
 
 export type AgentState = 'idle' | 'fight' | 'heal' | 'flee';
-export type AgentKind = 'fighter' | 'tank';
+export type AgentKind = 'fighter' | 'tank' | 'ranger';
 
 export type Health = {
     hp: number;
@@ -34,6 +34,7 @@ export type Steering = {
     directionTimer: number;
     speed: number;
     turnRate: number;
+    holdRange: boolean;
 };
 
 export type Agent = {
