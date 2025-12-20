@@ -26,6 +26,7 @@ export type Combat = {
     attackCooldown: number;
     attackRange: number;
     cooldownRemaining: number;
+    targetId: number | null;
 };
 
 export type Steering = {
@@ -75,7 +76,8 @@ export type Perception = {
 export type AgentBehavior = {
     decideState: (agent: Agent, perception: Perception) => AgentState;
     chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
+    pickTarget: (agent: Agent, perception: Perception) => Agent | null;
     getSpeed: (agent: Agent) => number;
-    act: (agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) => void;
+    act: (agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) => void;
     getColor: (agent: Agent) => HslColor;
 };

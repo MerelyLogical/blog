@@ -25,19 +25,26 @@ import type { Agent, AgentBehavior, AgentState, HslColor, Particle, Perception }
 const randRange = (min: number, max: number) => Math.random() * (max - min) + min;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+const SIM_STEP = 1 / 60;
+const AI_STEP = 1 / 10;
+const RENDER_STEP = 1 / 60;
+const MAX_FRAME_TIME = 0.25;
+
 const FIGHTER_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
     chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetFighter(agent, perception),
     getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actFighter(agent, perception, dt, particlesRef),
+    act: (agent, target, dt, particlesRef) => actFighter(agent, target, dt, particlesRef),
     getColor: (agent) => getColor(agent),
 };
 
 const TANK_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
     chooseHeading: (agent, perception, dt) => chooseHeadingTank(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetTank(agent, perception),
     getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actTank(agent, perception, dt, particlesRef),
+    act: (agent, target, dt, particlesRef) => actTank(agent, target, dt, particlesRef),
     getColor: (agent) => getColor(agent),
 };
 
@@ -50,17 +57,35 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     resolveCollisions(agents);
 
     let lastTimestamp = performance.now();
-    // TODO: decouple simulation tick from render (fixed timestep + optional FPS cap/stats) to reduce overdraw on fast devices.
+    let simAccumulator = 0;
+    let aiAccumulator = AI_STEP;
+    let renderAccumulator = RENDER_STEP;
     let rafId = requestAnimationFrame(step);
 
     function step(timestamp: number) {
-        const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
+        const frameTime = Math.min((timestamp - lastTimestamp) / 1000, MAX_FRAME_TIME);
         lastTimestamp = timestamp;
 
-        agents = updateAgents(agents, dt, particlesRef);
-        updateParticles(dt, particlesRef);
-        resolveCollisions(agents);
-        drawScene(ctx, agents, particlesRef.current);
+        simAccumulator += frameTime;
+        aiAccumulator += frameTime;
+        renderAccumulator += frameTime;
+
+        while (aiAccumulator >= AI_STEP) {
+            updateAgentBrains(agents, AI_STEP);
+            aiAccumulator -= AI_STEP;
+        }
+
+        while (simAccumulator >= SIM_STEP) {
+            agents = updateAgents(agents, SIM_STEP, particlesRef);
+            updateParticles(SIM_STEP, particlesRef);
+            resolveCollisions(agents);
+            simAccumulator -= SIM_STEP;
+        }
+
+        if (renderAccumulator >= RENDER_STEP) {
+            drawScene(ctx, agents, particlesRef.current);
+            renderAccumulator %= RENDER_STEP;
+        }
 
         rafId = requestAnimationFrame(step);
     }
@@ -110,6 +135,7 @@ function createCombat(attackDamage: number) {
         attackCooldown: ATTACK_COOLDOWN,
         attackRange: ATTACK_RANGE,
         cooldownRemaining: 0,
+        targetId: null,
     };
 }
 
@@ -125,20 +151,34 @@ function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number)
     };
 }
 
-function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Particle[]>) {
-    const preMovePerceptions = senseAgents(agents);
+function updateAgentBrains(agents: Agent[], dt: number) {
+    const perceptions = senseAgents(agents);
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        agent.state = agent.behavior.decideState(agent, preMovePerceptions[i]);
+        const perception = perceptions[i];
+        agent.state = agent.behavior.decideState(agent, perception);
+        agent.steering.targetHeading = agent.behavior.chooseHeading(agent, perception, dt);
+        const target = agent.behavior.pickTarget(agent, perception);
+        agent.combat.targetId = target ? target.id : null;
+    }
+}
+
+function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Particle[]>) {
+    const targetsById = new Map<number, Agent>();
+    for (const agent of agents) {
+        if (agent.health.hp > 0) targetsById.set(agent.id, agent);
     }
 
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        const targetHeading = agent.behavior.chooseHeading(agent, preMovePerceptions[i], dt);
         const speed = agent.behavior.getSpeed(agent);
-        const heading = turnTowards(agent.steering.heading, targetHeading, agent.steering.turnRate * dt);
+        const heading = turnTowards(
+            agent.steering.heading,
+            agent.steering.targetHeading,
+            agent.steering.turnRate * dt
+        );
 
         // TODO: track velocity/acceleration to support impulses (e.g., knockback) instead of direct position nudges.
         // TODO: add projectiles and a ranged class (needs projectile simulation and collision).
@@ -152,18 +192,19 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Parti
         agent.x = clamp(agent.x, agent.radius, WIDTH - agent.radius);
         agent.y = clamp(agent.y, agent.radius, HEIGHT - agent.radius);
         agent.steering.heading = nextHeading;
-        agent.steering.targetHeading = targetHeading;
 
         if (agent.health.flashTimer > 0) {
             agent.health.flashTimer = Math.max(0, agent.health.flashTimer - dt);
         }
     }
 
-    const postMovePerceptions = senseAgents(agents);
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        agent.behavior.act(agent, postMovePerceptions[i], dt, particlesRef);
+        const targetId = agent.combat.targetId;
+        let target = targetId === null ? null : targetsById.get(targetId) ?? null;
+        if (target && target.health.hp <= 0) target = null;
+        agent.behavior.act(agent, target, dt, particlesRef);
     }
 
     return agents.filter((agent) => agent.health.hp > 0);
@@ -366,14 +407,13 @@ function chooseHeadingTank(agent: Agent, perception: Perception, dt: number) {
     return heading;
 }
 
-function actFighter(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
-    const target = selectFightTarget(agent, perception);
+function actFighter(agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) {
     actCombat(agent, target, dt, particlesRef);
     actHeal(agent, dt);
 }
 
-function actTank(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
-    actCombat(agent, perception.nearest, dt, particlesRef);
+function actTank(agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) {
+    actCombat(agent, target, dt, particlesRef);
     actHeal(agent, dt);
 }
 
@@ -419,6 +459,16 @@ function getSpeed(agent: Agent) {
 
 function getColor(agent: Agent) {
     return agent.kind === 'tank' ? TANK_COLOR : FIGHTER_COLOR;
+}
+
+function pickTargetFighter(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return selectFightTarget(agent, perception);
+}
+
+function pickTargetTank(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return perception.nearest;
 }
 
 function selectFightTarget(agent: Agent, perception: Perception) {
