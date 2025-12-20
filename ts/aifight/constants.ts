@@ -13,25 +13,23 @@ export const ATTACK_COOLDOWN = 1;
 export const HEAL_RATE = 10;
 export const FLASH_DURATION = 0.1;
 export const PARTICLE_LIFESPAN = 0.5;
-export const PARTICLE_COUNT = 12;
+export const PARTICLE_COUNT = 6;
 
-export const IDLE_COLOR: HslColor = { h: 180, s: 100, l: 60 };
-export const FIGHT_COLOR: HslColor = { h: 0, s: 100, l: 60 };
-export const HEAL_COLOR: HslColor = { h: 120, s: 100, l: 60 };
-export const FLEE_COLOR: HslColor = { h: 270, s: 100, l: 60 };
+export const FIGHTER_COLOR: HslColor = { h: 180, s: 100, l: 60 };
+export const TANK_COLOR: HslColor = { h: 0, s: 100, l: 60 };
 
 export const FIGHTER_STATS: AgentStats = {
-    radius: 10,
+    radius: 15,
     maxHp: 100,
     attackDamage: 25,
     idleSpeed: 75,
     fightSpeed: 75,
-    turnRate: 4 * Math.PI,
+    turnRate: 2 * Math.PI,
     fleeHpThreshold: 40,
 };
 
 export const TANK_STATS: AgentStats = {
-    radius: 20,
+    radius: 25,
     maxHp: 500,
     attackDamage: 33,
     idleSpeed: 33,

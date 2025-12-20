@@ -4,20 +4,18 @@ import {
     ATTACK_ANGLE,
     ATTACK_COOLDOWN,
     ATTACK_RANGE,
-    FIGHT_COLOR,
+    FIGHTER_COLOR,
     FIGHT_RANGE,
-    FLEE_COLOR,
     FLEE_RANGE,
     FLASH_DURATION,
     FIGHTER_STATS,
-    HEAL_COLOR,
     HEAL_RATE,
     HEIGHT,
-    IDLE_COLOR,
     NUM_AGENTS,
     NUM_TANKS,
     PARTICLE_COUNT,
     PARTICLE_LIFESPAN,
+    TANK_COLOR,
     TANK_STATS,
     WIDTH,
     WORLD_PADDING,
@@ -52,6 +50,7 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     resolveCollisions(agents);
 
     let lastTimestamp = performance.now();
+    // TODO: decouple simulation tick from render (fixed timestep + optional FPS cap/stats) to reduce overdraw on fast devices.
     let rafId = requestAnimationFrame(step);
 
     function step(timestamp: number) {
@@ -141,6 +140,8 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Parti
         const speed = agent.behavior.getSpeed(agent);
         const heading = turnTowards(agent.steering.heading, targetHeading, agent.steering.turnRate * dt);
 
+        // TODO: track velocity/acceleration to support impulses (e.g., knockback) instead of direct position nudges.
+        // TODO: add projectiles and a ranged class (needs projectile simulation and collision).
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
@@ -207,25 +208,30 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         ctx.beginPath();
         ctx.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
 
+        const hpRatio = Math.max(0, Math.min(1, agent.health.hp / agent.health.maxHp));
+
         if (agent.health.flashTimer > 0) {
             ctx.fillStyle = 'white';
         } else {
-            const hpRatio = Math.max(0, Math.min(1, agent.health.hp / agent.health.maxHp));
             const baseColor = agent.behavior.getColor(agent);
-            ctx.fillStyle = applySaturation(baseColor, hpRatio);
+            ctx.fillStyle = `hsl(${baseColor.h}, ${baseColor.s}%, ${baseColor.l}%)`;
         }
         ctx.fill();
 
-        const lineLength = agent.radius + 5;
+        drawStateGlyph(ctx, agent);
+        drawHealthRing(ctx, agent, hpRatio);
+
+        const markerDist = agent.radius * 0.8;
         ctx.beginPath();
-        ctx.moveTo(agent.x, agent.y);
-        ctx.lineTo(
-            agent.x + Math.cos(agent.steering.heading) * lineLength,
-            agent.y + Math.sin(agent.steering.heading) * lineLength
+        ctx.arc(
+            agent.x + Math.cos(agent.steering.heading) * markerDist,
+            agent.y + Math.sin(agent.steering.heading) * markerDist,
+            2,
+            0,
+            Math.PI * 2
         );
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.fillStyle = 'black';
+        ctx.fill();
     }
 }
 
@@ -412,23 +418,11 @@ function getSpeed(agent: Agent) {
 }
 
 function getColor(agent: Agent) {
-    if (agent.state === 'fight') {
-        return FIGHT_COLOR;
-    }
-    if (agent.state === 'flee') {
-        return FLEE_COLOR;
-    }
-    if (agent.state === 'heal') {
-        return HEAL_COLOR;
-    }
-    return IDLE_COLOR;
-}
-
-function applySaturation(color: HslColor, ratio: number) {
-    return `hsl(${color.h}, ${Math.max(0, ratio * color.s)}%, ${color.l}%)`;
+    return agent.kind === 'tank' ? TANK_COLOR : FIGHTER_COLOR;
 }
 
 function selectFightTarget(agent: Agent, perception: Perception) {
+    // TODO: refactor targeting into a proper behavior tree for fighters.
     if (agent.kind === 'fighter' && perception.countInFightRange > 1 && perception.nearestTankInFightRange) {
         return perception.nearestTankInFightRange;
     }
@@ -446,4 +440,53 @@ function wrapAngle(angle: number) {
     while (wrapped > Math.PI) wrapped -= Math.PI * 2;
     while (wrapped < -Math.PI) wrapped += Math.PI * 2;
     return wrapped;
+}
+
+function drawHealthRing(ctx: CanvasRenderingContext2D, agent: Agent, hpRatio: number) {
+    const ringRadius = agent.radius + 2;
+    ctx.lineWidth = 2.5;
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.arc(agent.x, agent.y, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.strokeStyle = `hsl(${hpRatio * 120}, 90%, 50%)`;
+    ctx.arc(
+        agent.x,
+        agent.y,
+        ringRadius,
+        -Math.PI / 2,
+        -Math.PI / 2 - Math.PI * 2 * hpRatio,
+        true
+    );
+    ctx.stroke();
+}
+
+function drawStateGlyph(ctx: CanvasRenderingContext2D, agent: Agent) {
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 2;
+    const size = agent.radius * 0.8;
+
+    if (agent.state === 'heal') {
+        ctx.beginPath();
+        ctx.moveTo(agent.x - size / 2, agent.y);
+        ctx.lineTo(agent.x + size / 2, agent.y);
+        ctx.moveTo(agent.x, agent.y - size / 2);
+        ctx.lineTo(agent.x, agent.y + size / 2);
+        ctx.stroke();
+    } else if (agent.state === 'flee') {
+        const barHeight = size * 0.9;
+        const dotOffset = size * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(agent.x, agent.y - barHeight / 2);
+        ctx.lineTo(agent.x, agent.y + barHeight / 4);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(agent.x, agent.y + dotOffset, 1.75, 0, Math.PI * 2);
+        ctx.fillStyle = '#111';
+        ctx.fill();
+    }
 }
