@@ -218,20 +218,17 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         drawStateGlyph(ctx, agent);
         drawHealthRing(ctx, agent, hpRatio);
 
-        const lineLength = agent.radius + 5;
-        const lineStart = agent.radius * 0.5;
+        const markerDist = agent.radius * 0.8;
         ctx.beginPath();
-        ctx.moveTo(
-            agent.x + Math.cos(agent.steering.heading) * lineStart,
-            agent.y + Math.sin(agent.steering.heading) * lineStart
+        ctx.arc(
+            agent.x + Math.cos(agent.steering.heading) * markerDist,
+            agent.y + Math.sin(agent.steering.heading) * markerDist,
+            2.5,
+            0,
+            Math.PI * 2
         );
-        ctx.lineTo(
-            agent.x + Math.cos(agent.steering.heading) * lineLength,
-            agent.y + Math.sin(agent.steering.heading) * lineLength
-        );
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.fillStyle = 'black';
+        ctx.fill();
     }
 }
 
@@ -452,7 +449,14 @@ function drawHealthRing(ctx: CanvasRenderingContext2D, agent: Agent, hpRatio: nu
 
     ctx.beginPath();
     ctx.strokeStyle = `hsl(${hpRatio * 120}, 90%, 50%)`;
-    ctx.arc(agent.x, agent.y, ringRadius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * hpRatio);
+    ctx.arc(
+        agent.x,
+        agent.y,
+        ringRadius,
+        -Math.PI / 2,
+        -Math.PI / 2 - Math.PI * 2 * hpRatio,
+        true
+    );
     ctx.stroke();
 }
 
