@@ -5,14 +5,17 @@ import {
     ATTACK_COOLDOWN,
     ATTACK_RANGE,
     FIGHTER_COLOR,
+    AGENT_HUE_VARIANCE,
+    AGENT_LIGHTNESS_RANGE,
+    AGENT_SATURATION_RANGE,
     FIGHT_RANGE,
     FLEE_RANGE,
     FLASH_DURATION,
     FIGHTER_STATS,
     HEAL_RATE,
     HEIGHT,
-    NUM_AGENTS,
-    NUM_TANKS,
+    NUM_FIGHTERS,
+    NUM_TANK,
     PARTICLE_COUNT,
     PARTICLE_LIFESPAN,
     TANK_COLOR,
@@ -53,7 +56,7 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     if (!context) return () => {};
     const ctx = context;
 
-    let agents = createAgents(NUM_AGENTS);
+    let agents = createAgents();
     resolveCollisions(agents);
 
     let lastTimestamp = performance.now();
@@ -93,28 +96,38 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     return () => cancelAnimationFrame(rafId);
 }
 
-function createAgents(count: number): Agent[] {
-    return Array.from({ length: count }, (_, id) => createAgent(id, id < NUM_TANKS));
+function createAgents(): Agent[] {
+    const agents: Agent[] = [];
+    for (let i = 0; i < NUM_TANK; i += 1) {
+        agents.push(createAgent(i, true));
+    }
+    for (let i = 0; i < NUM_FIGHTERS; i += 1) {
+        agents.push(createAgent(i + NUM_TANK, false));
+    }
+    return agents;
 }
 
 function createAgent(id: number, isTank: boolean): Agent {
     const stats = isTank ? TANK_STATS : FIGHTER_STATS;
     const kind = isTank ? 'tank' : 'fighter';
+    const baseColor = isTank ? TANK_COLOR : FIGHTER_COLOR;
+    const hue = (baseColor.h + randRange(AGENT_HUE_VARIANCE.min, AGENT_HUE_VARIANCE.max) + 360) % 360;
     return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
         radius: stats.radius,
         kind,
+        color: {
+            h: hue,
+            s: randRange(AGENT_SATURATION_RANGE.min, AGENT_SATURATION_RANGE.max),
+            l: randRange(AGENT_LIGHTNESS_RANGE.min, AGENT_LIGHTNESS_RANGE.max),
+        },
         state: 'idle',
         behavior: kind === 'tank' ? TANK_BEHAVIOR : FIGHTER_BEHAVIOR,
         health: createHealth(stats.maxHp),
         combat: createCombat(stats.attackDamage),
-        steering: createSteering(
-            stats.turnRate,
-            stats.idleSpeed,
-            stats.fightSpeed
-        ),
+        steering: createSteering(stats.turnRate, stats.speed),
         fleeHpThreshold: stats.fleeHpThreshold,
     };
 }
@@ -139,14 +152,13 @@ function createCombat(attackDamage: number) {
     };
 }
 
-function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number) {
+function createSteering(turnRate: number, speed: number) {
     const heading = randRange(0, Math.PI * 2);
     return {
         heading,
         targetHeading: heading,
         directionTimer: randRange(0.5, 2),
-        idleSpeed,
-        fightSpeed,
+        speed,
         turnRate,
     };
 }
@@ -448,17 +460,17 @@ function actHeal(agent: Agent, dt: number) {
 }
 
 function getSpeed(agent: Agent) {
-    if (agent.state === 'fight' || agent.state === 'flee') {
-        return agent.steering.fightSpeed;
+    if (agent.state === 'flee') {
+        return agent.steering.speed * 1.2;
     }
     if (agent.state === 'heal') {
         return 0;
     }
-    return agent.steering.idleSpeed;
+    return agent.steering.speed;
 }
 
 function getColor(agent: Agent) {
-    return agent.kind === 'tank' ? TANK_COLOR : FIGHTER_COLOR;
+    return agent.color;
 }
 
 function pickTargetFighter(agent: Agent, perception: Perception) {

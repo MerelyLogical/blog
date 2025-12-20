@@ -4,8 +4,7 @@ export type AgentStats = {
     radius: number;
     maxHp: number;
     attackDamage: number;
-    idleSpeed: number;
-    fightSpeed: number;
+    speed: number;
     turnRate: number;
     fleeHpThreshold: number;
 };
@@ -33,8 +32,7 @@ export type Steering = {
     heading: number;
     targetHeading: number;
     directionTimer: number;
-    idleSpeed: number;
-    fightSpeed: number;
+    speed: number;
     turnRate: number;
 };
 
@@ -44,6 +42,7 @@ export type Agent = {
     y: number;
     radius: number;
     kind: AgentKind;
+    color: HslColor;
     state: AgentState;
     behavior: AgentBehavior;
     health: Health;
