@@ -50,6 +50,7 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     resolveCollisions(agents);
 
     let lastTimestamp = performance.now();
+    // TODO: decouple simulation tick from render (fixed timestep + optional FPS cap/stats) to reduce overdraw on fast devices.
     let rafId = requestAnimationFrame(step);
 
     function step(timestamp: number) {
@@ -139,6 +140,8 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Parti
         const speed = agent.behavior.getSpeed(agent);
         const heading = turnTowards(agent.steering.heading, targetHeading, agent.steering.turnRate * dt);
 
+        // TODO: track velocity/acceleration to support impulses (e.g., knockback) instead of direct position nudges.
+        // TODO: add projectiles and a ranged class (needs projectile simulation and collision).
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
@@ -223,7 +226,7 @@ function drawScene(ctx: CanvasRenderingContext2D, agents: Agent[], particles: Pa
         ctx.arc(
             agent.x + Math.cos(agent.steering.heading) * markerDist,
             agent.y + Math.sin(agent.steering.heading) * markerDist,
-            2.5,
+            2,
             0,
             Math.PI * 2
         );
@@ -419,6 +422,7 @@ function getColor(agent: Agent) {
 }
 
 function selectFightTarget(agent: Agent, perception: Perception) {
+    // TODO: refactor targeting into a proper behavior tree for fighters.
     if (agent.kind === 'fighter' && perception.countInFightRange > 1 && perception.nearestTankInFightRange) {
         return perception.nearestTankInFightRange;
     }
@@ -440,7 +444,7 @@ function wrapAngle(angle: number) {
 
 function drawHealthRing(ctx: CanvasRenderingContext2D, agent: Agent, hpRatio: number) {
     const ringRadius = agent.radius + 2;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
 
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';

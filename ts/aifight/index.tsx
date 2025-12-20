@@ -13,6 +13,7 @@ export default function AiCanvas() {
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
+        // TODO: add debug panel: click an agent to inspect stats/details in a div outside the canvas.
         return runSimulation(canvas, particlesRef);
     }, []);
 
