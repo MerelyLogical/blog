@@ -184,6 +184,58 @@ html[data-theme='dark'] .app-input::placeholder {
   padding: 0;
 }
 
+.buyvsrent-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.buyvsrent-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.buyvsrent-section-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--app-text-color);
+}
+
+.buyvsrent-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 0.45rem 0.6rem;
+}
+
+.buyvsrent-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border: 1px solid var(--app-card-border);
+  border-radius: 0.55rem;
+  background: var(--app-card-bg);
+  padding: 0.45rem 0.55rem;
+  color: var(--app-text-color);
+}
+
+.buyvsrent-field .app-form-label {
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.buyvsrent-input {
+  width: 100%;
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.buyvsrent-metric {
+  margin: 0.15rem 0;
+}
+
 .hero-wrapper {
   position: relative;
   display: flex;

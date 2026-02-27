@@ -1,0 +1,57 @@
+import { BuyVsRentChart } from '@/ts/buyvsrent'
+
+# Buy vs Rent Calculator
+
+<BuyVsRentChart />
+
+## Formulae
+
+Renting:
+
+$$
+C_{t+1}=(C_t + I - R)\cdot(1+r_{mn})
+$$
+
+$$
+r_{mn}=(1+r_{yr})^{\frac{1}{12}}-1
+$$
+
+Buying:
+
+$$
+M_0=H-D
+$$
+
+$$
+X_0=C_0-D-B
+$$
+
+$$
+N=12Y
+$$
+
+$$
+P=\frac{M_0\cdot m_{mn}(1+m_{mn})^N}{(1+m_{mn})^N-1}
+$$
+
+If $m_{mn}=0$, then $P=\frac{M_0}{N}$.
+
+$$
+M_{t+1}=M_t\cdot(1+m_{mn})-P_t
+$$
+
+$$
+X_{t+1}=(X_t+I-P_t)\cdot(1+r_{mn})
+$$
+
+Here $P_t=P$ for most mortgage months, the final payment clears remaining balance, and $P_t=0$ after payoff.
+
+$$
+NW_t=H-M_t+X_t
+$$
+
+$$
+m_{mn}=(1+m_{yr})^{\frac{1}{12}}-1
+$$
+
+Legend: $C$ cash, $C_0$ starting cash, $I$ monthly income, $R$ monthly rent, $D$ deposit, $B$ one-time buying cost, $H$ home value, $M$ mortgage balance, $X$ invested cash, $Y$ mortgage term in years, $N$ mortgage term in months, $P$ scheduled monthly mortgage payment, $P_t$ actual payment in month $t$.

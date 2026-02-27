@@ -4,14 +4,13 @@ export type AgentStats = {
     radius: number;
     maxHp: number;
     attackDamage: number;
-    idleSpeed: number;
-    fightSpeed: number;
+    speed: number;
     turnRate: number;
     fleeHpThreshold: number;
 };
 
 export type AgentState = 'idle' | 'fight' | 'heal' | 'flee';
-export type AgentKind = 'fighter' | 'tank';
+export type AgentKind = 'fighter' | 'tank' | 'ranger';
 
 export type Health = {
     hp: number;
@@ -26,15 +25,16 @@ export type Combat = {
     attackCooldown: number;
     attackRange: number;
     cooldownRemaining: number;
+    targetId: number | null;
 };
 
 export type Steering = {
     heading: number;
     targetHeading: number;
     directionTimer: number;
-    idleSpeed: number;
-    fightSpeed: number;
+    speed: number;
     turnRate: number;
+    holdRange: boolean;
 };
 
 export type Agent = {
@@ -43,6 +43,7 @@ export type Agent = {
     y: number;
     radius: number;
     kind: AgentKind;
+    color: HslColor;
     state: AgentState;
     behavior: AgentBehavior;
     health: Health;
@@ -75,7 +76,8 @@ export type Perception = {
 export type AgentBehavior = {
     decideState: (agent: Agent, perception: Perception) => AgentState;
     chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
+    pickTarget: (agent: Agent, perception: Perception) => Agent | null;
     getSpeed: (agent: Agent) => number;
-    act: (agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) => void;
+    act: (agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) => void;
     getColor: (agent: Agent) => HslColor;
 };

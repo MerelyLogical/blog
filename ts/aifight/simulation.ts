@@ -3,18 +3,25 @@ import type { RefObject } from 'react';
 import {
     ATTACK_ANGLE,
     ATTACK_COOLDOWN,
-    ATTACK_RANGE,
+    MELEE_ATTACK_RANGE,
+    RANGER_ATTACK_RANGE,
     FIGHTER_COLOR,
+    AGENT_HUE_VARIANCE,
+    AGENT_LIGHTNESS_RANGE,
+    AGENT_SATURATION_RANGE,
     FIGHT_RANGE,
     FLEE_RANGE,
     FLASH_DURATION,
     FIGHTER_STATS,
     HEAL_RATE,
     HEIGHT,
-    NUM_AGENTS,
-    NUM_TANKS,
+    NUM_FIGHTERS,
+    NUM_RANGERS,
+    NUM_TANK,
     PARTICLE_COUNT,
     PARTICLE_LIFESPAN,
+    RANGER_COLOR,
+    RANGER_STATS,
     TANK_COLOR,
     TANK_STATS,
     WIDTH,
@@ -25,19 +32,35 @@ import type { Agent, AgentBehavior, AgentState, HslColor, Particle, Perception }
 const randRange = (min: number, max: number) => Math.random() * (max - min) + min;
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+const SIM_STEP = 1 / 60;
+const AI_STEP = 1 / 10;
+const RENDER_STEP = 1 / 60;
+const MAX_FRAME_TIME = 0.25;
+
 const FIGHTER_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
     chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetFighter(agent, perception),
     getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actFighter(agent, perception, dt, particlesRef),
+    act: (agent, target, dt, particlesRef) => actFighter(agent, target, dt, particlesRef),
+    getColor: (agent) => getColor(agent),
+};
+
+const RANGER_BEHAVIOR: AgentBehavior = {
+    decideState: (agent, perception) => decideState(agent, perception),
+    chooseHeading: (agent, perception, dt) => chooseHeadingFighter(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetRanger(agent, perception),
+    getSpeed: (agent) => getSpeed(agent),
+    act: (agent, target, dt, particlesRef) => actFighter(agent, target, dt, particlesRef),
     getColor: (agent) => getColor(agent),
 };
 
 const TANK_BEHAVIOR: AgentBehavior = {
     decideState: (agent, perception) => decideState(agent, perception),
     chooseHeading: (agent, perception, dt) => chooseHeadingTank(agent, perception, dt),
+    pickTarget: (agent, perception) => pickTargetTank(agent, perception),
     getSpeed: (agent) => getSpeed(agent),
-    act: (agent, perception, dt, particlesRef) => actTank(agent, perception, dt, particlesRef),
+    act: (agent, target, dt, particlesRef) => actTank(agent, target, dt, particlesRef),
     getColor: (agent) => getColor(agent),
 };
 
@@ -46,21 +69,39 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     if (!context) return () => {};
     const ctx = context;
 
-    let agents = createAgents(NUM_AGENTS);
+    let agents = createAgents();
     resolveCollisions(agents);
 
     let lastTimestamp = performance.now();
-    // TODO: decouple simulation tick from render (fixed timestep + optional FPS cap/stats) to reduce overdraw on fast devices.
+    let simAccumulator = 0;
+    let aiAccumulator = AI_STEP;
+    let renderAccumulator = RENDER_STEP;
     let rafId = requestAnimationFrame(step);
 
     function step(timestamp: number) {
-        const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
+        const frameTime = Math.min((timestamp - lastTimestamp) / 1000, MAX_FRAME_TIME);
         lastTimestamp = timestamp;
 
-        agents = updateAgents(agents, dt, particlesRef);
-        updateParticles(dt, particlesRef);
-        resolveCollisions(agents);
-        drawScene(ctx, agents, particlesRef.current);
+        simAccumulator += frameTime;
+        aiAccumulator += frameTime;
+        renderAccumulator += frameTime;
+
+        while (aiAccumulator >= AI_STEP) {
+            updateAgentBrains(agents, AI_STEP);
+            aiAccumulator -= AI_STEP;
+        }
+
+        while (simAccumulator >= SIM_STEP) {
+            agents = updateAgents(agents, SIM_STEP, particlesRef);
+            updateParticles(SIM_STEP, particlesRef);
+            resolveCollisions(agents);
+            simAccumulator -= SIM_STEP;
+        }
+
+        if (renderAccumulator >= RENDER_STEP) {
+            drawScene(ctx, agents, particlesRef.current);
+            renderAccumulator %= RENDER_STEP;
+        }
 
         rafId = requestAnimationFrame(step);
     }
@@ -68,28 +109,45 @@ export function runSimulation(canvas: HTMLCanvasElement, particlesRef: RefObject
     return () => cancelAnimationFrame(rafId);
 }
 
-function createAgents(count: number): Agent[] {
-    return Array.from({ length: count }, (_, id) => createAgent(id, id < NUM_TANKS));
+function createAgents(): Agent[] {
+    const agents: Agent[] = [];
+    let id = 0;
+    for (let i = 0; i < NUM_TANK; i += 1) {
+        agents.push(createAgent(id, 'tank'));
+        id += 1;
+    }
+    for (let i = 0; i < NUM_FIGHTERS; i += 1) {
+        agents.push(createAgent(id, 'fighter'));
+        id += 1;
+    }
+    for (let i = 0; i < NUM_RANGERS; i += 1) {
+        agents.push(createAgent(id, 'ranger'));
+        id += 1;
+    }
+    return agents;
 }
 
-function createAgent(id: number, isTank: boolean): Agent {
-    const stats = isTank ? TANK_STATS : FIGHTER_STATS;
-    const kind = isTank ? 'tank' : 'fighter';
+function createAgent(id: number, kind: Agent['kind']): Agent {
+    const stats = kind === 'tank' ? TANK_STATS : kind === 'ranger' ? RANGER_STATS : FIGHTER_STATS;
+    const baseColor = kind === 'tank' ? TANK_COLOR : kind === 'ranger' ? RANGER_COLOR : FIGHTER_COLOR;
+    const attackRange = kind === 'ranger' ? RANGER_ATTACK_RANGE : MELEE_ATTACK_RANGE;
+    const hue = (baseColor.h + randRange(AGENT_HUE_VARIANCE.min, AGENT_HUE_VARIANCE.max) + 360) % 360;
     return {
         id,
         x: randRange(WORLD_PADDING, WIDTH - WORLD_PADDING),
         y: randRange(WORLD_PADDING, HEIGHT - WORLD_PADDING),
         radius: stats.radius,
         kind,
+        color: {
+            h: hue,
+            s: randRange(AGENT_SATURATION_RANGE.min, AGENT_SATURATION_RANGE.max),
+            l: randRange(AGENT_LIGHTNESS_RANGE.min, AGENT_LIGHTNESS_RANGE.max),
+        },
         state: 'idle',
-        behavior: kind === 'tank' ? TANK_BEHAVIOR : FIGHTER_BEHAVIOR,
+        behavior: kind === 'tank' ? TANK_BEHAVIOR : kind === 'ranger' ? RANGER_BEHAVIOR : FIGHTER_BEHAVIOR,
         health: createHealth(stats.maxHp),
-        combat: createCombat(stats.attackDamage),
-        steering: createSteering(
-            stats.turnRate,
-            stats.idleSpeed,
-            stats.fightSpeed
-        ),
+        combat: createCombat(stats.attackDamage, attackRange),
+        steering: createSteering(stats.turnRate, stats.speed),
         fleeHpThreshold: stats.fleeHpThreshold,
     };
 }
@@ -104,44 +162,71 @@ function createHealth(maxHp: number) {
     };
 }
 
-function createCombat(attackDamage: number) {
+function createCombat(attackDamage: number, attackRange: number) {
     return {
         attackDamage,
         attackCooldown: ATTACK_COOLDOWN,
-        attackRange: ATTACK_RANGE,
+        attackRange,
         cooldownRemaining: 0,
+        targetId: null,
     };
 }
 
-function createSteering(turnRate: number, idleSpeed: number, fightSpeed: number) {
+function createSteering(turnRate: number, speed: number) {
     const heading = randRange(0, Math.PI * 2);
     return {
         heading,
         targetHeading: heading,
         directionTimer: randRange(0.5, 2),
-        idleSpeed,
-        fightSpeed,
+        speed,
         turnRate,
+        holdRange: false,
     };
 }
 
-function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Particle[]>) {
-    const preMovePerceptions = senseAgents(agents);
+function updateAgentBrains(agents: Agent[], dt: number) {
+    const perceptions = senseAgents(agents);
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        agent.state = agent.behavior.decideState(agent, preMovePerceptions[i]);
+        const perception = perceptions[i];
+        agent.state = agent.behavior.decideState(agent, perception);
+        agent.steering.targetHeading = agent.behavior.chooseHeading(agent, perception, dt);
+        const target = agent.behavior.pickTarget(agent, perception);
+        agent.combat.targetId = target ? target.id : null;
+        if (agent.kind === 'ranger' && agent.state === 'fight' && target) {
+            const distance = Math.hypot(target.x - agent.x, target.y - agent.y);
+            const holdDistance = agent.combat.attackRange * 0.7;
+            const chaseDistance = agent.combat.attackRange * 0.9;
+            if (distance <= holdDistance) {
+                agent.steering.holdRange = true;
+            } else if (distance >= chaseDistance) {
+                agent.steering.holdRange = false;
+            }
+        } else {
+            agent.steering.holdRange = false;
+        }
+    }
+}
+
+function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Particle[]>) {
+    const targetsById = new Map<number, Agent>();
+    for (const agent of agents) {
+        if (agent.health.hp > 0) targetsById.set(agent.id, agent);
     }
 
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        const targetHeading = agent.behavior.chooseHeading(agent, preMovePerceptions[i], dt);
         const speed = agent.behavior.getSpeed(agent);
-        const heading = turnTowards(agent.steering.heading, targetHeading, agent.steering.turnRate * dt);
+        const heading = turnTowards(
+            agent.steering.heading,
+            agent.steering.targetHeading,
+            agent.steering.turnRate * dt
+        );
 
         // TODO: track velocity/acceleration to support impulses (e.g., knockback) instead of direct position nudges.
-        // TODO: add projectiles and a ranged class (needs projectile simulation and collision).
+        // TODO: add projectiles for ranged attacks (needs projectile simulation and collision).
         agent.x += Math.cos(heading) * speed * dt;
         agent.y += Math.sin(heading) * speed * dt;
 
@@ -152,18 +237,19 @@ function updateAgents(agents: Agent[], dt: number, particlesRef: RefObject<Parti
         agent.x = clamp(agent.x, agent.radius, WIDTH - agent.radius);
         agent.y = clamp(agent.y, agent.radius, HEIGHT - agent.radius);
         agent.steering.heading = nextHeading;
-        agent.steering.targetHeading = targetHeading;
 
         if (agent.health.flashTimer > 0) {
             agent.health.flashTimer = Math.max(0, agent.health.flashTimer - dt);
         }
     }
 
-    const postMovePerceptions = senseAgents(agents);
     for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
         if (agent.health.hp <= 0) continue;
-        agent.behavior.act(agent, postMovePerceptions[i], dt, particlesRef);
+        const targetId = agent.combat.targetId;
+        let target = targetId === null ? null : targetsById.get(targetId) ?? null;
+        if (target && target.health.hp <= 0) target = null;
+        agent.behavior.act(agent, target, dt, particlesRef);
     }
 
     return agents.filter((agent) => agent.health.hp > 0);
@@ -366,14 +452,13 @@ function chooseHeadingTank(agent: Agent, perception: Perception, dt: number) {
     return heading;
 }
 
-function actFighter(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
-    const target = selectFightTarget(agent, perception);
+function actFighter(agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) {
     actCombat(agent, target, dt, particlesRef);
     actHeal(agent, dt);
 }
 
-function actTank(agent: Agent, perception: Perception, dt: number, particlesRef: RefObject<Particle[]>) {
-    actCombat(agent, perception.nearest, dt, particlesRef);
+function actTank(agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) {
+    actCombat(agent, target, dt, particlesRef);
     actHeal(agent, dt);
 }
 
@@ -408,24 +493,39 @@ function actHeal(agent: Agent, dt: number) {
 }
 
 function getSpeed(agent: Agent) {
-    if (agent.state === 'fight' || agent.state === 'flee') {
-        return agent.steering.fightSpeed;
+    if (agent.state === 'flee') {
+        return agent.steering.speed * 1.2;
     }
     if (agent.state === 'heal') {
         return 0;
     }
-    return agent.steering.idleSpeed;
+    if (agent.kind === 'ranger' && agent.state === 'fight' && agent.steering.holdRange) {
+        return 0;
+    }
+    return agent.steering.speed;
 }
 
 function getColor(agent: Agent) {
-    return agent.kind === 'tank' ? TANK_COLOR : FIGHTER_COLOR;
+    return agent.color;
 }
 
-function selectFightTarget(agent: Agent, perception: Perception) {
-    // TODO: refactor targeting into a proper behavior tree for fighters.
-    if (agent.kind === 'fighter' && perception.countInFightRange > 1 && perception.nearestTankInFightRange) {
-        return perception.nearestTankInFightRange;
-    }
+function pickTargetFighter(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return perception.nearest;
+}
+
+function pickTargetRanger(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return perception.nearest;
+}
+
+function pickTargetTank(agent: Agent, perception: Perception) {
+    if (agent.state !== 'fight') return null;
+    return perception.nearest;
+}
+
+function selectFightTarget(_: Agent, perception: Perception) {
+    // TODO: refactor targeting into a proper behavior tree.
     return perception.nearestInFightRange ?? perception.nearest;
 }
 
