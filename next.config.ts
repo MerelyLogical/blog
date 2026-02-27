@@ -4,7 +4,10 @@ import nextra from 'nextra'
 // Set up Nextra with its configuration
 const withNextra = nextra({
     search: true,
-    defaultShowCopyCode: true
+    defaultShowCopyCode: true,
+    latex: {
+        renderer: 'mathjax'
+    }
 })
 
 // Export the final Next.js config with Nextra included

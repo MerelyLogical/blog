@@ -29,29 +29,105 @@ function loadChartJs(): Promise<void> {
 
 function simulateRenting(
     months: number,
-    startingCapital: number,
+    startingCash: number,
     monthlyIncome: number,
     monthlyRent: number,
     yearlyReturnRatePercent: number
 ) {
     const series: number[] = [];
-    let capital = startingCapital;
+    let cash = startingCash;
     const monthlyReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
 
     for (let month = 0; month < months; month++) {
-        series.push(Number(capital.toFixed(2)));
-        const investedAfterCashflow = Math.max(0, capital + monthlyIncome - monthlyRent);
-        capital = investedAfterCashflow * (1 + monthlyReturn);
+        series.push(Number(cash.toFixed(2)));
+        const cashAfterCashflow = cash + monthlyIncome - monthlyRent;
+        cash = cashAfterCashflow * (1 + monthlyReturn);
     }
 
     return {
         series,
-        endingCapital: Number(capital.toFixed(2)),
+        endingCash: Number(cash.toFixed(2)),
+    };
+}
+
+function simulateBuying(
+    months: number,
+    startingCash: number,
+    monthlyIncome: number,
+    homePrice: number,
+    deposit: number,
+    mortgageRatePercent: number,
+    mortgageYears: number,
+    yearlyReturnRatePercent: number
+) {
+    const totalSeries: number[] = [];
+    const cashSeries: number[] = [];
+    const houseSeries: number[] = [];
+    const effectiveHomePrice = Math.max(0, homePrice);
+    const effectiveDeposit = Math.min(startingCash, Math.max(0, deposit), effectiveHomePrice);
+    const homeValue = effectiveHomePrice;
+    const initialMortgage = homeValue - effectiveDeposit;
+    const monthlyInvestmentReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
+    const monthlyMortgageRate = getMonthlyReturnRate(mortgageRatePercent);
+    const totalMortgageMonths = Math.floor(mortgageYears * 12);
+    const monthlyMortgagePayment = getMonthlyMortgagePayment(
+        initialMortgage,
+        monthlyMortgageRate,
+        totalMortgageMonths
+    );
+
+    let investedCash = startingCash - effectiveDeposit;
+    let mortgageBalance = initialMortgage;
+
+    for (let month = 0; month < months; month++) {
+        const houseEquity = homeValue - mortgageBalance;
+        const netWorth = houseEquity + investedCash;
+        totalSeries.push(Number(netWorth.toFixed(2)));
+        cashSeries.push(Number(investedCash.toFixed(2)));
+        houseSeries.push(Number(houseEquity.toFixed(2)));
+
+        let mortgagePayment = 0;
+        if (mortgageBalance > 0) {
+            const mortgageInterest = mortgageBalance * monthlyMortgageRate;
+            const mortgageDue = mortgageBalance + mortgageInterest;
+            if (month < totalMortgageMonths - 1) {
+                mortgagePayment = monthlyMortgagePayment;
+            } else if (month === totalMortgageMonths - 1) {
+                // Final scheduled month pays remaining balance to avoid drift.
+                mortgagePayment = mortgageDue;
+            }
+            mortgageBalance = mortgageDue - mortgagePayment;
+        }
+
+        const investedAfterCashflow = investedCash + monthlyIncome - mortgagePayment;
+        investedCash = investedAfterCashflow * (1 + monthlyInvestmentReturn);
+    }
+
+    const endingNetWorth = homeValue - mortgageBalance + investedCash;
+    const endingHouse = homeValue - mortgageBalance;
+    return {
+        totalSeries,
+        cashSeries,
+        houseSeries,
+        endingCash: Number(investedCash.toFixed(2)),
+        endingHouse: Number(endingHouse.toFixed(2)),
+        endingNetWorth: Number(endingNetWorth.toFixed(2)),
     };
 }
 
 function getMonthlyReturnRate(yearlyReturnRatePercent: number) {
     return (1 + yearlyReturnRatePercent / 100) ** (1 / 12) - 1;
+}
+
+function getMonthlyMortgagePayment(principal: number, monthlyRate: number, totalMonths: number) {
+    if (totalMonths <= 0 || principal <= 0) {
+        return 0;
+    }
+    if (monthlyRate === 0) {
+        return principal / totalMonths;
+    }
+    const growth = (1 + monthlyRate) ** totalMonths;
+    return principal * (monthlyRate * growth) / (growth - 1);
 }
 
 function clampNumber(value: string, min: number, max: number) {
@@ -74,18 +150,18 @@ function createMonthLabels(months: number) {
     const axisLabels: string[] = [];
     const fullLabels: string[] = [];
     const monthNames = [
-        'January',
-        'February',
-        'March',
-        'April',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
         'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
     ];
     const now = new Date();
     const startMonth = now.getMonth();
@@ -95,13 +171,14 @@ function createMonthLabels(months: number) {
         const pointDate = new Date(startYear, startMonth + i, 1);
         const month = pointDate.getMonth();
         const year = pointDate.getFullYear();
-        const fullLabel = `${monthNames[month]} ${year}`;
+        const shortYear = String(year).slice(-2);
+        const fullLabel = `${monthNames[month]} ${shortYear}`;
         fullLabels.push(fullLabel);
 
         if (month === 0) {
-            axisLabels.push(`January ${year}`);
+            axisLabels.push(`Jan ${shortYear}`);
         } else if (month === 6) {
-            axisLabels.push(`July ${year}`);
+            axisLabels.push(`Jul ${shortYear}`);
         } else {
             axisLabels.push('');
         }
@@ -114,36 +191,55 @@ export function BuyVsRentChart() {
     const chartRef = useRef<any>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [yearsShown, setYearsShown] = useState(5);
-    const [startingCapital, setStartingCapital] = useState(100000);
+    const [startingCash, setStartingCash] = useState(100000);
     const [monthlyIncome, setMonthlyIncome] = useState(3000);
     const [monthlyRent, setMonthlyRent] = useState(1500);
     const [yearlyInvestmentReturnRate, setYearlyInvestmentReturnRate] = useState(5);
+    const [homePrice, setHomePrice] = useState(250000);
+    const [deposit, setDeposit] = useState(50000);
+    const [mortgageRate, setMortgageRate] = useState(4);
+    const [mortgageYears, setMortgageYears] = useState(25);
 
     const months = yearsShown * 12;
     const { axisLabels, fullLabels } = useMemo(() => createMonthLabels(months), [months]);
     const rentingResult = useMemo(
         () => simulateRenting(
             months,
-            startingCapital,
+            startingCash,
             monthlyIncome,
             monthlyRent,
             yearlyInvestmentReturnRate
         ),
-        [months, startingCapital, monthlyIncome, monthlyRent, yearlyInvestmentReturnRate]
+        [months, startingCash, monthlyIncome, monthlyRent, yearlyInvestmentReturnRate]
     );
-    const monthlyReturnRate = useMemo(
-        () => getMonthlyReturnRate(yearlyInvestmentReturnRate),
-        [yearlyInvestmentReturnRate]
+    const buyingResult = useMemo(
+        () => simulateBuying(
+            months,
+            startingCash,
+            monthlyIncome,
+            homePrice,
+            deposit,
+            mortgageRate,
+            mortgageYears,
+            yearlyInvestmentReturnRate
+        ),
+        [months, startingCash, monthlyIncome, homePrice, deposit, mortgageRate, mortgageYears, yearlyInvestmentReturnRate]
     );
     const rentingSeries = rentingResult.series;
-    const finalValue = rentingResult.endingCapital;
+    const buyingTotalSeries = buyingResult.totalSeries;
+    const buyingCashSeries = buyingResult.cashSeries;
+    const buyingHouseSeries = buyingResult.houseSeries;
+    const finalRentingValue = rentingResult.endingCash;
+    const finalBuyingCash = buyingResult.endingCash;
+    const finalBuyingHouse = buyingResult.endingHouse;
+    const finalBuyingValue = buyingResult.endingNetWorth;
 
     function handleYearsShownChange(event: ChangeEvent<HTMLInputElement>) {
         setYearsShown(clampInteger(event.target.value, 1, 100));
     }
 
-    function handleStartingCapitalChange(event: ChangeEvent<HTMLInputElement>) {
-        setStartingCapital(clampNumber(event.target.value, 0, 1_000_000_000));
+    function handleStartingCashChange(event: ChangeEvent<HTMLInputElement>) {
+        setStartingCash(clampNumber(event.target.value, 0, 1_000_000_000));
     }
 
     function handleMonthlyIncomeChange(event: ChangeEvent<HTMLInputElement>) {
@@ -156,6 +252,29 @@ export function BuyVsRentChart() {
 
     function handleYearlyInvestmentReturnRateChange(event: ChangeEvent<HTMLInputElement>) {
         setYearlyInvestmentReturnRate(clampNumber(event.target.value, -100, 100));
+    }
+
+    function handleDepositChange(event: ChangeEvent<HTMLInputElement>) {
+        setDeposit(clampNumber(event.target.value, 0, 1_000_000_000));
+    }
+
+    function handleHomePriceChange(event: ChangeEvent<HTMLInputElement>) {
+        setHomePrice(clampNumber(event.target.value, 0, 1_000_000_000));
+    }
+
+    function handleMortgageRateChange(event: ChangeEvent<HTMLInputElement>) {
+        setMortgageRate(clampNumber(event.target.value, -100, 100));
+    }
+
+    function handleMortgageYearsChange(event: ChangeEvent<HTMLInputElement>) {
+        setMortgageYears(clampInteger(event.target.value, 1, 100));
+    }
+
+    function formatValue(value: number) {
+        return value.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
     }
 
     useEffect(() => {
@@ -179,9 +298,39 @@ export function BuyVsRentChart() {
                             labels: [],
                             datasets: [
                                 {
-                                    label: 'Renting Capital',
+                                    label: 'Renting Cash',
                                     data: [],
-                                    borderColor: 'red',
+                                    borderColor: '#ef4444',
+                                    pointRadius: 0,
+                                    pointHoverRadius: 4,
+                                    pointHitRadius: 12,
+                                    fill: false,
+                                },
+                                {
+                                    label: 'Buying Cash',
+                                    data: [],
+                                    borderColor: '#93c5fd',
+                                    pointRadius: 0,
+                                    pointHoverRadius: 4,
+                                    pointHitRadius: 12,
+                                    borderDash: [6, 3],
+                                    fill: false,
+                                },
+                                {
+                                    label: 'Buying House Equity',
+                                    data: [],
+                                    borderColor: '#3b82f6',
+                                    pointRadius: 0,
+                                    pointHoverRadius: 4,
+                                    pointHitRadius: 12,
+                                    borderDash: [2, 2],
+                                    fill: false,
+                                },
+                                {
+                                    label: 'Buying Total',
+                                    data: [],
+                                    borderColor: '#1e3a8a',
+                                    borderWidth: 2.5,
                                     pointRadius: 0,
                                     pointHoverRadius: 4,
                                     pointHitRadius: 12,
@@ -225,10 +374,17 @@ export function BuyVsRentChart() {
                         }
                         return fullLabels[index] ?? '';
                     },
-                    label: (item: any) => `${Number(item.yLabel).toFixed(2)}`,
+                    label: (item: any, data: any) => {
+                        const dataset = data?.datasets?.[item?.datasetIndex];
+                        const name = dataset?.label ?? '';
+                        return `${name}: ${Number(item.yLabel).toFixed(2)}`;
+                    },
                 };
                 chartRef.current.data.labels = axisLabels;
                 chartRef.current.data.datasets[0].data = rentingSeries;
+                chartRef.current.data.datasets[1].data = buyingCashSeries;
+                chartRef.current.data.datasets[2].data = buyingHouseSeries;
+                chartRef.current.data.datasets[3].data = buyingTotalSeries;
                 chartRef.current.update(0);
             })
             .catch(() => {
@@ -238,7 +394,7 @@ export function BuyVsRentChart() {
         return () => {
             cancelled = true;
         };
-    }, [axisLabels, fullLabels, rentingSeries]);
+    }, [axisLabels, fullLabels, rentingSeries, buyingCashSeries, buyingHouseSeries, buyingTotalSeries]);
 
     useEffect(() => {
         return () => {
@@ -274,20 +430,20 @@ export function BuyVsRentChart() {
             <form
                 onSubmit={(event) => event.preventDefault()}
                 className="app-form-inline"
-                aria-label="Renting starting capital"
+                aria-label="Renting starting cash"
             >
-                <label htmlFor="starting-capital" className="app-form-label">
-                    Starting capital:
+                <label htmlFor="starting-cash" className="app-form-label">
+                    Starting cash:
                 </label>
                 <input
-                    id="starting-capital"
+                    id="starting-cash"
                     type="number"
                     className="app-input"
-                    value={startingCapital}
+                    value={startingCash}
                     min={0}
                     max={1000000000}
                     step={1000}
-                    onChange={handleStartingCapitalChange}
+                    onChange={handleStartingCashChange}
                 />
             </form>
             <form
@@ -347,19 +503,90 @@ export function BuyVsRentChart() {
                     onChange={handleYearlyInvestmentReturnRateChange}
                 />
             </form>
+            <form
+                onSubmit={(event) => event.preventDefault()}
+                className="app-form-inline"
+                aria-label="Buying home price"
+            >
+                <label htmlFor="home-price" className="app-form-label">
+                    Home price:
+                </label>
+                <input
+                    id="home-price"
+                    type="number"
+                    className="app-input"
+                    value={homePrice}
+                    min={0}
+                    max={1000000000}
+                    step={1000}
+                    onChange={handleHomePriceChange}
+                />
+            </form>
+            <form
+                onSubmit={(event) => event.preventDefault()}
+                className="app-form-inline"
+                aria-label="Buying deposit"
+            >
+                <label htmlFor="deposit" className="app-form-label">
+                    Deposit:
+                </label>
+                <input
+                    id="deposit"
+                    type="number"
+                    className="app-input"
+                    value={deposit}
+                    min={0}
+                    max={1000000000}
+                    step={1000}
+                    onChange={handleDepositChange}
+                />
+            </form>
+            <form
+                onSubmit={(event) => event.preventDefault()}
+                className="app-form-inline"
+                aria-label="Buying mortgage rate"
+            >
+                <label htmlFor="mortgage-rate" className="app-form-label">
+                    Mortgage rate (%):
+                </label>
+                <input
+                    id="mortgage-rate"
+                    type="number"
+                    className="app-input"
+                    value={mortgageRate}
+                    min={-100}
+                    max={100}
+                    step={0.1}
+                    onChange={handleMortgageRateChange}
+                />
+            </form>
+            <form
+                onSubmit={(event) => event.preventDefault()}
+                className="app-form-inline"
+                aria-label="Buying mortgage years"
+            >
+                <label htmlFor="mortgage-years" className="app-form-label">
+                    Mortgage term (years):
+                </label>
+                <input
+                    id="mortgage-years"
+                    type="number"
+                    className="app-input"
+                    value={mortgageYears}
+                    min={1}
+                    max={100}
+                    step={1}
+                    onChange={handleMortgageYearsChange}
+                />
+            </form>
             <p>
-                Formula used:
+                Final renting value after {yearsShown} years: <strong>{formatValue(finalRentingValue)}</strong>
                 <br />
-                <code>C[t+1] = max(0, C[t] + income - rent) * (1 + r_monthly)</code>
+                Final buying cash after {yearsShown} years: <strong>{formatValue(finalBuyingCash)}</strong>
                 <br />
-                <code>r_monthly = (1 + r_yearly)^(1/12) - 1</code>
+                Final buying house after {yearsShown} years: <strong>{formatValue(finalBuyingHouse)}</strong>
                 <br />
-                <code>
-                    r_monthly = {monthlyReturnRate.toFixed(6)} using r_yearly = {(yearlyInvestmentReturnRate / 100).toFixed(4)}
-                </code>
-            </p>
-            <p>
-                Final value after {yearsShown} years: <strong>{finalValue.toFixed(2)}</strong>
+                Final buying total after {yearsShown} years: <strong>{formatValue(finalBuyingValue)}</strong>
             </p>
             <canvas
                 ref={canvasRef}
