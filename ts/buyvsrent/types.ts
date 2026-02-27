@@ -1,0 +1,43 @@
+export type BuyVsRentInputs = {
+    yearsShown: number;
+    startingCash: number;
+    monthlyIncome: number;
+    monthlyRent: number;
+    yearlyInvestmentReturnRate: number;
+    homePrice: number;
+    deposit: number;
+    oneTimeBuyingCost: number;
+    mortgageRate: number;
+    mortgageYears: number;
+};
+
+export type NumericFieldConfig = {
+    key: keyof BuyVsRentInputs;
+    id: string;
+    label: string;
+    ariaLabel: string;
+    min: number;
+    max: number | ((inputs: BuyVsRentInputs) => number);
+    step: number;
+    integer?: boolean;
+};
+
+export type RentingSimulationResult = {
+    series: number[];
+    endingCash: number;
+};
+
+export type BuyingSimulationResult = {
+    totalSeries: number[];
+    cashSeries: number[];
+    houseSeries: number[];
+    scheduledMonthlyMortgagePayment: number;
+    endingCash: number;
+    endingHouse: number;
+    endingNetWorth: number;
+};
+
+export type MonthLabels = {
+    axisLabels: string[];
+    fullLabels: string[];
+};
