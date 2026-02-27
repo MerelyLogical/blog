@@ -1,0 +1,4 @@
+:HL["/_next/static/chunks/f3f3e5eb754dc768.css","style"]
+:HL["/images/Flag_HUN_Anjou.png","image"]
+:HL["/images/logo.jpg","image"]
+0:{"buildId":"v4i03m-jD8P0PeSgQ3KrO","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"mdxPath","paramType":"oc","paramKey":"playground/buyvsrent","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
