@@ -56,6 +56,7 @@ function simulateBuying(
     monthlyIncome: number,
     homePrice: number,
     deposit: number,
+    oneTimeBuyingCost: number,
     mortgageRatePercent: number,
     mortgageYears: number,
     yearlyReturnRatePercent: number
@@ -65,6 +66,7 @@ function simulateBuying(
     const houseSeries: number[] = [];
     const effectiveHomePrice = Math.max(0, homePrice);
     const effectiveDeposit = Math.min(startingCash, Math.max(0, deposit), effectiveHomePrice);
+    const effectiveBuyingCost = Math.max(0, oneTimeBuyingCost);
     const homeValue = effectiveHomePrice;
     const initialMortgage = homeValue - effectiveDeposit;
     const monthlyInvestmentReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
@@ -76,7 +78,7 @@ function simulateBuying(
         totalMortgageMonths
     );
 
-    let investedCash = startingCash - effectiveDeposit;
+    let investedCash = startingCash - effectiveDeposit - effectiveBuyingCost;
     let mortgageBalance = initialMortgage;
 
     for (let month = 0; month < months; month++) {
@@ -109,6 +111,7 @@ function simulateBuying(
         totalSeries,
         cashSeries,
         houseSeries,
+        scheduledMonthlyMortgagePayment: Number(monthlyMortgagePayment.toFixed(2)),
         endingCash: Number(investedCash.toFixed(2)),
         endingHouse: Number(endingHouse.toFixed(2)),
         endingNetWorth: Number(endingNetWorth.toFixed(2)),
@@ -149,20 +152,7 @@ function clampInteger(value: string, min: number, max: number) {
 function createMonthLabels(months: number) {
     const axisLabels: string[] = [];
     const fullLabels: string[] = [];
-    const monthNames = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-    ];
+    const monthYearFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', year: '2-digit' });
     const now = new Date();
     const startMonth = now.getMonth();
     const startYear = now.getFullYear();
@@ -170,18 +160,9 @@ function createMonthLabels(months: number) {
     for (let i = 0; i < months; i++) {
         const pointDate = new Date(startYear, startMonth + i, 1);
         const month = pointDate.getMonth();
-        const year = pointDate.getFullYear();
-        const shortYear = String(year).slice(-2);
-        const fullLabel = `${monthNames[month]} ${shortYear}`;
+        const fullLabel = monthYearFormatter.format(pointDate).replace(',', '');
         fullLabels.push(fullLabel);
-
-        if (month === 0) {
-            axisLabels.push(`Jan ${shortYear}`);
-        } else if (month === 6) {
-            axisLabels.push(`Jul ${shortYear}`);
-        } else {
-            axisLabels.push('');
-        }
+        axisLabels.push(month === 0 || month === 6 ? fullLabel : '');
     }
 
     return { axisLabels, fullLabels };
@@ -197,6 +178,7 @@ export function BuyVsRentChart() {
     const [yearlyInvestmentReturnRate, setYearlyInvestmentReturnRate] = useState(5);
     const [homePrice, setHomePrice] = useState(250000);
     const [deposit, setDeposit] = useState(50000);
+    const [oneTimeBuyingCost, setOneTimeBuyingCost] = useState(5000);
     const [mortgageRate, setMortgageRate] = useState(4);
     const [mortgageYears, setMortgageYears] = useState(25);
 
@@ -219,11 +201,12 @@ export function BuyVsRentChart() {
             monthlyIncome,
             homePrice,
             deposit,
+            oneTimeBuyingCost,
             mortgageRate,
             mortgageYears,
             yearlyInvestmentReturnRate
         ),
-        [months, startingCash, monthlyIncome, homePrice, deposit, mortgageRate, mortgageYears, yearlyInvestmentReturnRate]
+        [months, startingCash, monthlyIncome, homePrice, deposit, oneTimeBuyingCost, mortgageRate, mortgageYears, yearlyInvestmentReturnRate]
     );
     const rentingSeries = rentingResult.series;
     const buyingTotalSeries = buyingResult.totalSeries;
@@ -233,13 +216,16 @@ export function BuyVsRentChart() {
     const finalBuyingCash = buyingResult.endingCash;
     const finalBuyingHouse = buyingResult.endingHouse;
     const finalBuyingValue = buyingResult.endingNetWorth;
+    const monthlyMortgageRepayment = buyingResult.scheduledMonthlyMortgagePayment;
 
     function handleYearsShownChange(event: ChangeEvent<HTMLInputElement>) {
         setYearsShown(clampInteger(event.target.value, 1, 100));
     }
 
     function handleStartingCashChange(event: ChangeEvent<HTMLInputElement>) {
-        setStartingCash(clampNumber(event.target.value, 0, 1_000_000_000));
+        const nextStartingCash = clampNumber(event.target.value, 0, 1_000_000_000);
+        setStartingCash(nextStartingCash);
+        setDeposit((currentDeposit) => Math.min(currentDeposit, nextStartingCash));
     }
 
     function handleMonthlyIncomeChange(event: ChangeEvent<HTMLInputElement>) {
@@ -255,7 +241,11 @@ export function BuyVsRentChart() {
     }
 
     function handleDepositChange(event: ChangeEvent<HTMLInputElement>) {
-        setDeposit(clampNumber(event.target.value, 0, 1_000_000_000));
+        setDeposit(clampNumber(event.target.value, 0, startingCash));
+    }
+
+    function handleOneTimeBuyingCostChange(event: ChangeEvent<HTMLInputElement>) {
+        setOneTimeBuyingCost(clampNumber(event.target.value, 0, 1_000_000_000));
     }
 
     function handleHomePriceChange(event: ChangeEvent<HTMLInputElement>) {
@@ -536,7 +526,7 @@ export function BuyVsRentChart() {
                     className="app-input"
                     value={deposit}
                     min={0}
-                    max={1000000000}
+                    max={startingCash}
                     step={1000}
                     onChange={handleDepositChange}
                 />
@@ -563,6 +553,25 @@ export function BuyVsRentChart() {
             <form
                 onSubmit={(event) => event.preventDefault()}
                 className="app-form-inline"
+                aria-label="Buying one-time cost"
+            >
+                <label htmlFor="one-time-buying-cost" className="app-form-label">
+                    One-time buying cost:
+                </label>
+                <input
+                    id="one-time-buying-cost"
+                    type="number"
+                    className="app-input"
+                    value={oneTimeBuyingCost}
+                    min={0}
+                    max={1000000000}
+                    step={100}
+                    onChange={handleOneTimeBuyingCostChange}
+                />
+            </form>
+            <form
+                onSubmit={(event) => event.preventDefault()}
+                className="app-form-inline"
                 aria-label="Buying mortgage years"
             >
                 <label htmlFor="mortgage-years" className="app-form-label">
@@ -579,6 +588,9 @@ export function BuyVsRentChart() {
                     onChange={handleMortgageYearsChange}
                 />
             </form>
+            <p>
+                Calculated monthly mortgage repayment: <strong>{formatValue(monthlyMortgageRepayment)}</strong>
+            </p>
             <p>
                 Final renting value after {yearsShown} years: <strong>{formatValue(finalRentingValue)}</strong>
                 <br />
