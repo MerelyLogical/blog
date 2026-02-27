@@ -54,6 +54,7 @@ export default {
       "aifight":   { title: "AI Arena" },
       "marketsim": { title: "Stock Market Simulator" },
       "moment":    { title: "A Moment of Time" },
+      "buyvsrent": { title: "Buy vs Rent Calculator"},
       "picalc":    { title: "π Calculator" },
       "ecalc":     { title: "e Calculator" },
       "pinyin":    { title: "Pinyin Chart" },
