@@ -1,4 +1,4 @@
-export const lastUpdated = '01 Nov 2025'
+export const lastUpdated = '06 Mar 2026'
 
 import { Callout } from 'nextra/components';
 
@@ -120,5 +120,21 @@ for an entire year.
 `size-only` just means when we sync, we don't unnecessarily check if the image has been modified.
 As long as the server's version has the same name and size, we skip uploading it from the NAS.
 
-<TimeStamp date={lastUpdated} />
 
+## Set up Plex
+
+```bash
+curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo gpg --dearmor -o /usr/share/keyrings/plex-archive-keyring.gpg
+echo deb [signed-by=/usr/share/keyrings/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+sudo apt install plexmediaserver
+sudo ufw allow 32400/tcp
+```
+
+check if it is running:
+```bash
+sudo systemctl status plexmediaserver
+```
+
+Everything is done in the webUI, easy easy!
+
+<TimeStamp date={lastUpdated} />
