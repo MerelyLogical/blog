@@ -203,7 +203,6 @@ export function BuyVsRentChart() {
 
     return (
         <div className="buyvsrent-panel">
-            <p>Renting model: income minus rent is added to investments each month.</p>
             <div className="buyvsrent-grid-wrap">
                 <h4 className="buyvsrent-section-title">Core Inputs</h4>
                 <div className="buyvsrent-form-grid">
@@ -226,13 +225,13 @@ export function BuyVsRentChart() {
                 Calculated monthly mortgage repayment: <strong>{formatValue(monthlyMortgageRepayment)}</strong>
             </p>
             <p className="buyvsrent-metric">
-                Final renting value after {inputs.yearsShown} years: <strong>{formatValue(rentingResult.endingCash)}</strong>
+                Renting value after {inputs.yearsShown} years: <strong>{formatValue(rentingResult.endingCash)}</strong>
                 <br />
-                Final buying cash after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingCash)}</strong>
+                Buying cash after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingCash)}</strong>
                 <br />
-                Final buying house after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingHouse)}</strong>
+                Buying equity after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingHouse)}</strong>
                 <br />
-                Final buying total after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingNetWorth)}</strong>
+                Buying total after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingNetWorth)}</strong>
             </p>
             <canvas
                 ref={canvasRef}

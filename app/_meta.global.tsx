@@ -51,13 +51,18 @@ export default {
       "hex2":      { title: "Hexagonal Grid Pathfinding" },
       "mapgen":    { title: "Random Map Pathfinding" },
       "physics":   { title: "Physics Engine" },
-      "aifight":   { title: "AI Arena" },
+
       "marketsim": { title: "Stock Market Simulator" },
       "moment":    { title: "A Moment of Time" },
-      "buyvsrent": { title: "Buy vs Rent Calculator"},
       "picalc":    { title: "π Calculator" },
       "ecalc":     { title: "e Calculator" },
       "pinyin":    { title: "Pinyin Chart" },
+      '---': {
+    type: "separator",
+      },
+      "aifight":   { title: "AI Arena" },
+      "buyvsrent": { title: "Buy vs Rent Calculator"},
+
     }
   },
   "not-found": {

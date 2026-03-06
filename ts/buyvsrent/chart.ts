@@ -73,7 +73,7 @@ export function createChartDatasets() {
             fill: false,
         },
         {
-            label: 'Buying House Equity',
+            label: 'Buying Equity',
             data: [],
             borderColor: '#3b82f6',
             pointRadius: 0,
