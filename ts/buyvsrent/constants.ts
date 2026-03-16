@@ -1,4 +1,4 @@
-import type { BuyVsRentInputs, NumericFieldConfig } from './types';
+import type { BuyVsRentInputs, NumericFieldConfig } from './types.ts';
 
 export const MAX_MONEY = 1_000_000_000;
 export const MIN_RATE = -100;

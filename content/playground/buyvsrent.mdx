@@ -1,4 +1,5 @@
 import { BuyVsRentChart } from '@/ts/buyvsrent'
+import { BuyVsRentModelSpecView } from '@/ts/buyvsrent/spec-view'
 
 # Buy vs Rent Calculator
 
@@ -6,79 +7,12 @@ import { BuyVsRentChart } from '@/ts/buyvsrent'
 
 <BuyVsRentChart />
 
-## Formulae
+## Model Spec
 
-Renting:
+### Renting Model
 
-$$
-C_{t+1}=(C_t + I - R_t)\cdot(1+r_m)
-$$
+<BuyVsRentModelSpecView model="renting" />
 
-$$
-r_m=(1+r_y)^{\frac{1}{12}}-1
-$$
+### Buying Model
 
-$$
-g_m=(1+g_y)^{\frac{1}{12}}-1
-$$
-
-$$
-R_{t+1}=R_t\cdot(1+g_m)
-$$
-
-Buying:
-
-$$
-H_0=H
-$$
-
-$$
-M_0=H_0-D
-$$
-
-$$
-X_0=C_0-D-B
-$$
-
-$$
-N=12Y
-$$
-
-$$
-P=\frac{M_0\cdot m_m(1+m_m)^N}{(1+m_m)^N-1}
-$$
-
-If $m_m=0$, then $P=\frac{M_0}{N}$.
-
-$$
-M_{t+1}=M_t\cdot(1+m_m)-P_t
-$$
-
-$$
-O_t=
-\frac{o_y}{100}\cdot\frac{H_t}{12}
-$$
-
-$$
-X_{t+1}=(X_t+I-P_t-O_t)\cdot(1+r_m)
-$$
-
-Here $P_t=P$ for most mortgage months, the final payment clears remaining balance, and $P_t=0$ after payoff.
-
-$$
-h_m=(1+h_y)^{\frac{1}{12}}-1
-$$
-
-$$
-H_{t+1}=H_t\cdot(1+h_m)
-$$
-
-$$
-NW_t=H_t-M_t+X_t
-$$
-
-$$
-m_m=(1+m_y)^{\frac{1}{12}}-1
-$$
-
-Legend: $C$ cash, $C_0$ starting cash, $I$ monthly income, $R_t$ monthly rent at month $t$, $g_y$ annual rent increase rate, $D$ deposit, $B$ one-time buying cost, $H_t$ home value at month $t$, $h_y$ annual home appreciation rate, $M$ mortgage balance, $X$ invested cash, $o_y$ annual ownership cost as a percentage of home value, $r_y$ annual investment return rate, $m_y$ annual mortgage rate, $O_t$ ownership cost in month $t$, $Y$ mortgage term in years, $N$ mortgage term in months, $P$ scheduled monthly mortgage payment, $P_t$ actual payment in month $t$.
+<BuyVsRentModelSpecView model="buying" />

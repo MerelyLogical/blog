@@ -1,4 +1,4 @@
-import type { BuyingSimulationResult, RentingSimulationResult } from './types';
+import type { BuyingSimulationResult, RentingSimulationResult } from './types.ts';
 
 export function simulateRenting(
     months: number,
