@@ -44,10 +44,22 @@ function printSeriesCheck(label: string, actual: number[], expected: number[]) {
 }
 
 const months = DEFAULT_INPUTS.yearsShown * 12;
+const comparisonMonths = DEFAULT_INPUTS.yearsToSellHouse * 12;
 const actualRenting = simulateRenting(
     months,
     DEFAULT_INPUTS.startingCash,
     DEFAULT_INPUTS.monthlyIncome,
+    DEFAULT_INPUTS.monthlyExpenses,
+    DEFAULT_INPUTS.monthlyRent,
+    DEFAULT_INPUTS.yearlyRentIncreaseRate,
+    DEFAULT_INPUTS.yearlyInvestmentReturnRate
+);
+
+const actualRentingComparison = simulateRenting(
+    comparisonMonths,
+    DEFAULT_INPUTS.startingCash,
+    DEFAULT_INPUTS.monthlyIncome,
+    DEFAULT_INPUTS.monthlyExpenses,
     DEFAULT_INPUTS.monthlyRent,
     DEFAULT_INPUTS.yearlyRentIncreaseRate,
     DEFAULT_INPUTS.yearlyInvestmentReturnRate
@@ -57,9 +69,29 @@ const actualBuying = simulateBuying(
     months,
     DEFAULT_INPUTS.startingCash,
     DEFAULT_INPUTS.monthlyIncome,
+    DEFAULT_INPUTS.monthlyExpenses,
     DEFAULT_INPUTS.homePrice,
     DEFAULT_INPUTS.deposit,
     DEFAULT_INPUTS.oneTimeBuyingCost,
+    DEFAULT_INPUTS.yearsToSellHouse,
+    DEFAULT_INPUTS.sellingCostRate,
+    DEFAULT_INPUTS.mortgageRate,
+    DEFAULT_INPUTS.mortgageYears,
+    DEFAULT_INPUTS.yearlyHomeAppreciationRate,
+    DEFAULT_INPUTS.annualOwnershipCostRate,
+    DEFAULT_INPUTS.yearlyInvestmentReturnRate
+);
+
+const actualBuyingComparison = simulateBuying(
+    comparisonMonths,
+    DEFAULT_INPUTS.startingCash,
+    DEFAULT_INPUTS.monthlyIncome,
+    DEFAULT_INPUTS.monthlyExpenses,
+    DEFAULT_INPUTS.homePrice,
+    DEFAULT_INPUTS.deposit,
+    DEFAULT_INPUTS.oneTimeBuyingCost,
+    DEFAULT_INPUTS.yearsToSellHouse,
+    DEFAULT_INPUTS.sellingCostRate,
     DEFAULT_INPUTS.mortgageRate,
     DEFAULT_INPUTS.mortgageYears,
     DEFAULT_INPUTS.yearlyHomeAppreciationRate,
@@ -68,6 +100,10 @@ const actualBuying = simulateBuying(
 );
 
 const interpreted = evaluateBuyVsRentSpec(DEFAULT_INPUTS);
+const interpretedComparison = evaluateBuyVsRentSpec({
+    ...DEFAULT_INPUTS,
+    yearsShown: DEFAULT_INPUTS.yearsToSellHouse,
+});
 
 const expectedRentingSeries = (interpreted.renting.series['series.rentingCash'] ?? []).map(round2);
 const expectedBuyingCashSeries = (interpreted.buying.series['series.buyingCash'] ?? []).map(round2);
@@ -77,28 +113,28 @@ const expectedBuyingTotalSeries = (interpreted.buying.series['series.buyingTotal
 const checks: Check[] = [
     {
         label: 'endingCash',
-        actual: actualRenting.endingCash,
-        expected: round2(interpreted.renting.outputs.endingCash),
+        actual: actualRentingComparison.endingCash,
+        expected: round2(interpretedComparison.renting.outputs.endingCash),
     },
     {
         label: 'scheduledMonthlyMortgagePayment',
-        actual: actualBuying.scheduledMonthlyMortgagePayment,
-        expected: round2(interpreted.buying.outputs.scheduledMonthlyMortgagePayment),
+        actual: actualBuyingComparison.scheduledMonthlyMortgagePayment,
+        expected: round2(interpretedComparison.buying.outputs.scheduledMonthlyMortgagePayment),
     },
     {
         label: 'endingCash',
-        actual: actualBuying.endingCash,
-        expected: round2(interpreted.buying.outputs.endingCash),
+        actual: actualBuyingComparison.endingCash,
+        expected: round2(interpretedComparison.buying.outputs.endingCash),
     },
     {
         label: 'endingHouse',
-        actual: actualBuying.endingHouse,
-        expected: round2(interpreted.buying.outputs.endingHouse),
+        actual: actualBuyingComparison.endingHouse,
+        expected: round2(interpretedComparison.buying.outputs.endingHouse),
     },
     {
         label: 'endingNetWorth',
-        actual: actualBuying.endingNetWorth,
-        expected: round2(interpreted.buying.outputs.endingNetWorth),
+        actual: actualBuyingComparison.endingNetWorth,
+        expected: round2(interpretedComparison.buying.outputs.endingNetWorth),
     },
 ];
 

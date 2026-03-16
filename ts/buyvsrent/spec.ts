@@ -70,8 +70,10 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
             name: 'renting',
             inputKeys: [
                 'yearsShown',
+                'yearsToSellHouse',
                 'startingCash',
                 'monthlyIncome',
+                'monthlyExpenses',
                 'monthlyRent',
                 'yearlyRentIncreaseRate',
                 'yearlyInvestmentReturnRate',
@@ -90,7 +92,7 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
                     { key: 'series.rentingCash', expr: 'cash' },
                 ],
                 assign: [
-                    { key: 'cashAfterCashflow', expr: 'cash + monthlyIncome - currentMonthlyRent' },
+                    { key: 'cashAfterCashflow', expr: 'cash + monthlyIncome - monthlyExpenses - currentMonthlyRent' },
                     { key: 'cash', expr: 'cashAfterCashflow * (1 + monthlyInvestmentReturn)' },
                     { key: 'currentMonthlyRent', expr: 'currentMonthlyRent * (1 + monthlyRentIncrease)' },
                 ],
@@ -105,9 +107,11 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
                 'yearsShown',
                 'startingCash',
                 'monthlyIncome',
+                'monthlyExpenses',
                 'homePrice',
                 'deposit',
                 'oneTimeBuyingCost',
+                'sellingCostRate',
                 'mortgageRate',
                 'mortgageYears',
                 'yearlyHomeAppreciationRate',
@@ -118,6 +122,7 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
                 { key: 'effectiveHomePrice', expr: 'max(0, homePrice)' },
                 { key: 'effectiveDeposit', expr: 'min(startingCash, max(0, deposit), effectiveHomePrice)' },
                 { key: 'effectiveBuyingCost', expr: 'max(0, oneTimeBuyingCost)' },
+                { key: 'effectiveSellingCostRate', expr: 'max(0, sellingCostRate)' },
                 { key: 'effectiveAnnualOwnershipCostRate', expr: 'max(0, annualOwnershipCostRate)' },
             ],
             derived: [
@@ -127,6 +132,7 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
                 { key: 'monthlyMortgageRate', expr: 'monthlyRate(mortgageRate)' },
                 { key: 'monthlyHomeAppreciation', expr: 'monthlyRate(yearlyHomeAppreciationRate)' },
                 { key: 'totalMortgageMonths', expr: 'floor(mortgageYears * 12)' },
+                { key: 'sellAfterMonths', expr: 'floor(yearsToSellHouse * 12)' },
                 {
                     key: 'monthlyMortgagePayment',
                     expr: 'mortgagePayment(initialMortgage, monthlyMortgageRate, totalMortgageMonths)',
@@ -161,10 +167,17 @@ export const BUY_VS_RENT_SPEC: BuyVsRentSpec = {
                     },
                     {
                         key: 'investedAfterCashflow',
-                        expr: 'investedCash + monthlyIncome - mortgagePayment - ownershipCost',
+                        expr: 'investedCash + monthlyIncome - monthlyExpenses - mortgagePayment - ownershipCost',
                     },
                     { key: 'investedCash', expr: 'investedAfterCashflow * (1 + monthlyInvestmentReturn)' },
                     { key: 'homeValue', expr: 'homeValue * (1 + monthlyHomeAppreciation)' },
+                    {
+                        key: 'saleProceeds',
+                        expr: 'if(homeValue > 0, if(month == sellAfterMonths - 1, homeValue * (1 - effectiveSellingCostRate / 100) - mortgageBalance, 0), 0)',
+                    },
+                    { key: 'investedCash', expr: 'investedCash + saleProceeds' },
+                    { key: 'mortgageBalance', expr: 'if(saleProceeds > 0, 0, mortgageBalance)' },
+                    { key: 'homeValue', expr: 'if(saleProceeds > 0, 0, homeValue)' },
                 ],
             },
             outputs: [

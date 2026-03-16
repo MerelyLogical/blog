@@ -1,13 +1,16 @@
 export type BuyVsRentInputs = {
     yearsShown: number;
+    yearsToSellHouse: number;
     startingCash: number;
     monthlyIncome: number;
+    monthlyExpenses: number;
     monthlyRent: number;
     yearlyInvestmentReturnRate: number;
     yearlyRentIncreaseRate: number;
     homePrice: number;
     deposit: number;
     oneTimeBuyingCost: number;
+    sellingCostRate: number;
     mortgageRate: number;
     mortgageYears: number;
     yearlyHomeAppreciationRate: number;

@@ -5,7 +5,7 @@ import {
     BUYING_FIELDS,
     CORE_FIELDS,
     DEFAULT_INPUTS,
-    OWNERSHIP_COST_MANUAL_FIELD,
+    OWNERSHIP_COST_RATE_FIELD,
     RENT_FIELDS,
 } from './constants';
 import { createChartDatasets, createMonthLabels, DATASET_INDEX, loadChartJs } from './chart';
@@ -29,36 +29,63 @@ export function BuyVsRentChart() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [inputs, setInputs] = useState<BuyVsRentInputs>(DEFAULT_INPUTS);
 
-    const months = inputs.yearsShown * 12;
-    const { axisLabels, fullLabels } = useMemo(() => createMonthLabels(months), [months]);
+    const chartMonths = inputs.yearsShown * 12;
+    const comparisonMonths = inputs.yearsToSellHouse * 12;
+    const { axisLabels, fullLabels } = useMemo(() => createMonthLabels(chartMonths), [chartMonths]);
 
-    const rentingResult = useMemo(
+    const rentingChartResult = useMemo(
         () => simulateRenting(
-            months,
+            chartMonths,
             inputs.startingCash,
             inputs.monthlyIncome,
+            inputs.monthlyExpenses,
             inputs.monthlyRent,
             inputs.yearlyRentIncreaseRate,
             inputs.yearlyInvestmentReturnRate
         ),
         [
-            months,
+            chartMonths,
             inputs.startingCash,
             inputs.monthlyIncome,
+            inputs.monthlyExpenses,
             inputs.monthlyRent,
             inputs.yearlyRentIncreaseRate,
             inputs.yearlyInvestmentReturnRate,
         ]
     );
 
-    const buyingResult = useMemo(
-        () => simulateBuying(
-            months,
+    const rentingComparisonResult = useMemo(
+        () => simulateRenting(
+            comparisonMonths,
             inputs.startingCash,
             inputs.monthlyIncome,
+            inputs.monthlyExpenses,
+            inputs.monthlyRent,
+            inputs.yearlyRentIncreaseRate,
+            inputs.yearlyInvestmentReturnRate
+        ),
+        [
+            comparisonMonths,
+            inputs.startingCash,
+            inputs.monthlyIncome,
+            inputs.monthlyExpenses,
+            inputs.monthlyRent,
+            inputs.yearlyRentIncreaseRate,
+            inputs.yearlyInvestmentReturnRate,
+        ]
+    );
+
+    const buyingChartResult = useMemo(
+        () => simulateBuying(
+            chartMonths,
+            inputs.startingCash,
+            inputs.monthlyIncome,
+            inputs.monthlyExpenses,
             inputs.homePrice,
             inputs.deposit,
             inputs.oneTimeBuyingCost,
+            inputs.yearsToSellHouse,
+            inputs.sellingCostRate,
             inputs.mortgageRate,
             inputs.mortgageYears,
             inputs.yearlyHomeAppreciationRate,
@@ -66,12 +93,15 @@ export function BuyVsRentChart() {
             inputs.yearlyInvestmentReturnRate
         ),
         [
-            months,
+            chartMonths,
             inputs.startingCash,
             inputs.monthlyIncome,
+            inputs.monthlyExpenses,
             inputs.homePrice,
             inputs.deposit,
             inputs.oneTimeBuyingCost,
+            inputs.yearsToSellHouse,
+            inputs.sellingCostRate,
             inputs.mortgageRate,
             inputs.mortgageYears,
             inputs.yearlyHomeAppreciationRate,
@@ -80,11 +110,46 @@ export function BuyVsRentChart() {
         ]
     );
 
-    const rentingSeries = rentingResult.series;
-    const buyingTotalSeries = buyingResult.totalSeries;
-    const buyingCashSeries = buyingResult.cashSeries;
-    const buyingHouseSeries = buyingResult.houseSeries;
-    const monthlyMortgageRepayment = buyingResult.scheduledMonthlyMortgagePayment;
+    const buyingComparisonResult = useMemo(
+        () => simulateBuying(
+            comparisonMonths,
+            inputs.startingCash,
+            inputs.monthlyIncome,
+            inputs.monthlyExpenses,
+            inputs.homePrice,
+            inputs.deposit,
+            inputs.oneTimeBuyingCost,
+            inputs.yearsToSellHouse,
+            inputs.sellingCostRate,
+            inputs.mortgageRate,
+            inputs.mortgageYears,
+            inputs.yearlyHomeAppreciationRate,
+            inputs.annualOwnershipCostRate,
+            inputs.yearlyInvestmentReturnRate
+        ),
+        [
+            comparisonMonths,
+            inputs.startingCash,
+            inputs.monthlyIncome,
+            inputs.monthlyExpenses,
+            inputs.homePrice,
+            inputs.deposit,
+            inputs.oneTimeBuyingCost,
+            inputs.yearsToSellHouse,
+            inputs.sellingCostRate,
+            inputs.mortgageRate,
+            inputs.mortgageYears,
+            inputs.yearlyHomeAppreciationRate,
+            inputs.annualOwnershipCostRate,
+            inputs.yearlyInvestmentReturnRate
+        ]
+    );
+
+    const rentingSeries = rentingChartResult.series;
+    const buyingTotalSeries = buyingChartResult.totalSeries;
+    const buyingCashSeries = buyingChartResult.cashSeries;
+    const buyingHouseSeries = buyingChartResult.houseSeries;
+    const monthlyMortgageRepayment = buyingComparisonResult.scheduledMonthlyMortgagePayment;
     const startingAnnualOwnershipCost = inputs.homePrice * inputs.annualOwnershipCostRate / 100;
 
     function handleFieldChange(field: NumericFieldConfig, event: ChangeEvent<HTMLInputElement>) {
@@ -241,7 +306,7 @@ export function BuyVsRentChart() {
                 <h4 className="buyvsrent-section-title">Buying Inputs</h4>
                 <div className="buyvsrent-form-grid">
                     {BUYING_FIELDS.map(renderField)}
-                    {renderField(OWNERSHIP_COST_MANUAL_FIELD)}
+                    {renderField(OWNERSHIP_COST_RATE_FIELD)}
                 </div>
             </div>
             <p className="buyvsrent-metric">
@@ -250,13 +315,13 @@ export function BuyVsRentChart() {
                 Starting annual ownership cost: <strong>{formatValue(startingAnnualOwnershipCost)}</strong>
             </p>
             <p className="buyvsrent-metric">
-                Renting value after {inputs.yearsShown} years: <strong>{formatValue(rentingResult.endingCash)}</strong>
+                Renting value after {inputs.yearsToSellHouse} years: <strong>{formatValue(rentingComparisonResult.endingCash)}</strong>
                 <br />
-                Buying cash after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingCash)}</strong>
+                Buying cash after sale in {inputs.yearsToSellHouse} years: <strong>{formatValue(buyingComparisonResult.endingCash)}</strong>
                 <br />
-                Buying equity after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingHouse)}</strong>
+                Buying equity after sale in {inputs.yearsToSellHouse} years: <strong>{formatValue(buyingComparisonResult.endingHouse)}</strong>
                 <br />
-                Buying total after {inputs.yearsShown} years: <strong>{formatValue(buyingResult.endingNetWorth)}</strong>
+                Buying total after sale in {inputs.yearsToSellHouse} years: <strong>{formatValue(buyingComparisonResult.endingNetWorth)}</strong>
             </p>
             <canvas
                 ref={canvasRef}

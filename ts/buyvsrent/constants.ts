@@ -5,22 +5,24 @@ export const MIN_RATE = -100;
 export const MAX_RATE = 100;
 export const MIN_YEARS = 1;
 export const MAX_YEARS = 100;
-export const DEFAULT_ANNUAL_OWNERSHIP_COST_RATE = 1;
 
 export const DEFAULT_INPUTS: BuyVsRentInputs = {
     yearsShown: 5,
-    startingCash: 100_000,
-    monthlyIncome: 3_000,
-    monthlyRent: 1_500,
+    yearsToSellHouse: 7,
+    startingCash: 200_000,
+    monthlyIncome: 3_500,
+    monthlyExpenses: 1500,
+    monthlyRent: 850,
     yearlyInvestmentReturnRate: 5,
-    yearlyRentIncreaseRate: 3,
-    homePrice: 250_000,
-    deposit: 50_000,
-    oneTimeBuyingCost: 5_000,
-    mortgageRate: 4,
+    yearlyRentIncreaseRate: 5,
+    homePrice: 375_000,
+    deposit: 150_000,
+    oneTimeBuyingCost: 10_000,
+    sellingCostRate: 2,
+    mortgageRate: 3.7,
     mortgageYears: 25,
     yearlyHomeAppreciationRate: 2,
-    annualOwnershipCostRate: DEFAULT_ANNUAL_OWNERSHIP_COST_RATE,
+    annualOwnershipCostRate: 1,
 };
 
 export const CORE_FIELDS: NumericFieldConfig[] = [
@@ -44,10 +46,29 @@ export const CORE_FIELDS: NumericFieldConfig[] = [
         step: 1000,
     },
     {
+        key: 'yearsToSellHouse',
+        id: 'years-to-sell-house',
+        label: 'Years to sell house:',
+        ariaLabel: 'Years to sell house',
+        min: MIN_YEARS,
+        max: MAX_YEARS,
+        step: 1,
+        integer: true,
+    },
+    {
         key: 'monthlyIncome',
         id: 'monthly-income',
         label: 'Monthly income:',
         ariaLabel: 'Renting monthly income',
+        min: 0,
+        max: MAX_MONEY,
+        step: 100,
+    },
+    {
+        key: 'monthlyExpenses',
+        id: 'monthly-expenses',
+        label: 'Monthly expenses:',
+        ariaLabel: 'Monthly non-housing expenses',
         min: 0,
         max: MAX_MONEY,
         step: 100,
@@ -119,7 +140,16 @@ export const BUYING_FIELDS: NumericFieldConfig[] = [
         ariaLabel: 'Buying one-time cost',
         min: 0,
         max: MAX_MONEY,
-        step: 100,
+        step: 1000,
+    },
+    {
+        key: 'sellingCostRate',
+        id: 'selling-cost-rate',
+        label: 'Selling cost (% of sale price):',
+        ariaLabel: 'Buying selling cost rate',
+        min: 0,
+        max: MAX_RATE,
+        step: 0.1,
     },
     {
         key: 'mortgageYears',
@@ -142,7 +172,7 @@ export const BUYING_FIELDS: NumericFieldConfig[] = [
     },
 ];
 
-export const OWNERSHIP_COST_MANUAL_FIELD: NumericFieldConfig = {
+export const OWNERSHIP_COST_RATE_FIELD: NumericFieldConfig = {
     key: 'annualOwnershipCostRate',
     id: 'annual-ownership-cost-rate',
     label: 'Annual ownership cost (% of home value):',
