@@ -1,4 +1,4 @@
 :HL["/_next/static/chunks/f70a31182952bce2.css","style"]
 :HL["/images/Flag_HUN_Anjou.png","image"]
 :HL["/images/logo.jpg","image"]
-0:{"buildId":"SPt_BpmDQDI7HENlDYXHd","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"mdxPath","paramType":"oc","paramKey":"letsplay","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"UZ6Y-H5eLzfVxfmcXwHLz","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"mdxPath","paramType":"oc","paramKey":"letsplay","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
