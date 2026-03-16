@@ -4,6 +4,7 @@ export function simulateRenting(
     months: number,
     startingCash: number,
     monthlyIncome: number,
+    monthlyExpenses: number,
     monthlyRent: number,
     yearlyRentIncreaseRatePercent: number,
     yearlyReturnRatePercent: number
@@ -16,7 +17,7 @@ export function simulateRenting(
 
     for (let month = 0; month < months; month++) {
         series.push(Number(cash.toFixed(2)));
-        const cashAfterCashflow = cash + monthlyIncome - currentMonthlyRent;
+        const cashAfterCashflow = cash + monthlyIncome - monthlyExpenses - currentMonthlyRent;
         cash = cashAfterCashflow * (1 + monthlyReturn);
         currentMonthlyRent *= 1 + monthlyRentIncrease;
     }
@@ -31,9 +32,12 @@ export function simulateBuying(
     months: number,
     startingCash: number,
     monthlyIncome: number,
+    monthlyExpenses: number,
     homePrice: number,
     deposit: number,
     oneTimeBuyingCost: number,
+    yearsToSellHouse: number,
+    sellingCostRatePercent: number,
     mortgageRatePercent: number,
     mortgageYears: number,
     yearlyHomeAppreciationRatePercent: number,
@@ -46,6 +50,8 @@ export function simulateBuying(
     const effectiveHomePrice = Math.max(0, homePrice);
     const effectiveDeposit = Math.min(startingCash, Math.max(0, deposit), effectiveHomePrice);
     const effectiveBuyingCost = Math.max(0, oneTimeBuyingCost);
+    const effectiveSellingCostRate = Math.max(0, sellingCostRatePercent) / 100;
+    const sellAfterMonths = Math.max(0, Math.floor(yearsToSellHouse * 12));
     const initialMortgage = effectiveHomePrice - effectiveDeposit;
     const monthlyInvestmentReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
     const monthlyMortgageRate = getMonthlyReturnRate(mortgageRatePercent);
@@ -83,13 +89,20 @@ export function simulateBuying(
         }
 
         const ownershipCost = homeValue * ownershipCostRate / 12;
-        const investedAfterCashflow = investedCash + monthlyIncome - mortgagePayment - ownershipCost;
+        const investedAfterCashflow = investedCash + monthlyIncome - monthlyExpenses - mortgagePayment - ownershipCost;
         investedCash = investedAfterCashflow * (1 + monthlyInvestmentReturn);
         homeValue *= 1 + monthlyHomeAppreciation;
+
+        if (homeValue > 0 && month === sellAfterMonths - 1) {
+            const saleProceeds = homeValue * (1 - effectiveSellingCostRate) - mortgageBalance;
+            investedCash += saleProceeds;
+            mortgageBalance = 0;
+            homeValue = 0;
+        }
     }
 
-    const endingNetWorth = homeValue - mortgageBalance + investedCash;
     const endingHouse = homeValue - mortgageBalance;
+    const endingNetWorth = endingHouse + investedCash;
     return {
         totalSeries,
         cashSeries,
