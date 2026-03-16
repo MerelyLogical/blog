@@ -1,10 +1,11 @@
-import type { BuyVsRentInputs, NumericFieldConfig } from './types';
+import type { BuyVsRentInputs, NumericFieldConfig } from './types.ts';
 
 export const MAX_MONEY = 1_000_000_000;
 export const MIN_RATE = -100;
 export const MAX_RATE = 100;
 export const MIN_YEARS = 1;
 export const MAX_YEARS = 100;
+export const DEFAULT_ANNUAL_OWNERSHIP_COST_RATE = 1;
 
 export const DEFAULT_INPUTS: BuyVsRentInputs = {
     yearsShown: 5,
@@ -12,11 +13,14 @@ export const DEFAULT_INPUTS: BuyVsRentInputs = {
     monthlyIncome: 3_000,
     monthlyRent: 1_500,
     yearlyInvestmentReturnRate: 5,
+    yearlyRentIncreaseRate: 3,
     homePrice: 250_000,
     deposit: 50_000,
     oneTimeBuyingCost: 5_000,
     mortgageRate: 4,
     mortgageYears: 25,
+    yearlyHomeAppreciationRate: 2,
+    annualOwnershipCostRate: DEFAULT_ANNUAL_OWNERSHIP_COST_RATE,
 };
 
 export const CORE_FIELDS: NumericFieldConfig[] = [
@@ -51,8 +55,8 @@ export const CORE_FIELDS: NumericFieldConfig[] = [
     {
         key: 'yearlyInvestmentReturnRate',
         id: 'yearly-investment-return-rate',
-        label: 'Yearly investment return rate (%):',
-        ariaLabel: 'Renting yearly investment return rate',
+        label: 'Annual investment return rate (%):',
+        ariaLabel: 'Renting annual investment return rate',
         min: MIN_RATE,
         max: MAX_RATE,
         step: 0.1,
@@ -68,6 +72,15 @@ export const RENT_FIELDS: NumericFieldConfig[] = [
         min: 0,
         max: MAX_MONEY,
         step: 100,
+    },
+    {
+        key: 'yearlyRentIncreaseRate',
+        id: 'yearly-rent-increase-rate',
+        label: 'Annual rent increase rate (%):',
+        ariaLabel: 'Renting annual rent increase rate',
+        min: MIN_RATE,
+        max: MAX_RATE,
+        step: 0.1,
     },
 ];
 
@@ -87,7 +100,7 @@ export const BUYING_FIELDS: NumericFieldConfig[] = [
         label: 'Deposit:',
         ariaLabel: 'Buying deposit',
         min: 0,
-        max: (inputs) => inputs.startingCash,
+        max: (inputs) => Math.min(inputs.startingCash, inputs.homePrice),
         step: 1000,
     },
     {
@@ -118,4 +131,23 @@ export const BUYING_FIELDS: NumericFieldConfig[] = [
         step: 1,
         integer: true,
     },
+    {
+        key: 'yearlyHomeAppreciationRate',
+        id: 'yearly-home-appreciation-rate',
+        label: 'Annual home appreciation rate (%):',
+        ariaLabel: 'Buying annual home appreciation rate',
+        min: MIN_RATE,
+        max: MAX_RATE,
+        step: 0.1,
+    },
 ];
+
+export const OWNERSHIP_COST_MANUAL_FIELD: NumericFieldConfig = {
+    key: 'annualOwnershipCostRate',
+    id: 'annual-ownership-cost-rate',
+    label: 'Annual ownership cost (% of home value):',
+    ariaLabel: 'Buying annual ownership cost rate',
+    min: 0,
+    max: MAX_RATE,
+    step: 0.1,
+};

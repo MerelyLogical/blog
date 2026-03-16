@@ -2,6 +2,7 @@
 	"scripts": {
 		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
 		"build": "next build",
+		"testbvr": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/testbvr.ts",
 		"postbuild": "pagefind --site ./out --output-path ./out/_pagefind"
 	},
 	"dependencies": {

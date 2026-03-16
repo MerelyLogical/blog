@@ -1,7 +1,13 @@
 'use client'
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { BUYING_FIELDS, CORE_FIELDS, DEFAULT_INPUTS, RENT_FIELDS } from './constants';
+import {
+    BUYING_FIELDS,
+    CORE_FIELDS,
+    DEFAULT_INPUTS,
+    OWNERSHIP_COST_MANUAL_FIELD,
+    RENT_FIELDS,
+} from './constants';
 import { createChartDatasets, createMonthLabels, DATASET_INDEX, loadChartJs } from './chart';
 import { simulateBuying, simulateRenting } from './simulation';
 import type { BuyVsRentInputs, NumericFieldConfig } from './types';
@@ -32,9 +38,17 @@ export function BuyVsRentChart() {
             inputs.startingCash,
             inputs.monthlyIncome,
             inputs.monthlyRent,
+            inputs.yearlyRentIncreaseRate,
             inputs.yearlyInvestmentReturnRate
         ),
-        [months, inputs.startingCash, inputs.monthlyIncome, inputs.monthlyRent, inputs.yearlyInvestmentReturnRate]
+        [
+            months,
+            inputs.startingCash,
+            inputs.monthlyIncome,
+            inputs.monthlyRent,
+            inputs.yearlyRentIncreaseRate,
+            inputs.yearlyInvestmentReturnRate,
+        ]
     );
 
     const buyingResult = useMemo(
@@ -47,6 +61,8 @@ export function BuyVsRentChart() {
             inputs.oneTimeBuyingCost,
             inputs.mortgageRate,
             inputs.mortgageYears,
+            inputs.yearlyHomeAppreciationRate,
+            inputs.annualOwnershipCostRate,
             inputs.yearlyInvestmentReturnRate
         ),
         [
@@ -58,6 +74,8 @@ export function BuyVsRentChart() {
             inputs.oneTimeBuyingCost,
             inputs.mortgageRate,
             inputs.mortgageYears,
+            inputs.yearlyHomeAppreciationRate,
+            inputs.annualOwnershipCostRate,
             inputs.yearlyInvestmentReturnRate
         ]
     );
@@ -67,6 +85,7 @@ export function BuyVsRentChart() {
     const buyingCashSeries = buyingResult.cashSeries;
     const buyingHouseSeries = buyingResult.houseSeries;
     const monthlyMortgageRepayment = buyingResult.scheduledMonthlyMortgagePayment;
+    const startingAnnualOwnershipCost = inputs.homePrice * inputs.annualOwnershipCostRate / 100;
 
     function handleFieldChange(field: NumericFieldConfig, event: ChangeEvent<HTMLInputElement>) {
         setInputs((prev) => {
@@ -74,8 +93,11 @@ export function BuyVsRentChart() {
             const next = { ...prev, [field.key]: nextValue } as BuyVsRentInputs;
 
             // Keep dependent constraints consistent when source field changes.
-            if (field.key === 'startingCash' && next.deposit > next.startingCash) {
-                next.deposit = next.startingCash;
+            if (field.key === 'startingCash' || field.key === 'homePrice') {
+                const maxDeposit = Math.min(next.startingCash, next.homePrice);
+                if (next.deposit > maxDeposit) {
+                    next.deposit = maxDeposit;
+                }
             }
 
             return next;
@@ -219,10 +241,13 @@ export function BuyVsRentChart() {
                 <h4 className="buyvsrent-section-title">Buying Inputs</h4>
                 <div className="buyvsrent-form-grid">
                     {BUYING_FIELDS.map(renderField)}
+                    {renderField(OWNERSHIP_COST_MANUAL_FIELD)}
                 </div>
             </div>
             <p className="buyvsrent-metric">
                 Calculated monthly mortgage repayment: <strong>{formatValue(monthlyMortgageRepayment)}</strong>
+                <br />
+                Starting annual ownership cost: <strong>{formatValue(startingAnnualOwnershipCost)}</strong>
             </p>
             <p className="buyvsrent-metric">
                 Renting value after {inputs.yearsShown} years: <strong>{formatValue(rentingResult.endingCash)}</strong>

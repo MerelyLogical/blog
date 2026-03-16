@@ -4,15 +4,22 @@ export type BuyVsRentInputs = {
     monthlyIncome: number;
     monthlyRent: number;
     yearlyInvestmentReturnRate: number;
+    yearlyRentIncreaseRate: number;
     homePrice: number;
     deposit: number;
     oneTimeBuyingCost: number;
     mortgageRate: number;
     mortgageYears: number;
+    yearlyHomeAppreciationRate: number;
+    annualOwnershipCostRate: number;
 };
 
+export type NumericInputKey = {
+    [K in keyof BuyVsRentInputs]: BuyVsRentInputs[K] extends number ? K : never;
+}[keyof BuyVsRentInputs];
+
 export type NumericFieldConfig = {
-    key: keyof BuyVsRentInputs;
+    key: NumericInputKey;
     id: string;
     label: string;
     ariaLabel: string;
