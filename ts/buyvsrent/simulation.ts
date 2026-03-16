@@ -5,16 +5,20 @@ export function simulateRenting(
     startingCash: number,
     monthlyIncome: number,
     monthlyRent: number,
+    yearlyRentIncreaseRatePercent: number,
     yearlyReturnRatePercent: number
 ): RentingSimulationResult {
     const series: number[] = [];
     let cash = startingCash;
     const monthlyReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
+    const monthlyRentIncrease = getMonthlyReturnRate(yearlyRentIncreaseRatePercent);
+    let currentMonthlyRent = monthlyRent;
 
     for (let month = 0; month < months; month++) {
         series.push(Number(cash.toFixed(2)));
-        const cashAfterCashflow = cash + monthlyIncome - monthlyRent;
+        const cashAfterCashflow = cash + monthlyIncome - currentMonthlyRent;
         cash = cashAfterCashflow * (1 + monthlyReturn);
+        currentMonthlyRent *= 1 + monthlyRentIncrease;
     }
 
     return {
@@ -32,6 +36,8 @@ export function simulateBuying(
     oneTimeBuyingCost: number,
     mortgageRatePercent: number,
     mortgageYears: number,
+    yearlyHomeAppreciationRatePercent: number,
+    annualOwnershipCostRatePercent: number,
     yearlyReturnRatePercent: number
 ): BuyingSimulationResult {
     const totalSeries: number[] = [];
@@ -40,19 +46,21 @@ export function simulateBuying(
     const effectiveHomePrice = Math.max(0, homePrice);
     const effectiveDeposit = Math.min(startingCash, Math.max(0, deposit), effectiveHomePrice);
     const effectiveBuyingCost = Math.max(0, oneTimeBuyingCost);
-    const homeValue = effectiveHomePrice;
-    const initialMortgage = homeValue - effectiveDeposit;
+    const initialMortgage = effectiveHomePrice - effectiveDeposit;
     const monthlyInvestmentReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
     const monthlyMortgageRate = getMonthlyReturnRate(mortgageRatePercent);
+    const monthlyHomeAppreciation = getMonthlyReturnRate(yearlyHomeAppreciationRatePercent);
     const totalMortgageMonths = Math.floor(mortgageYears * 12);
     const monthlyMortgagePayment = getMonthlyMortgagePayment(
         initialMortgage,
         monthlyMortgageRate,
         totalMortgageMonths
     );
+    const ownershipCostRate = Math.max(0, annualOwnershipCostRatePercent) / 100;
 
     let investedCash = startingCash - effectiveDeposit - effectiveBuyingCost;
     let mortgageBalance = initialMortgage;
+    let homeValue = effectiveHomePrice;
 
     for (let month = 0; month < months; month++) {
         const houseEquity = homeValue - mortgageBalance;
@@ -74,8 +82,10 @@ export function simulateBuying(
             mortgageBalance = mortgageDue - mortgagePayment;
         }
 
-        const investedAfterCashflow = investedCash + monthlyIncome - mortgagePayment;
+        const ownershipCost = homeValue * ownershipCostRate / 12;
+        const investedAfterCashflow = investedCash + monthlyIncome - mortgagePayment - ownershipCost;
         investedCash = investedAfterCashflow * (1 + monthlyInvestmentReturn);
+        homeValue *= 1 + monthlyHomeAppreciation;
     }
 
     const endingNetWorth = homeValue - mortgageBalance + investedCash;
