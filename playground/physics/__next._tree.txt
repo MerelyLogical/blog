@@ -1,4 +1,4 @@
-:HL["/_next/static/chunks/f70a31182952bce2.css","style"]
+:HL["/_next/static/chunks/0a51dsqc1p4cx.css","style"]
 :HL["/images/Flag_HUN_Anjou.png","image"]
 :HL["/images/logo.jpg","image"]
-0:{"buildId":"UZ6Y-H5eLzfVxfmcXwHLz","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"mdxPath","paramType":"oc","paramKey":"playground/physics","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"mdxPath","param":{"type":"oc","key":"playground/physics","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"x9HdoPwE5CEnG5CYAHU1F"}
