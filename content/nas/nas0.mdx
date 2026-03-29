@@ -50,7 +50,7 @@ sudo service ssh restart
 
 local_only.conf:
 
-```
+```bash
 # Disable all auth by default
 PasswordAuthentication no
 PubkeyAuthentication no
@@ -81,7 +81,7 @@ ssh user@ipaddress
 
 or if DNS works in the local network:
 
-```
+```bash
 ssh user@hostname
 ```
 
@@ -176,7 +176,7 @@ rsync -av Terraria/Worlds/ <ipaddress>:games/ts/
 
 Download the server binary and set up a configuration file `server.conf`:
 
-```
+```ini
 world=/home/<user>/games/ts/worlds/<world>.wld
 maxplayers=4
 port=<port>

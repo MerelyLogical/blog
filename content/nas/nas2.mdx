@@ -183,7 +183,7 @@ scrape_configs:
 
 Make it into a service by creating `/etc/systemd/system/prometheus.service`:
 
-```
+```systemd
 [Unit]
 Description=Prometheus
 Wants=network-online.target
@@ -226,7 +226,7 @@ Now we should be able to access it from `192.168.0.<nas-ip>:<prometheus-port>`.
 To obtain system data, we create a service running node-exporter by editing
 `/etc/systemd/system/prometheus-node-exporter.service`.
 
-```
+```systemd
 [Unit]
 Description=Node Exporter
 After=network.target
@@ -269,7 +269,7 @@ sudo dpkg -i grafana_9.2.3_amd64.deb
 
 To configure, edit `/etc/grafana/grafana.ini`
 
-```
+```ini
 # The http port to use
 http_port = <grafana-port>
 ```
@@ -281,7 +281,7 @@ After allowing the port with ufw, we can now access it at `192.168.0.<nas-ip>:<g
 
 First we need to modify the `node-exporter` service to enable reading from textfiles.
 
-```
+```systemd
 ExecStart=/usr/bin/prometheus-node-exporter \
     --collector.textfile \
     --collector.textfile.directory=/var/lib/prometheus/textfiles \
@@ -347,7 +347,7 @@ $ sudo systemctl enable --now prometheus-drive-power.timer
 
 service:
 
-```
+```systemd
 [Unit]
 Description=Run drive_powermode script for prometheus
 
@@ -357,7 +357,7 @@ ExecStart=/usr/local/bin/drive_powermode.sh
 
 timer:
 
-```
+```systemd
 [Unit]
 Description=Run drive-powermode service every 15 seconds
 
