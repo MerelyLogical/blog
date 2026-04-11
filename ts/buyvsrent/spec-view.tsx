@@ -338,15 +338,17 @@ function renderExpression(expr: string) {
 function RuleList({
     items,
     mode,
+    sectionKey,
 }: {
     items: Array<SpecBinding | SpecSeriesBinding | SpecStateBinding>;
     mode: 'expr' | 'initial';
+    sectionKey: string;
 }) {
     return (
         <div className="buyvsrent-spec-rules">
-            {items.map((item) => {
+            {items.map((item, index) => {
                 return (
-                    <div key={item.key} className="buyvsrent-spec-rule">
+                    <div key={`${sectionKey}:${item.key}:${index}`} className="buyvsrent-spec-rule">
                         <div className="buyvsrent-spec-code">
                             <span className="buyvsrent-spec-var">{displayName(item.key)}</span>
                             {mode === 'initial' ? (
@@ -405,28 +407,28 @@ export function BuyVsRentModelSpecView({
 
             {selectedModel.normalize && selectedModel.normalize.length > 0 && (
                 <SpecSection title="Normalize Inputs">
-                    <RuleList items={selectedModel.normalize} mode="expr" />
+                    <RuleList items={selectedModel.normalize} mode="expr" sectionKey="normalize" />
                 </SpecSection>
             )}
 
             {selectedModel.derived && selectedModel.derived.length > 0 && (
                 <SpecSection title="Derived Values">
-                    <RuleList items={selectedModel.derived} mode="expr" />
+                    <RuleList items={selectedModel.derived} mode="expr" sectionKey="derived" />
                 </SpecSection>
             )}
 
             <SpecSection title="Initial State">
-                <RuleList items={selectedModel.state} mode="initial" />
+                <RuleList items={selectedModel.state} mode="initial" sectionKey="state" />
             </SpecSection>
 
             {selectedModel.monthly.recordBefore && selectedModel.monthly.recordBefore.length > 0 && (
                 <SpecSection title="Record Before Each Month">
-                    <RuleList items={selectedModel.monthly.recordBefore} mode="expr" />
+                    <RuleList items={selectedModel.monthly.recordBefore} mode="expr" sectionKey="recordBefore" />
                 </SpecSection>
             )}
 
             <SpecSection title="Monthly Update Order">
-                <RuleList items={selectedModel.monthly.assign} mode="expr" />
+                <RuleList items={selectedModel.monthly.assign} mode="expr" sectionKey="assign" />
             </SpecSection>
 
             <SpecSection title="Outputs">
