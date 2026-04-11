@@ -432,7 +432,7 @@ export function BuyVsRentModelSpecView({
             </SpecSection>
 
             <SpecSection title="Outputs">
-                <RuleList items={selectedModel.outputs} mode="expr" />
+                <RuleList items={selectedModel.outputs} mode="expr" sectionKey="outputs" />
             </SpecSection>
         </div>
     );
