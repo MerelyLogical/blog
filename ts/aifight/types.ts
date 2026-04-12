@@ -50,6 +50,7 @@ export type Agent = {
     combat: Combat;
     steering: Steering;
     fleeHpThreshold: number;
+    kills: number;
 };
 
 export type Particle = {
@@ -61,6 +62,17 @@ export type Particle = {
     h: number;
     s: number;
     l: number;
+};
+
+export type Projectile = {
+    owner: Agent;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    damage: number;
+    color: HslColor;
 };
 
 export type HslColor = { h: number; s: number; l: number };
@@ -78,6 +90,12 @@ export type AgentBehavior = {
     chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
     pickTarget: (agent: Agent, perception: Perception) => Agent | null;
     getSpeed: (agent: Agent) => number;
-    act: (agent: Agent, target: Agent | null, dt: number, particlesRef: RefObject<Particle[]>) => void;
+    act: (
+        agent: Agent,
+        target: Agent | null,
+        dt: number,
+        particlesRef: RefObject<Particle[]>,
+        projectiles: Projectile[]
+    ) => void;
     getColor: (agent: Agent) => HslColor;
 };
