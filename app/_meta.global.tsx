@@ -39,10 +39,10 @@ export default {
   },
   "playground": {
     title: "Playground",
-    type: "page",
-    theme: {
-      pagination: false // Hide pagination on this page
-    },
+    // type: "page",
+    // theme: {
+    //   pagination: false // Hide pagination on this page
+    // },
     items: {
       "clocks":    { title: "Clocks" },
       "dakuten":   { title: "Dakuten" },
@@ -62,6 +62,7 @@ export default {
       },
       "aifight":   { title: "AI Arena" },
       "buyvsrent": { title: "Buy vs Rent Calculator"},
+      "fretboard": { title: "Fretboard" },
 
     }
   },
