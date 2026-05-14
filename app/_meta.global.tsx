@@ -62,6 +62,7 @@ export default {
       },
       "aifight":   { title: "AI Arena" },
       "buyvsrent": { title: "Buy vs Rent Calculator"},
+      "fretboard": { title: "Fretboard" },
 
     }
   },
