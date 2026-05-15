@@ -268,12 +268,6 @@ html[data-theme='dark'] .app-input::placeholder {
   font-weight: 700;
 }
 
-.fretboard-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
 .fretboard-select-row {
   display: flex;
   flex-wrap: wrap;
@@ -341,12 +335,6 @@ html[data-theme='dark'] .app-input::placeholder {
   display: block;
   width: 100%;
   min-height: 2rem;
-}
-
-.fretboard-degree-note {
-  color: var(--app-text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
 }
 
 .fretboard-svg {

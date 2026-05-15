@@ -1,6 +1,18 @@
 'use client';
 
 import { ChangeEvent, Fragment, useMemo, useState } from 'react';
+import {
+    getNoteLabels,
+    getOctave,
+    getPitchClass,
+    getScalePitchClass,
+    KEY_OPTIONS,
+    NOTES,
+    SCALE_MODES,
+    TUNINGS,
+    toggleSetValue,
+} from './music';
+import type { KeyLabel, ScaleMode, TuningId } from './music';
 
 const STRING_COUNT = 6;
 const FRET_COUNT = 12;
@@ -12,71 +24,43 @@ const RIGHT = 272;
 const TOP = 76;
 const BOTTOM = 904;
 
-const NOTES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-const FLAT_NOTES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
-const SHARP_NOTES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-const KEY_OPTIONS = [
-    { label: 'C♭', pitchClass: 11, major: ['C♭', 'D♭', 'E♭', 'F♭', 'G♭', 'A♭', 'B♭'], minor: ['C♭', 'D♭', 'E𝄫', 'F♭', 'G♭', 'A𝄫', 'B𝄫'] },
-    { label: 'G♭', pitchClass: 6, major: ['G♭', 'A♭', 'B♭', 'C♭', 'D♭', 'E♭', 'F'], minor: ['G♭', 'A♭', 'B𝄫', 'C♭', 'D♭', 'E𝄫', 'F♭'] },
-    { label: 'D♭', pitchClass: 1, major: ['D♭', 'E♭', 'F', 'G♭', 'A♭', 'B♭', 'C'], minor: ['D♭', 'E♭', 'F♭', 'G♭', 'A♭', 'B𝄫', 'C♭'] },
-    { label: 'A♭', pitchClass: 8, major: ['A♭', 'B♭', 'C', 'D♭', 'E♭', 'F', 'G'], minor: ['A♭', 'B♭', 'C♭', 'D♭', 'E♭', 'F♭', 'G♭'] },
-    { label: 'E♭', pitchClass: 3, major: ['E♭', 'F', 'G', 'A♭', 'B♭', 'C', 'D'], minor: ['E♭', 'F', 'G♭', 'A♭', 'B♭', 'C♭', 'D♭'] },
-    { label: 'B♭', pitchClass: 10, major: ['B♭', 'C', 'D', 'E♭', 'F', 'G', 'A'], minor: ['B♭', 'C', 'D♭', 'E♭', 'F', 'G♭', 'A♭'] },
-    { label: 'F', pitchClass: 5, major: ['F', 'G', 'A', 'B♭', 'C', 'D', 'E'], minor: ['F', 'G', 'A♭', 'B♭', 'C', 'D♭', 'E♭'] },
-    { label: 'C', pitchClass: 0, major: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], minor: ['C', 'D', 'E♭', 'F', 'G', 'A♭', 'B♭'] },
-    { label: 'G', pitchClass: 7, major: ['G', 'A', 'B', 'C', 'D', 'E', 'F♯'], minor: ['G', 'A', 'B♭', 'C', 'D', 'E♭', 'F'] },
-    { label: 'D', pitchClass: 2, major: ['D', 'E', 'F♯', 'G', 'A', 'B', 'C♯'], minor: ['D', 'E', 'F', 'G', 'A', 'B♭', 'C'] },
-    { label: 'A', pitchClass: 9, major: ['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯'], minor: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
-    { label: 'E', pitchClass: 4, major: ['E', 'F♯', 'G♯', 'A', 'B', 'C♯', 'D♯'], minor: ['E', 'F♯', 'G', 'A', 'B', 'C', 'D'] },
-    { label: 'B', pitchClass: 11, major: ['B', 'C♯', 'D♯', 'E', 'F♯', 'G♯', 'A♯'], minor: ['B', 'C♯', 'D', 'E', 'F♯', 'G', 'A'] },
-    { label: 'F♯', pitchClass: 6, major: ['F♯', 'G♯', 'A♯', 'B', 'C♯', 'D♯', 'E♯'], minor: ['F♯', 'G♯', 'A', 'B', 'C♯', 'D', 'E'] },
-    { label: 'C♯', pitchClass: 1, major: ['C♯', 'D♯', 'E♯', 'F♯', 'G♯', 'A♯', 'B♯'], minor: ['C♯', 'D♯', 'E', 'F♯', 'G♯', 'A', 'B'] },
-];
-const SCALE_MODES = {
-    major: {
-        label: 'Major',
-        intervals: [0, 2, 4, 5, 7, 9, 11],
-    },
-    minor: {
-        label: 'Minor',
-        intervals: [0, 2, 3, 5, 7, 8, 10],
-    },
-};
-type ScaleMode = keyof typeof SCALE_MODES;
-const TUNINGS = [
-    { id: 'standard', label: 'Standard', openStrings: [40, 45, 50, 55, 59, 64] },
-    { id: 'drop-d', label: 'Drop D', openStrings: [38, 45, 50, 55, 59, 64] },
-];
-type TuningId = typeof TUNINGS[number]['id'];
-
 const strings = Array.from({ length: STRING_COUNT }, (_, index) => index);
 const frets = Array.from({ length: FRET_COUNT + 1 }, (_, index) => index);
 
-function getPitchClass(midi: number) {
-    return midi % 12;
-}
+type ControlRow = {
+    pitchClass: number;
+    degree: number | null;
+    note: string;
+};
 
-function getOctave(midi: number) {
-    return Math.floor(midi / 12) - 1;
-}
+type FretboardNote = {
+    id: string;
+    fret: number;
+    note: string;
+    pitchClass: number;
+    octave: number;
+    label: string;
+    x: number;
+    y: number;
+};
 
-function DegreeToggle({
-    degree,
+function TogglePill({
+    label,
     checked,
     onToggle,
 }: {
-    degree: number;
+    label: string | number;
     checked: boolean;
-    onToggle: (degree: number) => void;
+    onToggle: () => void;
 }) {
     return (
         <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
             <input
                 type="checkbox"
                 checked={checked}
-                onChange={() => onToggle(degree)}
+                onChange={onToggle}
             />
-            <span>{degree + 1}</span>
+            <span>{label}</span>
         </label>
     );
 }
@@ -84,7 +68,7 @@ function DegreeToggle({
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
-    const [selectedKeyLabel, setSelectedKeyLabel] = useState('E');
+    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('E');
     const [scaleMode, setScaleMode] = useState<ScaleMode>('major');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const stringGap = (RIGHT - LEFT) / (STRING_COUNT - 1);
@@ -94,24 +78,16 @@ export default function Fretboard() {
         ?? KEY_OPTIONS[0];
     const selectedKeyIndex = KEY_OPTIONS.indexOf(selectedKeyOption);
     const selectedKey = selectedKeyOption.pitchClass;
-    const selectedScaleNoteLabels = selectedKeyOption[scaleMode];
     const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
         ?? TUNINGS[0];
     const noteLabels = useMemo(() => {
-        const cIndex = KEY_OPTIONS.findIndex((key) => key.label === 'C');
-        const labels = selectedKeyIndex < cIndex ? [...FLAT_NOTES] : [...SHARP_NOTES];
-
-        scaleIntervals.forEach((interval, degree) => {
-            labels[(selectedKey + interval) % NOTES.length] = selectedScaleNoteLabels[degree];
-        });
-
-        return labels;
-    }, [scaleIntervals, selectedKey, selectedKeyIndex, selectedScaleNoteLabels]);
+        return getNoteLabels(selectedKeyOption, selectedKeyIndex, scaleMode);
+    }, [scaleMode, selectedKeyIndex, selectedKeyOption]);
     const selectedPitchClasses = useMemo(() => {
         const pitchClasses = new Set(selectedNotes);
 
         selectedDegrees.forEach((degree) => {
-            pitchClasses.add((selectedKey + scaleIntervals[degree]) % NOTES.length);
+            pitchClasses.add(getScalePitchClass(selectedKey, scaleIntervals[degree]));
         });
 
         return pitchClasses;
@@ -120,14 +96,14 @@ export default function Fretboard() {
         const labels = new Map<number, string>();
 
         selectedDegrees.forEach((degree) => {
-            labels.set((selectedKey + scaleIntervals[degree]) % NOTES.length, String(degree + 1));
+            labels.set(getScalePitchClass(selectedKey, scaleIntervals[degree]), String(degree + 1));
         });
 
         return labels;
     }, [scaleIntervals, selectedDegrees, selectedKey]);
-    const controlRows = useMemo(() => {
+    const controlRows = useMemo<ControlRow[]>(() => {
         return Array.from({ length: NOTES.length }, (_, offset) => {
-            const pitchClass = (selectedKey + offset) % NOTES.length;
+            const pitchClass = getScalePitchClass(selectedKey, offset);
             const degree = scaleIntervals.findIndex((interval) => interval === offset);
 
             return {
@@ -137,18 +113,19 @@ export default function Fretboard() {
             };
         });
     }, [noteLabels, scaleIntervals, selectedKey]);
-    const visibleNotes = useMemo(() => {
+    const visibleNotes = useMemo<FretboardNote[]>(() => {
         return selectedTuning.openStrings.flatMap((openMidi, stringIndex) => {
             return frets.map((fret) => {
                 const midi = openMidi + fret;
+                const pitchClass = getPitchClass(midi);
+
                 return {
                     id: `${stringIndex}-${fret}`,
                     fret,
-                    stringIndex,
-                    note: NOTES[getPitchClass(midi)],
-                    pitchClass: getPitchClass(midi),
+                    note: NOTES[pitchClass],
+                    pitchClass,
                     octave: getOctave(midi),
-                    label: selectedDegreeLabels.get(getPitchClass(midi)) ?? noteLabels[getPitchClass(midi)],
+                    label: selectedDegreeLabels.get(pitchClass) ?? noteLabels[pitchClass],
                     x: LEFT + stringIndex * stringGap,
                     y: fret === 0 ? TOP - 34 : TOP + (fret - 0.5) * fretGap,
                 };
@@ -157,35 +134,15 @@ export default function Fretboard() {
     }, [fretGap, noteLabels, selectedDegreeLabels, selectedPitchClasses, selectedTuning, stringGap]);
 
     function toggleNote(pitchClass: number) {
-        setSelectedNotes((previous) => {
-            const next = new Set(previous);
-
-            if (next.has(pitchClass)) {
-                next.delete(pitchClass);
-            } else {
-                next.add(pitchClass);
-            }
-
-            return next;
-        });
+        setSelectedNotes((previous) => toggleSetValue(previous, pitchClass));
     }
 
     function toggleDegree(degree: number) {
-        setSelectedDegrees((previous) => {
-            const next = new Set(previous);
-
-            if (next.has(degree)) {
-                next.delete(degree);
-            } else {
-                next.add(degree);
-            }
-
-            return next;
-        });
+        setSelectedDegrees((previous) => toggleSetValue(previous, degree));
     }
 
     function handleKeyChange(event: ChangeEvent<HTMLSelectElement>) {
-        setSelectedKeyLabel(event.target.value);
+        setSelectedKeyLabel(event.target.value as KeyLabel);
     }
 
     function handleScaleModeChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -194,6 +151,16 @@ export default function Fretboard() {
 
     function handleTuningChange(event: ChangeEvent<HTMLSelectElement>) {
         setSelectedTuningId(event.target.value as TuningId);
+    }
+
+    function renderDegreeToggle(degree: number) {
+        return (
+            <TogglePill
+                label={degree + 1}
+                checked={selectedDegrees.has(degree)}
+                onToggle={() => toggleDegree(degree)}
+            />
+        );
     }
 
     return (
@@ -327,22 +294,15 @@ export default function Fretboard() {
                                     {row.degree === null ? (
                                         <span className="fretboard-degree-spacer" aria-hidden="true" />
                                     ) : (
-                                        <DegreeToggle
-                                            degree={row.degree}
-                                            checked={selectedDegrees.has(row.degree)}
-                                            onToggle={toggleDegree}
-                                        />
+                                        renderDegreeToggle(row.degree)
                                     )}
                                 </div>
                                 <div className="fretboard-aligned-cell">
-                                    <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedNotes.has(row.pitchClass)}
-                                            onChange={() => toggleNote(row.pitchClass)}
-                                        />
-                                        <span>{row.note}</span>
-                                    </label>
+                                    <TogglePill
+                                        label={row.note}
+                                        checked={selectedNotes.has(row.pitchClass)}
+                                        onToggle={() => toggleNote(row.pitchClass)}
+                                    />
                                 </div>
                             </Fragment>
                         ))}
