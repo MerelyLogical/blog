@@ -310,8 +310,37 @@ html[data-theme='dark'] .app-input::placeholder {
   cursor: pointer;
 }
 
+.fretboard-note-toggle--aligned {
+  width: 100%;
+  min-height: 2rem;
+  margin: 0;
+}
+
 .fretboard-note-toggle input {
   margin: 0;
+}
+
+.fretboard-aligned-controls {
+  display: grid;
+  grid-template-columns: minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem);
+  gap: 0.35rem 0.5rem;
+  align-items: stretch;
+}
+
+.fretboard-aligned-header {
+  color: var(--app-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.fretboard-aligned-cell {
+  min-height: 2rem;
+}
+
+.fretboard-degree-spacer {
+  display: block;
+  width: 100%;
+  min-height: 2rem;
 }
 
 .fretboard-degree-note {
@@ -360,7 +389,7 @@ html[data-theme='dark'] .app-input::placeholder {
 
 .fretboard-note-label {
   fill: var(--app-card-bg);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-anchor: middle;
   dominant-baseline: central;
