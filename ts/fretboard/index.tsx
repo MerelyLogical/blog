@@ -12,7 +12,6 @@ import {
     getOctave,
     getPitchClass,
     getScalePitchClass,
-    isChordQualityId,
     NOTES,
     KEY_OPTIONS,
     TUNINGS,
@@ -100,6 +99,7 @@ export default function Fretboard() {
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const [isBuildingChord, setIsBuildingChord] = useState(false);
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
+    const [buildQuality, setBuildQuality] = useState<ChordQualityId | null>(null);
     const stringGap = (RIGHT - LEFT) / (STRING_COUNT - 1);
     const fretGap = (BOTTOM - TOP) / FRET_COUNT;
     const selectedKeyOption = KEY_OPTIONS.find((key) => key.label === selectedKeyLabel)
@@ -216,9 +216,12 @@ export default function Fretboard() {
 
     function toggleNote(pitchClass: number) {
         if (isBuildingChord) {
-            setBuildRoot({ source: 'note', value: pitchClass });
+            const nextRoot: BuildRoot = { source: 'note', value: pitchClass };
+
+            setBuildRoot(nextRoot);
             setSelectedNotes(new Set([pitchClass]));
             setSelectedDegrees(new Set());
+            buildChordIfReady(nextRoot, buildQuality);
             return;
         }
 
@@ -227,9 +230,12 @@ export default function Fretboard() {
 
     function toggleDegree(degree: number) {
         if (isBuildingChord) {
-            setBuildRoot({ source: 'degree', value: degree });
+            const nextRoot: BuildRoot = { source: 'degree', value: degree };
+
+            setBuildRoot(nextRoot);
             setSelectedDegrees(new Set([degree]));
             setSelectedNotes(new Set());
+            buildChordIfReady(nextRoot, buildQuality);
             return;
         }
 
@@ -269,32 +275,35 @@ export default function Fretboard() {
         setSelectedTuningId(event.target.value as TuningId);
     }
 
-    function handleChordQualityChange(event: ChangeEvent<HTMLSelectElement>) {
-        if (event.target.value === EMPTY_CHORD_VALUE) {
+    function buildChordIfReady(root: BuildRoot | null, quality: ChordQualityId | null) {
+        if (!root || !quality) {
             return;
         }
 
-        if (!isChordQualityId(event.target.value)) {
-            return;
-        }
-
-        if (!isBuildingChord || !buildRoot) {
-            return;
-        }
-
-        if (buildRoot.source === 'degree') {
-            setSelectedDegrees(new Set(getChordOffsets(buildRoot.value, event.target.value)));
+        if (root.source === 'degree') {
+            setSelectedDegrees(new Set(getChordOffsets(root.value, quality)));
         } else {
-            setSelectedNotes(new Set(getChordOffsets(buildRoot.value, event.target.value)));
+            setSelectedNotes(new Set(getChordOffsets(root.value, quality)));
         }
 
         setIsBuildingChord(false);
         setBuildRoot(null);
+        setBuildQuality(null);
+    }
+
+    function selectChordQuality(quality: ChordQualityId) {
+        if (!isBuildingChord) {
+            return;
+        }
+
+        setBuildQuality(quality);
+        buildChordIfReady(buildRoot, quality);
     }
 
     function startBuildChord() {
         setIsBuildingChord(true);
         setBuildRoot(null);
+        setBuildQuality(null);
         setSelectedDegrees(new Set());
         setSelectedNotes(new Set());
     }
@@ -304,6 +313,7 @@ export default function Fretboard() {
         setSelectedNotes(new Set());
         setIsBuildingChord(false);
         setBuildRoot(null);
+        setBuildQuality(null);
     }
 
     function renderChordAnalysis() {
@@ -340,6 +350,14 @@ export default function Fretboard() {
         return noteLabels[buildRoot.value];
     }
 
+    function renderBuildQuality() {
+        if (!isBuildingChord || !buildQuality) {
+            return EMPTY_CHORD_VALUE;
+        }
+
+        return CHORD_QUALITIES.find((quality) => quality.id === buildQuality)?.label ?? EMPTY_CHORD_VALUE;
+    }
+
     function renderDegreeToggle(degree: number) {
         return (
             <TogglePill
@@ -347,6 +365,18 @@ export default function Fretboard() {
                 checked={selectedDegrees.has(degree)}
                 onToggle={() => toggleDegree(degree)}
             />
+        );
+    }
+
+    function renderQualityToggle(quality: typeof CHORD_QUALITIES[number]) {
+        return (
+            <button
+                className={`fretboard-quality-toggle${buildQuality === quality.id ? ' fretboard-quality-toggle--selected' : ''}`}
+                type="button"
+                onClick={() => selectChordQuality(quality.id)}
+            >
+                {quality.label}
+            </button>
         );
     }
 
@@ -475,9 +505,10 @@ export default function Fretboard() {
                     </div>
                 </div>
                 <div className="fretboard-control-group" aria-label="Scale degrees and notes to show">
-                    <div className="fretboard-aligned-controls">
+                    <div className={`fretboard-aligned-controls${isBuildingChord ? ' fretboard-aligned-controls--building' : ''}`}>
                         <div className="fretboard-aligned-header">Degree</div>
                         <div className="fretboard-aligned-header">Note</div>
+                        {isBuildingChord && <div className="fretboard-aligned-header">Quality</div>}
                         {controlRows.map((row) => (
                             <Fragment key={row.pitchClass}>
                                 <div className="fretboard-aligned-cell">
@@ -490,6 +521,11 @@ export default function Fretboard() {
                                         onToggle={() => toggleNote(row.pitchClass)}
                                     />
                                 </div>
+                                {isBuildingChord && (
+                                    <div className="fretboard-aligned-cell">
+                                        {CHORD_QUALITIES[row.degree] ? renderQualityToggle(CHORD_QUALITIES[row.degree]) : null}
+                                    </div>
+                                )}
                             </Fragment>
                         ))}
                     </div>
@@ -501,27 +537,6 @@ export default function Fretboard() {
                         >
                             Build Chord
                         </button>
-                        {isBuildingChord && (
-                            <>
-                                <span className="fretboard-build-root">Root: {renderBuildRoot()}</span>
-                                <label className="fretboard-key-select-label" htmlFor="fretboard-chord-quality">
-                                    Quality
-                                    <select
-                                        id="fretboard-chord-quality"
-                                        className="app-input app-input--compact fretboard-key-select"
-                                        value={EMPTY_CHORD_VALUE}
-                                        onChange={handleChordQualityChange}
-                                    >
-                                        <option value={EMPTY_CHORD_VALUE}>-</option>
-                                        {CHORD_QUALITIES.map((quality) => (
-                                            <option key={quality.id} value={quality.id}>
-                                                {quality.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            </>
-                        )}
                         <button
                             className="app-button app-button--compact fretboard-clear-button"
                             type="button"
@@ -530,6 +545,11 @@ export default function Fretboard() {
                             Clear
                         </button>
                     </div>
+                    {isBuildingChord && (
+                        <div className="fretboard-build-status">
+                            Root: {renderBuildRoot()} · Quality: {renderBuildQuality()}
+                        </div>
+                    )}
                     <div className="fretboard-chord-analysis" aria-live="polite">
                         Chord: {renderChordAnalysis()}
                     </div>
