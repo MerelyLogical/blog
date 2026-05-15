@@ -60,6 +60,27 @@ function getOctave(midi: number) {
     return Math.floor(midi / 12) - 1;
 }
 
+function DegreeToggle({
+    degree,
+    checked,
+    onToggle,
+}: {
+    degree: number;
+    checked: boolean;
+    onToggle: (degree: number) => void;
+}) {
+    return (
+        <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
+            <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => onToggle(degree)}
+            />
+            <span>{degree + 1}</span>
+        </label>
+    );
+}
+
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
@@ -306,14 +327,11 @@ export default function Fretboard() {
                                     {row.degree === null ? (
                                         <span className="fretboard-degree-spacer" aria-hidden="true" />
                                     ) : (
-                                        <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedDegrees.has(row.degree)}
-                                                onChange={() => toggleDegree(row.degree)}
-                                            />
-                                            <span>{row.degree + 1}</span>
-                                        </label>
+                                        <DegreeToggle
+                                            degree={row.degree}
+                                            checked={selectedDegrees.has(row.degree)}
+                                            onToggle={toggleDegree}
+                                        />
                                     )}
                                 </div>
                                 <div className="fretboard-aligned-cell">
