@@ -51,6 +51,10 @@ type FretboardNote = {
     y: number;
 };
 
+type FretboardPosition = FretboardNote & {
+    degree: number;
+};
+
 type ChordAnalysisDisplay = {
     rootOffset: number;
     rootPitchClass: number;
@@ -61,6 +65,11 @@ type FormattedChordAnalysis = {
     roman: string;
     romanSuperscript: string | null;
     note: string;
+};
+
+type BuildRoot = {
+    source: 'degree' | 'note';
+    value: number;
 };
 
 function TogglePill({
@@ -89,6 +98,8 @@ export default function Fretboard() {
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
     const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('E');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
+    const [isBuildingChord, setIsBuildingChord] = useState(false);
+    const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
     const stringGap = (RIGHT - LEFT) / (STRING_COUNT - 1);
     const fretGap = (BOTTOM - TOP) / FRET_COUNT;
     const selectedKeyOption = KEY_OPTIONS.find((key) => key.label === selectedKeyLabel)
@@ -178,36 +189,80 @@ export default function Fretboard() {
             };
         });
     }, [noteLabels, selectedKey]);
-    const visibleNotes = useMemo<FretboardNote[]>(() => {
+    const fretboardPositions = useMemo<FretboardPosition[]>(() => {
         return selectedTuning.openStrings.flatMap((openMidi, stringIndex) => {
             return frets.map((fret) => {
                 const midi = openMidi + fret;
                 const pitchClass = getPitchClass(midi);
+                const degree = getScalePitchClass(pitchClass, -selectedKey);
 
                 return {
                     id: `${stringIndex}-${fret}`,
                     fret,
                     note: NOTES[pitchClass],
                     pitchClass,
+                    degree,
                     octave: getOctave(midi),
                     label: selectedDegreeLabels.get(pitchClass) ?? noteLabels[pitchClass],
                     x: LEFT + stringIndex * stringGap,
                     y: fret === 0 ? TOP - 34 : TOP + (fret - 0.5) * fretGap,
                 };
             });
-        }).filter((note) => selectedPitchClasses.has(note.pitchClass));
-    }, [fretGap, noteLabels, selectedDegreeLabels, selectedPitchClasses, selectedTuning, stringGap]);
+        });
+    }, [fretGap, noteLabels, selectedDegreeLabels, selectedKey, selectedTuning, stringGap]);
+    const visibleNotes = useMemo<FretboardNote[]>(() => {
+        return fretboardPositions.filter((note) => selectedPitchClasses.has(note.pitchClass));
+    }, [fretboardPositions, selectedPitchClasses]);
 
     function toggleNote(pitchClass: number) {
+        if (isBuildingChord) {
+            setBuildRoot({ source: 'note', value: pitchClass });
+            setSelectedNotes(new Set([pitchClass]));
+            setSelectedDegrees(new Set());
+            return;
+        }
+
         setSelectedNotes((previous) => toggleSetValue(previous, pitchClass));
     }
 
     function toggleDegree(degree: number) {
+        if (isBuildingChord) {
+            setBuildRoot({ source: 'degree', value: degree });
+            setSelectedDegrees(new Set([degree]));
+            setSelectedNotes(new Set());
+            return;
+        }
+
         setSelectedDegrees((previous) => toggleSetValue(previous, degree));
     }
 
     function handleKeyChange(event: ChangeEvent<HTMLSelectElement>) {
-        setSelectedKeyLabel(event.target.value as KeyLabel);
+        const nextKeyOption = KEY_OPTIONS.find((key) => key.label === event.target.value);
+
+        if (!nextKeyOption) {
+            return;
+        }
+
+        setBuildRoot((previous) => {
+            if (!previous || previous.source !== 'degree') {
+                return previous;
+            }
+
+            const pitchClass = getScalePitchClass(selectedKey, previous.value);
+
+            return {
+                ...previous,
+                value: getScalePitchClass(pitchClass, -nextKeyOption.pitchClass),
+            };
+        });
+        setSelectedDegrees((previous) => {
+            return new Set(Array.from(previous, (degree) => {
+                const pitchClass = getScalePitchClass(selectedKey, degree);
+
+                return getScalePitchClass(pitchClass, -nextKeyOption.pitchClass);
+            }));
+        });
+        setSelectedKeyLabel(nextKeyOption.label);
     }
 
     function handleTuningChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -223,29 +278,32 @@ export default function Fretboard() {
             return;
         }
 
-        const totalSelected = selectedDegrees.size + selectedNotes.size;
-
-        if (totalSelected !== 1) {
+        if (!isBuildingChord || !buildRoot) {
             return;
         }
 
-        if (selectedDegrees.size === 1) {
-            const [degree] = Array.from(selectedDegrees);
-
-            setSelectedDegrees(new Set(getChordOffsets(degree, event.target.value)));
-            setSelectedNotes(new Set());
-            return;
+        if (buildRoot.source === 'degree') {
+            setSelectedDegrees(new Set(getChordOffsets(buildRoot.value, event.target.value)));
+        } else {
+            setSelectedNotes(new Set(getChordOffsets(buildRoot.value, event.target.value)));
         }
 
-        const [pitchClass] = Array.from(selectedNotes);
+        setIsBuildingChord(false);
+        setBuildRoot(null);
+    }
 
-        setSelectedNotes(new Set(getChordOffsets(pitchClass, event.target.value)));
+    function startBuildChord() {
+        setIsBuildingChord(true);
+        setBuildRoot(null);
         setSelectedDegrees(new Set());
+        setSelectedNotes(new Set());
     }
 
     function clearSelections() {
         setSelectedDegrees(new Set());
         setSelectedNotes(new Set());
+        setIsBuildingChord(false);
+        setBuildRoot(null);
     }
 
     function renderChordAnalysis() {
@@ -264,6 +322,22 @@ export default function Fretboard() {
                 </span>
             </Fragment>
         ));
+    }
+
+    function renderBuildRoot() {
+        if (!isBuildingChord) {
+            return null;
+        }
+
+        if (!buildRoot) {
+            return EMPTY_CHORD_VALUE;
+        }
+
+        if (buildRoot.source === 'degree') {
+            return CHROMATIC_DEGREE_LABELS[buildRoot.value];
+        }
+
+        return noteLabels[buildRoot.value];
     }
 
     function renderDegreeToggle(degree: number) {
@@ -319,6 +393,27 @@ export default function Fretboard() {
                         />
                     );
                 })}
+                {fretboardPositions.map((position) => (
+                    <circle
+                        key={position.id}
+                        className="fretboard-click-target"
+                        cx={position.x}
+                        cy={position.y}
+                        r="13"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Toggle degree ${CHROMATIC_DEGREE_LABELS[position.degree]} at ${position.note}${position.octave}${position.fret === 0 ? ' open string' : ` fret ${position.fret}`}`}
+                        onClick={() => toggleDegree(position.degree)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                toggleDegree(position.degree);
+                            }
+                        }}
+                    >
+                        <title>{`Toggle degree ${CHROMATIC_DEGREE_LABELS[position.degree]}`}</title>
+                    </circle>
+                ))}
                 {visibleNotes.map((note) => (
                     <g key={note.id} className="fretboard-note-marker">
                         <circle
@@ -378,31 +473,6 @@ export default function Fretboard() {
                             </select>
                         </label>
                     </div>
-                    <div className="fretboard-select-row">
-                        <label className="fretboard-key-select-label" htmlFor="fretboard-chord-quality">
-                            Quality
-                            <select
-                                id="fretboard-chord-quality"
-                                className="app-input app-input--compact fretboard-key-select"
-                                value={EMPTY_CHORD_VALUE}
-                                onChange={handleChordQualityChange}
-                            >
-                                <option value={EMPTY_CHORD_VALUE}>-</option>
-                                {CHORD_QUALITIES.map((quality) => (
-                                    <option key={quality.id} value={quality.id}>
-                                        {quality.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <button
-                            className="app-button app-button--compact fretboard-clear-button"
-                            type="button"
-                            onClick={clearSelections}
-                        >
-                            Clear
-                        </button>
-                    </div>
                 </div>
                 <div className="fretboard-control-group" aria-label="Scale degrees and notes to show">
                     <div className="fretboard-aligned-controls">
@@ -422,6 +492,43 @@ export default function Fretboard() {
                                 </div>
                             </Fragment>
                         ))}
+                    </div>
+                    <div className="fretboard-select-row">
+                        <button
+                            className="app-button app-button--compact fretboard-clear-button"
+                            type="button"
+                            onClick={startBuildChord}
+                        >
+                            Build Chord
+                        </button>
+                        {isBuildingChord && (
+                            <>
+                                <span className="fretboard-build-root">Root: {renderBuildRoot()}</span>
+                                <label className="fretboard-key-select-label" htmlFor="fretboard-chord-quality">
+                                    Quality
+                                    <select
+                                        id="fretboard-chord-quality"
+                                        className="app-input app-input--compact fretboard-key-select"
+                                        value={EMPTY_CHORD_VALUE}
+                                        onChange={handleChordQualityChange}
+                                    >
+                                        <option value={EMPTY_CHORD_VALUE}>-</option>
+                                        {CHORD_QUALITIES.map((quality) => (
+                                            <option key={quality.id} value={quality.id}>
+                                                {quality.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            </>
+                        )}
+                        <button
+                            className="app-button app-button--compact fretboard-clear-button"
+                            type="button"
+                            onClick={clearSelections}
+                        >
+                            Clear
+                        </button>
                     </div>
                     <div className="fretboard-chord-analysis" aria-live="polite">
                         Chord: {renderChordAnalysis()}

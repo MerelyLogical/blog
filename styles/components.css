@@ -288,6 +288,13 @@ html[data-theme='dark'] .app-input::placeholder {
   box-shadow: none;
 }
 
+.fretboard-build-root {
+  align-self: center;
+  color: var(--app-text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .fretboard-note-toggle {
   display: inline-flex;
   align-items: center;
@@ -370,10 +377,24 @@ html[data-theme='dark'] .app-input::placeholder {
   stroke-width: 2.5;
 }
 
+.fretboard-click-target {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2.5;
+  cursor: pointer;
+}
+
+.fretboard-click-target:hover,
+.fretboard-click-target:focus-visible {
+  stroke: var(--app-text-color);
+  outline: none;
+}
+
 .fretboard-note-dot {
   fill: var(--app-text-color);
   stroke: var(--app-card-bg);
   stroke-width: 2.5;
+  pointer-events: none;
 }
 
 .fretboard-note-label {
