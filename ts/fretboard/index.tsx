@@ -6,7 +6,6 @@ import {
     CHROMATIC_ROMAN_LABELS,
     CHORD_QUALITIES,
     getChordOffsets,
-    getDegreeChordAnalyses,
     getNoteLabels,
     getNoteChordAnalyses,
     getOctave,
@@ -95,7 +94,7 @@ function TogglePill({
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
-    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('E');
+    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const [isBuildingChord, setIsBuildingChord] = useState(false);
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
@@ -110,6 +109,15 @@ export default function Fretboard() {
     const noteLabels = useMemo(() => {
         return getNoteLabels();
     }, []);
+    const selectedPitchClasses = useMemo(() => {
+        const pitchClasses = new Set(selectedNotes);
+
+        selectedDegrees.forEach((degree) => {
+            pitchClasses.add(getScalePitchClass(selectedKey, degree));
+        });
+
+        return pitchClasses;
+    }, [selectedDegrees, selectedKey, selectedNotes]);
     const chordAnalyses = useMemo(() => {
         function getRomanLabel(rootOffset: number, qualityId: ChordQualityId) {
             const romanLabel = CHROMATIC_ROMAN_LABELS[rootOffset];
@@ -143,32 +151,15 @@ export default function Fretboard() {
                 note: `${noteLabels[analysis.rootPitchClass]}${noteSuffixes[analysis.qualityId]}`,
             };
         }
-        const degreeAnalyses = getDegreeChordAnalyses(selectedDegrees).map((analysis) => {
-            return formatAnalysis({
-                rootOffset: analysis.rootOffset,
-                rootPitchClass: getScalePitchClass(selectedKey, analysis.rootOffset),
-                qualityId: analysis.qualityId,
-            });
-        });
-        const noteAnalyses = getNoteChordAnalyses(selectedNotes).map((analysis) => {
+
+        return getNoteChordAnalyses(selectedPitchClasses).map((analysis) => {
             return formatAnalysis({
                 rootOffset: getScalePitchClass(analysis.rootPitchClass, -selectedKey),
                 rootPitchClass: analysis.rootPitchClass,
                 qualityId: analysis.qualityId,
             });
         });
-
-        return [...degreeAnalyses, ...noteAnalyses];
-    }, [noteLabels, selectedDegrees, selectedKey, selectedNotes]);
-    const selectedPitchClasses = useMemo(() => {
-        const pitchClasses = new Set(selectedNotes);
-
-        selectedDegrees.forEach((degree) => {
-            pitchClasses.add(getScalePitchClass(selectedKey, degree));
-        });
-
-        return pitchClasses;
-    }, [selectedDegrees, selectedKey, selectedNotes]);
+    }, [noteLabels, selectedKey, selectedPitchClasses]);
     const selectedDegreeLabels = useMemo(() => {
         const labels = new Map<number, string>();
 
