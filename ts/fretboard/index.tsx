@@ -6,13 +6,12 @@ import {
     CHROMATIC_ROMAN_LABELS,
     CHORD_QUALITIES,
     getChordOffsets,
-    getNoteLabels,
     getNoteChordAnalyses,
     getOctave,
     getPitchClass,
     getScalePitchClass,
-    NOTES,
     KEY_OPTIONS,
+    PITCH_CLASS_COUNT,
     TUNINGS,
     toggleSetValue,
 } from './music';
@@ -94,7 +93,7 @@ function TogglePill({
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
-    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C');
+    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C/a');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const [isBuildingChord, setIsBuildingChord] = useState(false);
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
@@ -106,9 +105,7 @@ export default function Fretboard() {
     const selectedKey = selectedKeyOption.pitchClass;
     const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
         ?? TUNINGS[0];
-    const noteLabels = useMemo(() => {
-        return getNoteLabels();
-    }, []);
+    const noteLabels = selectedKeyOption.noteLabels;
     const selectedPitchClasses = useMemo(() => {
         const pitchClasses = new Set(selectedNotes);
 
@@ -170,7 +167,7 @@ export default function Fretboard() {
         return labels;
     }, [selectedDegrees, selectedKey]);
     const controlRows = useMemo<ControlRow[]>(() => {
-        return Array.from({ length: NOTES.length }, (_, offset) => {
+        return Array.from({ length: PITCH_CLASS_COUNT }, (_, offset) => {
             const pitchClass = getScalePitchClass(selectedKey, offset);
 
             return {
@@ -190,7 +187,7 @@ export default function Fretboard() {
                 return {
                     id: `${stringIndex}-${fret}`,
                     fret,
-                    note: NOTES[pitchClass],
+                    note: noteLabels[pitchClass],
                     pitchClass,
                     degree,
                     octave: getOctave(midi),

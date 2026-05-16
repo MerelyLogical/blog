@@ -1,33 +1,128 @@
-export const NOTES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'] as const;
-
-const NOTE_COUNT = NOTES.length;
+export const PITCH_CLASS_COUNT = 12;
 const ROOT_DEGREE_OFFSETS = [0, 2, 4, 5, 7, 9, 11] as const;
 
-export const CHROMATIC_NOTE_LABELS = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'] as const;
 export const CHROMATIC_DEGREE_LABELS = ['1', '♯1', '2', '♭3', '3', '4', '♯4', '5', '♭6', '6', '♭7', '7'] as const;
 export const CHROMATIC_ROMAN_LABELS = ['I', '♯I', 'II', '♭III', 'III', 'IV', '♯IV', 'V', '♭VI', 'VI', '♭VII', 'VII'] as const;
+
+export type NoteLabels = readonly [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+];
 
 export type KeyOption = {
     label: string;
     pitchClass: number;
+    noteLabels: NoteLabels;
 };
 
+type NoteLetter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+
+const CHROMATIC_SCALE_SPELLING = [
+    { scaleIndex: 0, accidentalOffset: 0 },
+    { scaleIndex: 0, accidentalOffset: 1 },
+    { scaleIndex: 1, accidentalOffset: 0 },
+    { scaleIndex: 2, accidentalOffset: -1 },
+    { scaleIndex: 2, accidentalOffset: 0 },
+    { scaleIndex: 3, accidentalOffset: 0 },
+    { scaleIndex: 3, accidentalOffset: 1 },
+    { scaleIndex: 4, accidentalOffset: 0 },
+    { scaleIndex: 5, accidentalOffset: -1 },
+    { scaleIndex: 5, accidentalOffset: 0 },
+    { scaleIndex: 6, accidentalOffset: -1 },
+    { scaleIndex: 6, accidentalOffset: 0 },
+] as const;
+
+function parseScaleNote(note: string) {
+    const letter = note[0] as NoteLetter;
+    let accidentalOffset = 0;
+
+    for (const accidental of Array.from(note.slice(1))) {
+        if (accidental === '♯') {
+            accidentalOffset += 1;
+        } else if (accidental === '♭') {
+            accidentalOffset -= 1;
+        } else if (accidental === '𝄪') {
+            accidentalOffset += 2;
+        } else if (accidental === '𝄫') {
+            accidentalOffset -= 2;
+        }
+    }
+
+    return { letter, accidentalOffset };
+}
+
+function formatNote(letter: NoteLetter, accidentalOffset: number) {
+    const accidentals: Record<number, string> = {
+        [-2]: '𝄫',
+        [-1]: '♭',
+        0: '',
+        1: '♯',
+        2: '𝄪',
+    };
+
+    return `${letter}${accidentals[accidentalOffset] ?? ''}`;
+}
+
+function formatScaleAlteration(note: string, accidentalOffset: number) {
+    const parsed = parseScaleNote(note);
+
+    return formatNote(parsed.letter, parsed.accidentalOffset + accidentalOffset);
+}
+
+function buildKeyNoteLabels(tonicPitchClass: number, majorScale: readonly string[]): NoteLabels {
+    const noteLabels: [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+    ] = ['', '', '', '', '', '', '', '', '', '', '', ''];
+
+    CHROMATIC_SCALE_SPELLING.forEach((spelling, offset) => {
+        const pitchClass = getPitchClass(tonicPitchClass + offset);
+
+        noteLabels[pitchClass] = formatScaleAlteration(
+            majorScale[spelling.scaleIndex],
+            spelling.accidentalOffset,
+        );
+    });
+
+    return noteLabels;
+}
+
 export const KEY_OPTIONS = [
-    { label: 'C♭', pitchClass: 11 },
-    { label: 'G♭', pitchClass: 6 },
-    { label: 'D♭', pitchClass: 1 },
-    { label: 'A♭', pitchClass: 8 },
-    { label: 'E♭', pitchClass: 3 },
-    { label: 'B♭', pitchClass: 10 },
-    { label: 'F', pitchClass: 5 },
-    { label: 'C', pitchClass: 0 },
-    { label: 'G', pitchClass: 7 },
-    { label: 'D', pitchClass: 2 },
-    { label: 'A', pitchClass: 9 },
-    { label: 'E', pitchClass: 4 },
-    { label: 'B', pitchClass: 11 },
-    { label: 'F♯', pitchClass: 6 },
-    { label: 'C♯', pitchClass: 1 },
+    { label: 'C♭/a♭', pitchClass: 11, noteLabels: buildKeyNoteLabels(11, ['C♭', 'D♭', 'E♭', 'F♭', 'G♭', 'A♭', 'B♭']) },
+    { label: 'G♭/e♭', pitchClass: 6, noteLabels: buildKeyNoteLabels(6, ['G♭', 'A♭', 'B♭', 'C♭', 'D♭', 'E♭', 'F']) },
+    { label: 'D♭/b♭', pitchClass: 1, noteLabels: buildKeyNoteLabels(1, ['D♭', 'E♭', 'F', 'G♭', 'A♭', 'B♭', 'C']) },
+    { label: 'A♭/f', pitchClass: 8, noteLabels: buildKeyNoteLabels(8, ['A♭', 'B♭', 'C', 'D♭', 'E♭', 'F', 'G']) },
+    { label: 'E♭/c', pitchClass: 3, noteLabels: buildKeyNoteLabels(3, ['E♭', 'F', 'G', 'A♭', 'B♭', 'C', 'D']) },
+    { label: 'B♭/g', pitchClass: 10, noteLabels: buildKeyNoteLabels(10, ['B♭', 'C', 'D', 'E♭', 'F', 'G', 'A']) },
+    { label: 'F/d', pitchClass: 5, noteLabels: buildKeyNoteLabels(5, ['F', 'G', 'A', 'B♭', 'C', 'D', 'E']) },
+    { label: 'C/a', pitchClass: 0, noteLabels: buildKeyNoteLabels(0, ['C', 'D', 'E', 'F', 'G', 'A', 'B']) },
+    { label: 'G/e', pitchClass: 7, noteLabels: buildKeyNoteLabels(7, ['G', 'A', 'B', 'C', 'D', 'E', 'F♯']) },
+    { label: 'D/b', pitchClass: 2, noteLabels: buildKeyNoteLabels(2, ['D', 'E', 'F♯', 'G', 'A', 'B', 'C♯']) },
+    { label: 'A/f♯', pitchClass: 9, noteLabels: buildKeyNoteLabels(9, ['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯']) },
+    { label: 'E/c♯', pitchClass: 4, noteLabels: buildKeyNoteLabels(4, ['E', 'F♯', 'G♯', 'A', 'B', 'C♯', 'D♯']) },
+    { label: 'B/g♯', pitchClass: 11, noteLabels: buildKeyNoteLabels(11, ['B', 'C♯', 'D♯', 'E', 'F♯', 'G♯', 'A♯']) },
+    { label: 'F♯/d♯', pitchClass: 6, noteLabels: buildKeyNoteLabels(6, ['F♯', 'G♯', 'A♯', 'B', 'C♯', 'D♯', 'E♯']) },
+    { label: 'C♯/a♯', pitchClass: 1, noteLabels: buildKeyNoteLabels(1, ['C♯', 'D♯', 'E♯', 'F♯', 'G♯', 'A♯', 'B♯']) },
 ] as const satisfies readonly KeyOption[];
 
 export type KeyLabel = typeof KEY_OPTIONS[number]['label'];
@@ -84,7 +179,7 @@ export const TUNINGS = [
 export type TuningId = typeof TUNINGS[number]['id'];
 
 export function getPitchClass(midi: number) {
-    return ((midi % NOTE_COUNT) + NOTE_COUNT) % NOTE_COUNT;
+    return ((midi % PITCH_CLASS_COUNT) + PITCH_CLASS_COUNT) % PITCH_CLASS_COUNT;
 }
 
 export function getOctave(midi: number) {
@@ -145,7 +240,7 @@ export function getNoteChordAnalyses(selectedPitchClasses: ReadonlySet<number>):
 
     const matches: NoteChordAnalysis[] = [];
 
-    CHROMATIC_NOTE_LABELS.forEach((_, rootPitchClass) => {
+    Array.from({ length: PITCH_CLASS_COUNT }, (_, rootPitchClass) => {
         for (const quality of CHORD_QUALITIES) {
             const pitchClasses = getChordOffsets(rootPitchClass, quality.id);
             const matchesSelection = pitchClasses.length === selectedPitchClasses.size
@@ -163,10 +258,6 @@ export function getNoteChordAnalyses(selectedPitchClasses: ReadonlySet<number>):
     });
 
     return matches;
-}
-
-export function getNoteLabels() {
-    return [...CHROMATIC_NOTE_LABELS];
 }
 
 export function isChordQualityId(value: string): value is ChordQualityId {
