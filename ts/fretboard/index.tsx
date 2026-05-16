@@ -99,14 +99,15 @@ export default function Fretboard() {
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
     const [buildQuality, setBuildQuality] = useState<QualityId | null>(null);
     const stringGap = (RIGHT - LEFT) / (STRING_COUNT - 1);
-    const fretGap = (BOTTOM - TOP) / FRET_COUNT;
+    const visibleScaleRatio = 1 - 1 / (2 ** (FRET_COUNT / 12));
+    const scaleLen = (BOTTOM - TOP) / visibleScaleRatio;
     const selectedKeyOption = KEYS.find((key) => key.label === selectedKeyLabel)
         ?? KEYS[0];
     const selectedKey = selectedKeyOption.pitchClass;
     const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
         ?? TUNINGS[0];
     const noteLabels = selectedKeyOption.noteLabels;
-    const capoY = TOP + selectedCapoFret * fretGap;
+    const capoY = fretY(selectedCapoFret);
     const selectedPitchClasses = useMemo(() => {
         const pitchClasses = new Set(selectedNotes);
 
@@ -167,11 +168,11 @@ export default function Fretboard() {
                     octave: octave(midi),
                     label: selectedDegreeLabels.get(pitchClass) ?? noteLabels[pitchClass],
                     x: LEFT + stringIndex * stringGap,
-                    y: fret === 0 ? TOP - 34 : TOP + (fret - 0.5) * fretGap,
+                    y: noteY(fret),
                 };
             });
         });
-    }, [fretGap, noteLabels, selectedDegreeLabels, selectedKey, selectedTuning, stringGap]);
+    }, [noteLabels, scaleLen, selectedDegreeLabels, selectedKey, selectedTuning, stringGap]);
     const visibleNotes = useMemo<FretboardNote[]>(() => {
         return fretboardPositions.filter((note) => selectedPitchClasses.has(note.pitchClass));
     }, [fretboardPositions, selectedPitchClasses]);
@@ -239,6 +240,18 @@ export default function Fretboard() {
 
     function changeCapo(event: ChangeEvent<HTMLSelectElement>) {
         setSelectedCapoFret(Number(event.target.value));
+    }
+
+    function fretY(fret: number) {
+        return TOP + scaleLen * (1 - 1 / (2 ** (fret / 12)));
+    }
+
+    function noteY(fret: number) {
+        if (fret === 0) {
+            return TOP - 34;
+        }
+
+        return (fretY(fret - 1) + fretY(fret)) / 2;
     }
 
     function finishChord(root: BuildRoot | null, quality: QualityId | null) {
@@ -362,7 +375,7 @@ export default function Fretboard() {
                     rx="6"
                 />
                 {frets.map((fret) => {
-                    const y = TOP + fret * fretGap;
+                    const y = fretY(fret);
                     return (
                         <line
                             key={fret}
