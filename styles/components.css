@@ -328,7 +328,7 @@ html[data-theme='dark'] .app-input::placeholder {
 }
 
 .fretboard-aligned-controls--building {
-  grid-template-columns: minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem);
+  grid-template-columns: minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem) minmax(4.4rem, 5.5rem);
 }
 
 .fretboard-aligned-header {
