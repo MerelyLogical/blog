@@ -31,6 +31,10 @@ const BOTTOM = 904;
 const strings = Array.from({ length: STRING_COUNT }, (_, index) => index);
 const frets = Array.from({ length: FRET_COUNT + 1 }, (_, index) => index);
 const capoFrets = Array.from({ length: 8 }, (_, index) => index);
+const baseQualityIds: readonly QualityId[] = ['major', 'minor', 'dim', 'aug', 'sus2', 'sus4', '6', 'm6', 'add9'];
+const seventhQualityIds: readonly QualityId[] = ['7', 'maj7', 'min7', 'minmaj7', 'dim7', 'm7b5', '9', 'M9', 'm9'];
+const baseQualities = baseQualityIds.map((id) => QUALITIES.find((quality) => quality.id === id) ?? QUALITIES[0]);
+const seventhQualities = seventhQualityIds.map((id) => QUALITIES.find((quality) => quality.id === id) ?? QUALITIES[0]);
 
 type ControlRow = {
     pitchClass: number;
@@ -503,6 +507,7 @@ export default function Fretboard() {
                         <div className="fretboard-aligned-header">Degree</div>
                         <div className="fretboard-aligned-header">Note</div>
                         {isBuildingChord && <div className="fretboard-aligned-header">Quality</div>}
+                        {isBuildingChord && <div className="fretboard-aligned-header">7th</div>}
                         {controlRows.map((row) => (
                             <Fragment key={row.pitchClass}>
                                 <div className="fretboard-aligned-cell">
@@ -517,7 +522,12 @@ export default function Fretboard() {
                                 </div>
                                 {isBuildingChord && (
                                     <div className="fretboard-aligned-cell">
-                                        {QUALITIES[row.degree] ? qualityToggle(QUALITIES[row.degree]) : null}
+                                        {baseQualities[row.degree] ? qualityToggle(baseQualities[row.degree]) : null}
+                                    </div>
+                                )}
+                                {isBuildingChord && (
+                                    <div className="fretboard-aligned-cell">
+                                        {seventhQualities[row.degree] ? qualityToggle(seventhQualities[row.degree]) : null}
                                     </div>
                                 )}
                             </Fragment>

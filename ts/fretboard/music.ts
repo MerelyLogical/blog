@@ -113,12 +113,18 @@ export const QUALITIES = [
     { id: 'aug',     label: 'aug',   suffix: 'aug',   sup: '+',    romanCase: 'upper', intervals: [0, 4, 8] },
     { id: 'sus2',    label: 'sus2',  suffix: 'sus2',  sup: 'sus2', romanCase: 'upper', intervals: [0, 2, 7] },
     { id: 'sus4',    label: 'sus4',  suffix: 'sus4',  sup: 'sus4', romanCase: 'upper', intervals: [0, 5, 7] },
+    { id: '6',       label: '6',     suffix: '6',     sup: '6',    romanCase: 'upper', intervals: [0, 4, 7, 9] },
+    { id: 'm6',      label: 'm6',    suffix: 'm6',    sup: '6',    romanCase: 'lower', intervals: [0, 3, 7, 9] },
     { id: '7',       label: '7',     suffix: '7',     sup: '7',    romanCase: 'upper', intervals: [0, 4, 7, 10], matches: [[0, 4, 7, 10], [0, 4, 10]] },
     { id: 'maj7',    label: 'M7',    suffix: 'M7',    sup: '∆7',   romanCase: 'upper', intervals: [0, 4, 7, 11], matches: [[0, 4, 7, 11], [0, 4, 11]] },
     { id: 'min7',    label: 'm7',    suffix: 'm7',    sup: '7',    romanCase: 'lower', intervals: [0, 3, 7, 10], matches: [[0, 3, 7, 10], [0, 3, 10]] },
     { id: 'minmaj7', label: 'mM7',   suffix: 'mM7',   sup: '∆7',   romanCase: 'lower', intervals: [0, 3, 7, 11], matches: [[0, 3, 7, 11], [0, 3, 11]] },
     { id: 'dim7',    label: 'dim7',  suffix: 'dim7',  sup: 'o7',   romanCase: 'lower', intervals: [0, 3, 6, 9] },
     { id: 'm7b5',    label: 'm7♭5',  suffix: 'm7♭5',  sup: 'ø7',   romanCase: 'lower', intervals: [0, 3, 6, 10] },
+    { id: 'add9',    label: 'add9',  suffix: 'add9',  sup: 'add9', romanCase: 'upper', intervals: [0, 2, 4, 7] },
+    { id: '9',       label: '9',     suffix: '9',     sup: '9',    romanCase: 'upper', intervals: [0, 2, 4, 7, 10], matches: [[0, 2, 4, 7, 10], [0, 2, 4, 10]] },
+    { id: 'M9',      label: 'M9',    suffix: 'M9',    sup: '∆9',   romanCase: 'upper', intervals: [0, 2, 4, 7, 11], matches: [[0, 2, 4, 7, 11], [0, 2, 4, 11]] },
+    { id: 'm9',      label: 'm9',    suffix: 'm9',    sup: '9',    romanCase: 'lower', intervals: [0, 2, 3, 7, 10], matches: [[0, 2, 3, 7, 10], [0, 2, 3, 10]] },
 ] as const;
 
 export type QualityId = typeof QUALITIES[number]['id'];
