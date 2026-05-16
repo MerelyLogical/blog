@@ -242,7 +242,7 @@ html[data-theme='dark'] .app-input::placeholder {
   display: grid;
   grid-template-columns: minmax(240px, 360px) minmax(220px, 1fr);
   align-items: start;
-  gap: 1.25rem;
+  gap: 2rem;
   margin: 1.5rem 0;
   color: var(--app-text-color);
 }

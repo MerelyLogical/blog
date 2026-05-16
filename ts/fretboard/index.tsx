@@ -23,8 +23,8 @@ const FRET_COUNT = 12;
 
 const VIEWBOX_WIDTH = 320;
 const VIEWBOX_HEIGHT = 960;
-const LEFT = 48;
-const RIGHT = 272;
+const LEFT = 68;
+const RIGHT = 252;
 const TOP = 76;
 const BOTTOM = 904;
 

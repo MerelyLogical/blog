@@ -146,6 +146,7 @@ export const CHORD_QUALITIES = [
     { id: 'aug', label: 'Aug', intervals: [0, 4, 8], noteSuffix: 'aug', romanSuperscript: '+', romanNumeralCase: 'upper' },
     { id: 'sus2', label: 'Sus2', intervals: [0, 2, 7], noteSuffix: 'sus2', romanSuperscript: 'sus2', romanNumeralCase: 'upper' },
     { id: 'sus4', label: 'Sus4', intervals: [0, 5, 7], noteSuffix: 'sus4', romanSuperscript: 'sus4', romanNumeralCase: 'upper' },
+    { id: '7', label: '7', intervals: [0, 4, 7, 10], analysisIntervals: [[0, 4, 7, 10], [0, 4, 10]], noteSuffix: '7', romanSuperscript: '7', romanNumeralCase: 'upper' },
 ] as const;
 
 export type ChordQualityId = typeof CHORD_QUALITIES[number]['id'];
@@ -153,7 +154,7 @@ export type ChordQualityId = typeof CHORD_QUALITIES[number]['id'];
 export type ChordSelection = {
     rootId: ChordRootId;
     qualityId: ChordQualityId;
-    degrees: readonly [number, number, number];
+    degrees: readonly number[];
 };
 
 export type DegreeChordAnalysis = ChordSelection & {
@@ -164,7 +165,7 @@ export type NoteChordAnalysis = {
     rootPitchClass: number;
     rootOffset: number;
     qualityId: ChordQualityId;
-    pitchClasses: readonly [number, number, number];
+    pitchClasses: readonly number[];
 };
 
 export type Tuning = {
@@ -201,32 +202,44 @@ export function getChordDegrees(rootId: ChordRootId, qualityId: ChordQualityId) 
 export function getChordOffsets(rootOffset: number, qualityId: ChordQualityId) {
     const quality = CHORD_QUALITIES.find((option) => option.id === qualityId) ?? CHORD_QUALITIES[0];
 
-    return [
-        getScalePitchClass(rootOffset, quality.intervals[0]),
-        getScalePitchClass(rootOffset, quality.intervals[1]),
-        getScalePitchClass(rootOffset, quality.intervals[2]),
-    ] as const;
+    return quality.intervals.map((interval) => getScalePitchClass(rootOffset, interval));
+}
+
+function getAnalysisIntervalSets(quality: typeof CHORD_QUALITIES[number]) {
+    return 'analysisIntervals' in quality ? quality.analysisIntervals : [quality.intervals];
+}
+
+function getIntervalPitchClasses(rootPitchClass: number, intervals: readonly number[]) {
+    return intervals.map((interval) => getScalePitchClass(rootPitchClass, interval));
+}
+
+function matchesPitchClassSet(
+    selectedPitchClasses: ReadonlySet<number>,
+    pitchClasses: readonly number[],
+) {
+    return pitchClasses.length === selectedPitchClasses.size
+        && pitchClasses.every((pitchClass) => selectedPitchClasses.has(pitchClass));
 }
 
 export function getDegreeChordAnalyses(selectedDegrees: ReadonlySet<number>): DegreeChordAnalysis[] {
-    if (selectedDegrees.size !== 3) {
-        return [];
-    }
-
     const matches: DegreeChordAnalysis[] = [];
 
     for (const root of CHORD_ROOTS) {
         for (const quality of CHORD_QUALITIES) {
-            const degrees = getChordDegrees(root.id, quality.id);
-            const matchesSelection = degrees.length === selectedDegrees.size
-                && degrees.every((degree) => selectedDegrees.has(degree));
+            const analysisIntervalSets = getAnalysisIntervalSets(quality);
+            const matchedIntervals = analysisIntervalSets.find((intervals) => {
+                return matchesPitchClassSet(
+                    selectedDegrees,
+                    getIntervalPitchClasses(root.degreeOffset, intervals),
+                );
+            });
 
-            if (matchesSelection) {
+            if (matchedIntervals) {
                 matches.push({
                     rootId: root.id,
                     qualityId: quality.id,
                     rootOffset: root.degreeOffset,
-                    degrees,
+                    degrees: getIntervalPitchClasses(root.degreeOffset, matchedIntervals),
                 });
             }
         }
@@ -236,24 +249,24 @@ export function getDegreeChordAnalyses(selectedDegrees: ReadonlySet<number>): De
 }
 
 export function getNoteChordAnalyses(selectedPitchClasses: ReadonlySet<number>): NoteChordAnalysis[] {
-    if (selectedPitchClasses.size !== 3) {
-        return [];
-    }
-
     const matches: NoteChordAnalysis[] = [];
 
     Array.from({ length: PITCH_CLASS_COUNT }, (_, rootPitchClass) => {
         for (const quality of CHORD_QUALITIES) {
-            const pitchClasses = getChordOffsets(rootPitchClass, quality.id);
-            const matchesSelection = pitchClasses.length === selectedPitchClasses.size
-                && pitchClasses.every((pitchClass) => selectedPitchClasses.has(pitchClass));
+            const analysisIntervalSets = getAnalysisIntervalSets(quality);
+            const matchedIntervals = analysisIntervalSets.find((intervals) => {
+                return matchesPitchClassSet(
+                    selectedPitchClasses,
+                    getIntervalPitchClasses(rootPitchClass, intervals),
+                );
+            });
 
-            if (matchesSelection) {
+            if (matchedIntervals) {
                 matches.push({
                     rootPitchClass,
                     rootOffset: rootPitchClass,
                     qualityId: quality.id,
-                    pitchClasses,
+                    pitchClasses: getIntervalPitchClasses(rootPitchClass, matchedIntervals),
                 });
             }
         }
