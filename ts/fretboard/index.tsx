@@ -30,6 +30,7 @@ const BOTTOM = 904;
 
 const strings = Array.from({ length: STRING_COUNT }, (_, index) => index);
 const frets = Array.from({ length: FRET_COUNT + 1 }, (_, index) => index);
+const capoFrets = Array.from({ length: 8 }, (_, index) => index);
 
 type ControlRow = {
     pitchClass: number;
@@ -93,6 +94,7 @@ function TogglePill({
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
+    const [selectedCapoFret, setSelectedCapoFret] = useState(0);
     const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C/a');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const [isBuildingChord, setIsBuildingChord] = useState(false);
@@ -106,6 +108,7 @@ export default function Fretboard() {
     const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
         ?? TUNINGS[0];
     const noteLabels = selectedKeyOption.noteLabels;
+    const capoY = TOP + selectedCapoFret * fretGap;
     const selectedPitchClasses = useMemo(() => {
         const pitchClasses = new Set(selectedNotes);
 
@@ -263,6 +266,10 @@ export default function Fretboard() {
         setSelectedTuningId(event.target.value as TuningId);
     }
 
+    function handleCapoChange(event: ChangeEvent<HTMLSelectElement>) {
+        setSelectedCapoFret(Number(event.target.value));
+    }
+
     function buildChordIfReady(root: BuildRoot | null, quality: ChordQualityId | null) {
         if (!root || !quality) {
             return;
@@ -411,6 +418,25 @@ export default function Fretboard() {
                         />
                     );
                 })}
+                {selectedCapoFret > 0 && (
+                    <g className="fretboard-capo-marker" aria-label={`Capo at fret ${selectedCapoFret}`}>
+                        <rect
+                            className="fretboard-capo-bar"
+                            x={LEFT - 30}
+                            y={capoY - 8}
+                            width={RIGHT - LEFT + 60}
+                            height="16"
+                            rx="8"
+                        />
+                        <text
+                            className="fretboard-capo-label"
+                            x={LEFT - 36}
+                            y={capoY}
+                        >
+                            {selectedCapoFret}
+                        </text>
+                    </g>
+                )}
                 {fretboardPositions.map((position) => (
                     <circle
                         key={position.id}
@@ -467,6 +493,21 @@ export default function Fretboard() {
                                 {TUNINGS.map((tuning) => (
                                     <option key={tuning.id} value={tuning.id}>
                                         {tuning.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="fretboard-key-select-label" htmlFor="fretboard-capo">
+                            Capo
+                            <select
+                                id="fretboard-capo"
+                                className="app-input app-input--compact fretboard-key-select"
+                                value={selectedCapoFret}
+                                onChange={handleCapoChange}
+                            >
+                                {capoFrets.map((fret) => (
+                                    <option key={fret} value={fret}>
+                                        {fret === 0 ? 'None' : fret}
                                     </option>
                                 ))}
                             </select>

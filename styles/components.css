@@ -400,6 +400,23 @@ html[data-theme='dark'] .app-input::placeholder {
   stroke-width: 2.5;
 }
 
+.fretboard-capo-marker {
+  pointer-events: none;
+}
+
+.fretboard-capo-bar {
+  fill: var(--app-text-color);
+  opacity: 0.86;
+}
+
+.fretboard-capo-label {
+  fill: var(--app-text-color);
+  font-size: 14px;
+  font-weight: 800;
+  text-anchor: end;
+  dominant-baseline: central;
+}
+
 .fretboard-click-target {
   fill: transparent;
   stroke: transparent;
