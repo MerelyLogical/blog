@@ -362,10 +362,31 @@ html[data-theme='dark'] .app-input::placeholder {
 }
 
 .fretboard-chord-analysis {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem;
+  align-items: start;
   color: var(--app-text-muted);
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.35;
+}
+
+.fretboard-chord-analysis-list {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+}
+
+.fretboard-chord-analysis-row {
+  display: inline-grid;
+  grid-template-columns: 3.25rem max-content;
+  gap: 0.45rem;
+  align-items: baseline;
+}
+
+.fretboard-chord-analysis-roman {
+  font-weight: 700;
 }
 
 .fretboard-svg {

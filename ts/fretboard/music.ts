@@ -140,10 +140,12 @@ export const CHORD_ROOTS = [
 export type ChordRootId = typeof CHORD_ROOTS[number]['id'];
 
 export const CHORD_QUALITIES = [
-    { id: 'major', label: 'Major', intervals: [0, 4, 7] },
-    { id: 'minor', label: 'Minor', intervals: [0, 3, 7] },
-    { id: 'dim', label: 'Dim', intervals: [0, 3, 6] },
-    { id: 'aug', label: 'Aug', intervals: [0, 4, 8] },
+    { id: 'major', label: 'Major', intervals: [0, 4, 7], noteSuffix: 'maj', romanSuperscript: null, romanNumeralCase: 'upper' },
+    { id: 'minor', label: 'Minor', intervals: [0, 3, 7], noteSuffix: 'min', romanSuperscript: null, romanNumeralCase: 'lower' },
+    { id: 'dim', label: 'Dim', intervals: [0, 3, 6], noteSuffix: 'dim', romanSuperscript: 'o', romanNumeralCase: 'lower' },
+    { id: 'aug', label: 'Aug', intervals: [0, 4, 8], noteSuffix: 'aug', romanSuperscript: '+', romanNumeralCase: 'upper' },
+    { id: 'sus2', label: 'Sus2', intervals: [0, 2, 7], noteSuffix: 'sus2', romanSuperscript: 'sus2', romanNumeralCase: 'upper' },
+    { id: 'sus4', label: 'Sus4', intervals: [0, 5, 7], noteSuffix: 'sus4', romanSuperscript: 'sus4', romanNumeralCase: 'upper' },
 ] as const;
 
 export type ChordQualityId = typeof CHORD_QUALITIES[number]['id'];

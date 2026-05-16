@@ -119,12 +119,12 @@ export default function Fretboard() {
         return pitchClasses;
     }, [selectedDegrees, selectedKey, selectedNotes]);
     const chordAnalyses = useMemo(() => {
-        function getRomanLabel(rootOffset: number, qualityId: ChordQualityId) {
+        function getRomanLabel(rootOffset: number, romanNumeralCase: 'lower' | 'upper') {
             const romanLabel = CHROMATIC_ROMAN_LABELS[rootOffset];
             const accidentalMatch = romanLabel.match(/^[♯♭]+/)?.[0] ?? '';
             const numeral = romanLabel.slice(accidentalMatch.length);
 
-            if (qualityId === 'minor' || qualityId === 'dim') {
+            if (romanNumeralCase === 'lower') {
                 return `${accidentalMatch}${numeral.toLowerCase()}`;
             }
 
@@ -132,23 +132,13 @@ export default function Fretboard() {
         }
 
         function formatAnalysis(analysis: ChordAnalysisDisplay): FormattedChordAnalysis {
-            const noteSuffixes: Record<ChordQualityId, string> = {
-                major: 'maj',
-                minor: 'min',
-                aug: 'aug',
-                dim: 'dim',
-            };
-            const romanSuperscripts: Record<ChordQualityId, string | null> = {
-                major: null,
-                minor: null,
-                aug: '+',
-                dim: 'o',
-            };
+            const quality = CHORD_QUALITIES.find((option) => option.id === analysis.qualityId)
+                ?? CHORD_QUALITIES[0];
 
             return {
-                roman: getRomanLabel(analysis.rootOffset, analysis.qualityId),
-                romanSuperscript: romanSuperscripts[analysis.qualityId],
-                note: `${noteLabels[analysis.rootPitchClass]}${noteSuffixes[analysis.qualityId]}`,
+                roman: getRomanLabel(analysis.rootOffset, quality.romanNumeralCase),
+                romanSuperscript: quality.romanSuperscript,
+                note: `${noteLabels[analysis.rootPitchClass]}${quality.noteSuffix}`,
             };
         }
 
@@ -317,15 +307,13 @@ export default function Fretboard() {
         }
 
         return chordAnalyses.map((analysis, index) => (
-            <Fragment key={`${analysis.roman}-${analysis.note}-${index}`}>
-                {index > 0 && ', '}
-                <span>
+            <div className="fretboard-chord-analysis-row" key={`${analysis.roman}-${analysis.note}-${index}`}>
+                <span className="fretboard-chord-analysis-roman">
                     {analysis.roman}
                     {analysis.romanSuperscript && <sup>{analysis.romanSuperscript}</sup>}
-                    {' / '}
-                    {analysis.note}
                 </span>
-            </Fragment>
+                <span className="fretboard-chord-analysis-note">{analysis.note}</span>
+            </div>
         ));
     }
 
@@ -580,7 +568,10 @@ export default function Fretboard() {
                         </div>
                     )}
                     <div className="fretboard-chord-analysis" aria-live="polite">
-                        Chord: {renderChordAnalysis()}
+                        <span className="fretboard-chord-analysis-label">Chord:</span>
+                        <div className="fretboard-chord-analysis-list">
+                            {renderChordAnalysis()}
+                        </div>
                     </div>
                 </div>
             </div>
