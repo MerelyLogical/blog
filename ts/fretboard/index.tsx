@@ -6,13 +6,12 @@ import {
     CHROMATIC_ROMAN_LABELS,
     CHORD_QUALITIES,
     getChordOffsets,
-    getNoteLabels,
     getNoteChordAnalyses,
     getOctave,
     getPitchClass,
     getScalePitchClass,
-    NOTES,
     KEY_OPTIONS,
+    PITCH_CLASS_COUNT,
     TUNINGS,
     toggleSetValue,
 } from './music';
@@ -24,13 +23,14 @@ const FRET_COUNT = 12;
 
 const VIEWBOX_WIDTH = 320;
 const VIEWBOX_HEIGHT = 960;
-const LEFT = 48;
-const RIGHT = 272;
+const LEFT = 68;
+const RIGHT = 252;
 const TOP = 76;
 const BOTTOM = 904;
 
 const strings = Array.from({ length: STRING_COUNT }, (_, index) => index);
 const frets = Array.from({ length: FRET_COUNT + 1 }, (_, index) => index);
+const capoFrets = Array.from({ length: 8 }, (_, index) => index);
 
 type ControlRow = {
     pitchClass: number;
@@ -94,7 +94,8 @@ function TogglePill({
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
-    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C');
+    const [selectedCapoFret, setSelectedCapoFret] = useState(0);
+    const [selectedKeyLabel, setSelectedKeyLabel] = useState<KeyLabel>('C/a');
     const [selectedDegrees, setSelectedDegrees] = useState<Set<number>>(new Set());
     const [isBuildingChord, setIsBuildingChord] = useState(false);
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
@@ -106,9 +107,8 @@ export default function Fretboard() {
     const selectedKey = selectedKeyOption.pitchClass;
     const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
         ?? TUNINGS[0];
-    const noteLabels = useMemo(() => {
-        return getNoteLabels();
-    }, []);
+    const noteLabels = selectedKeyOption.noteLabels;
+    const capoY = TOP + selectedCapoFret * fretGap;
     const selectedPitchClasses = useMemo(() => {
         const pitchClasses = new Set(selectedNotes);
 
@@ -119,12 +119,12 @@ export default function Fretboard() {
         return pitchClasses;
     }, [selectedDegrees, selectedKey, selectedNotes]);
     const chordAnalyses = useMemo(() => {
-        function getRomanLabel(rootOffset: number, qualityId: ChordQualityId) {
+        function getRomanLabel(rootOffset: number, romanNumeralCase: 'lower' | 'upper') {
             const romanLabel = CHROMATIC_ROMAN_LABELS[rootOffset];
             const accidentalMatch = romanLabel.match(/^[♯♭]+/)?.[0] ?? '';
             const numeral = romanLabel.slice(accidentalMatch.length);
 
-            if (qualityId === 'minor' || qualityId === 'dim') {
+            if (romanNumeralCase === 'lower') {
                 return `${accidentalMatch}${numeral.toLowerCase()}`;
             }
 
@@ -132,23 +132,13 @@ export default function Fretboard() {
         }
 
         function formatAnalysis(analysis: ChordAnalysisDisplay): FormattedChordAnalysis {
-            const noteSuffixes: Record<ChordQualityId, string> = {
-                major: 'maj',
-                minor: 'min',
-                aug: 'aug',
-                dim: 'dim',
-            };
-            const romanSuperscripts: Record<ChordQualityId, string | null> = {
-                major: null,
-                minor: null,
-                aug: '+',
-                dim: 'o',
-            };
+            const quality = CHORD_QUALITIES.find((option) => option.id === analysis.qualityId)
+                ?? CHORD_QUALITIES[0];
 
             return {
-                roman: getRomanLabel(analysis.rootOffset, analysis.qualityId),
-                romanSuperscript: romanSuperscripts[analysis.qualityId],
-                note: `${noteLabels[analysis.rootPitchClass]}${noteSuffixes[analysis.qualityId]}`,
+                roman: getRomanLabel(analysis.rootOffset, quality.romanNumeralCase),
+                romanSuperscript: quality.romanSuperscript,
+                note: `${noteLabels[analysis.rootPitchClass]}${quality.noteSuffix}`,
             };
         }
 
@@ -170,7 +160,7 @@ export default function Fretboard() {
         return labels;
     }, [selectedDegrees, selectedKey]);
     const controlRows = useMemo<ControlRow[]>(() => {
-        return Array.from({ length: NOTES.length }, (_, offset) => {
+        return Array.from({ length: PITCH_CLASS_COUNT }, (_, offset) => {
             const pitchClass = getScalePitchClass(selectedKey, offset);
 
             return {
@@ -190,7 +180,7 @@ export default function Fretboard() {
                 return {
                     id: `${stringIndex}-${fret}`,
                     fret,
-                    note: NOTES[pitchClass],
+                    note: noteLabels[pitchClass],
                     pitchClass,
                     degree,
                     octave: getOctave(midi),
@@ -266,6 +256,10 @@ export default function Fretboard() {
         setSelectedTuningId(event.target.value as TuningId);
     }
 
+    function handleCapoChange(event: ChangeEvent<HTMLSelectElement>) {
+        setSelectedCapoFret(Number(event.target.value));
+    }
+
     function buildChordIfReady(root: BuildRoot | null, quality: ChordQualityId | null) {
         if (!root || !quality) {
             return;
@@ -313,15 +307,13 @@ export default function Fretboard() {
         }
 
         return chordAnalyses.map((analysis, index) => (
-            <Fragment key={`${analysis.roman}-${analysis.note}-${index}`}>
-                {index > 0 && ', '}
-                <span>
+            <div className="fretboard-chord-analysis-row" key={`${analysis.roman}-${analysis.note}-${index}`}>
+                <span className="fretboard-chord-analysis-roman">
                     {analysis.roman}
                     {analysis.romanSuperscript && <sup>{analysis.romanSuperscript}</sup>}
-                    {' / '}
-                    {analysis.note}
                 </span>
-            </Fragment>
+                <span className="fretboard-chord-analysis-note">{analysis.note}</span>
+            </div>
         ));
     }
 
@@ -414,6 +406,25 @@ export default function Fretboard() {
                         />
                     );
                 })}
+                {selectedCapoFret > 0 && (
+                    <g className="fretboard-capo-marker" aria-label={`Capo at fret ${selectedCapoFret}`}>
+                        <rect
+                            className="fretboard-capo-bar"
+                            x={LEFT - 30}
+                            y={capoY - 8}
+                            width={RIGHT - LEFT + 60}
+                            height="16"
+                            rx="8"
+                        />
+                        <text
+                            className="fretboard-capo-label"
+                            x={LEFT - 36}
+                            y={capoY}
+                        >
+                            {selectedCapoFret}
+                        </text>
+                    </g>
+                )}
                 {fretboardPositions.map((position) => (
                     <circle
                         key={position.id}
@@ -470,6 +481,21 @@ export default function Fretboard() {
                                 {TUNINGS.map((tuning) => (
                                     <option key={tuning.id} value={tuning.id}>
                                         {tuning.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="fretboard-key-select-label" htmlFor="fretboard-capo">
+                            Capo
+                            <select
+                                id="fretboard-capo"
+                                className="app-input app-input--compact fretboard-key-select"
+                                value={selectedCapoFret}
+                                onChange={handleCapoChange}
+                            >
+                                {capoFrets.map((fret) => (
+                                    <option key={fret} value={fret}>
+                                        {fret === 0 ? 'None' : fret}
                                     </option>
                                 ))}
                             </select>
@@ -542,7 +568,10 @@ export default function Fretboard() {
                         </div>
                     )}
                     <div className="fretboard-chord-analysis" aria-live="polite">
-                        Chord: {renderChordAnalysis()}
+                        <span className="fretboard-chord-analysis-label">Chord:</span>
+                        <div className="fretboard-chord-analysis-list">
+                            {renderChordAnalysis()}
+                        </div>
                     </div>
                 </div>
             </div>
