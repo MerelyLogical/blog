@@ -109,44 +109,89 @@ function buildKeyNoteLabels(tonicPitchClass: number, majorScale: readonly string
 
 export const KEY_OPTIONS = [
     { label: 'C♭/a♭', pitchClass: 11, noteLabels: buildKeyNoteLabels(11, ['C♭', 'D♭', 'E♭', 'F♭', 'G♭', 'A♭', 'B♭']) },
-    { label: 'G♭/e♭', pitchClass: 6, noteLabels: buildKeyNoteLabels(6, ['G♭', 'A♭', 'B♭', 'C♭', 'D♭', 'E♭', 'F']) },
-    { label: 'D♭/b♭', pitchClass: 1, noteLabels: buildKeyNoteLabels(1, ['D♭', 'E♭', 'F', 'G♭', 'A♭', 'B♭', 'C']) },
-    { label: 'A♭/f', pitchClass: 8, noteLabels: buildKeyNoteLabels(8, ['A♭', 'B♭', 'C', 'D♭', 'E♭', 'F', 'G']) },
-    { label: 'E♭/c', pitchClass: 3, noteLabels: buildKeyNoteLabels(3, ['E♭', 'F', 'G', 'A♭', 'B♭', 'C', 'D']) },
-    { label: 'B♭/g', pitchClass: 10, noteLabels: buildKeyNoteLabels(10, ['B♭', 'C', 'D', 'E♭', 'F', 'G', 'A']) },
-    { label: 'F/d', pitchClass: 5, noteLabels: buildKeyNoteLabels(5, ['F', 'G', 'A', 'B♭', 'C', 'D', 'E']) },
-    { label: 'C/a', pitchClass: 0, noteLabels: buildKeyNoteLabels(0, ['C', 'D', 'E', 'F', 'G', 'A', 'B']) },
-    { label: 'G/e', pitchClass: 7, noteLabels: buildKeyNoteLabels(7, ['G', 'A', 'B', 'C', 'D', 'E', 'F♯']) },
-    { label: 'D/b', pitchClass: 2, noteLabels: buildKeyNoteLabels(2, ['D', 'E', 'F♯', 'G', 'A', 'B', 'C♯']) },
-    { label: 'A/f♯', pitchClass: 9, noteLabels: buildKeyNoteLabels(9, ['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯']) },
-    { label: 'E/c♯', pitchClass: 4, noteLabels: buildKeyNoteLabels(4, ['E', 'F♯', 'G♯', 'A', 'B', 'C♯', 'D♯']) },
-    { label: 'B/g♯', pitchClass: 11, noteLabels: buildKeyNoteLabels(11, ['B', 'C♯', 'D♯', 'E', 'F♯', 'G♯', 'A♯']) },
-    { label: 'F♯/d♯', pitchClass: 6, noteLabels: buildKeyNoteLabels(6, ['F♯', 'G♯', 'A♯', 'B', 'C♯', 'D♯', 'E♯']) },
-    { label: 'C♯/a♯', pitchClass: 1, noteLabels: buildKeyNoteLabels(1, ['C♯', 'D♯', 'E♯', 'F♯', 'G♯', 'A♯', 'B♯']) },
+    { label: 'G♭/e♭', pitchClass: 6,  noteLabels: buildKeyNoteLabels(6,  ['G♭', 'A♭', 'B♭', 'C♭', 'D♭', 'E♭', 'F']) },
+    { label: 'D♭/b♭', pitchClass: 1,  noteLabels: buildKeyNoteLabels(1,  ['D♭', 'E♭', 'F', 'G♭', 'A♭', 'B♭', 'C']) },
+    { label: 'A♭/f',  pitchClass: 8,  noteLabels: buildKeyNoteLabels(8,  ['A♭', 'B♭', 'C', 'D♭', 'E♭', 'F', 'G']) },
+    { label: 'E♭/c',  pitchClass: 3,  noteLabels: buildKeyNoteLabels(3,  ['E♭', 'F', 'G', 'A♭', 'B♭', 'C', 'D']) },
+    { label: 'B♭/g',  pitchClass: 10, noteLabels: buildKeyNoteLabels(10, ['B♭', 'C', 'D', 'E♭', 'F', 'G', 'A']) },
+    { label: 'F/d',   pitchClass: 5,  noteLabels: buildKeyNoteLabels(5,  ['F', 'G', 'A', 'B♭', 'C', 'D', 'E']) },
+    { label: 'C/a',   pitchClass: 0,  noteLabels: buildKeyNoteLabels(0,  ['C', 'D', 'E', 'F', 'G', 'A', 'B']) },
+    { label: 'G/e',   pitchClass: 7,  noteLabels: buildKeyNoteLabels(7,  ['G', 'A', 'B', 'C', 'D', 'E', 'F♯']) },
+    { label: 'D/b',   pitchClass: 2,  noteLabels: buildKeyNoteLabels(2,  ['D', 'E', 'F♯', 'G', 'A', 'B', 'C♯']) },
+    { label: 'A/f♯',  pitchClass: 9,  noteLabels: buildKeyNoteLabels(9,  ['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯']) },
+    { label: 'E/c♯',  pitchClass: 4,  noteLabels: buildKeyNoteLabels(4,  ['E', 'F♯', 'G♯', 'A', 'B', 'C♯', 'D♯']) },
+    { label: 'B/g♯',  pitchClass: 11, noteLabels: buildKeyNoteLabels(11, ['B', 'C♯', 'D♯', 'E', 'F♯', 'G♯', 'A♯']) },
+    { label: 'F♯/d♯', pitchClass: 6,  noteLabels: buildKeyNoteLabels(6,  ['F♯', 'G♯', 'A♯', 'B', 'C♯', 'D♯', 'E♯']) },
+    { label: 'C♯/a♯', pitchClass: 1,  noteLabels: buildKeyNoteLabels(1,  ['C♯', 'D♯', 'E♯', 'F♯', 'G♯', 'A♯', 'B♯']) },
 ] as const satisfies readonly KeyOption[];
 
 export type KeyLabel = typeof KEY_OPTIONS[number]['label'];
 
 export const CHORD_ROOTS = [
-    { id: '0', label: 'I', degreeOffset: ROOT_DEGREE_OFFSETS[0] },
-    { id: '1', label: 'II', degreeOffset: ROOT_DEGREE_OFFSETS[1] },
+    { id: '0', label: 'I',   degreeOffset: ROOT_DEGREE_OFFSETS[0] },
+    { id: '1', label: 'II',  degreeOffset: ROOT_DEGREE_OFFSETS[1] },
     { id: '2', label: 'III', degreeOffset: ROOT_DEGREE_OFFSETS[2] },
-    { id: '3', label: 'IV', degreeOffset: ROOT_DEGREE_OFFSETS[3] },
-    { id: '4', label: 'V', degreeOffset: ROOT_DEGREE_OFFSETS[4] },
-    { id: '5', label: 'VI', degreeOffset: ROOT_DEGREE_OFFSETS[5] },
+    { id: '3', label: 'IV',  degreeOffset: ROOT_DEGREE_OFFSETS[3] },
+    { id: '4', label: 'V',   degreeOffset: ROOT_DEGREE_OFFSETS[4] },
+    { id: '5', label: 'VI',  degreeOffset: ROOT_DEGREE_OFFSETS[5] },
     { id: '6', label: 'VII', degreeOffset: ROOT_DEGREE_OFFSETS[6] },
 ] as const;
 
 export type ChordRootId = typeof CHORD_ROOTS[number]['id'];
 
 export const CHORD_QUALITIES = [
-    { id: 'major', label: 'Major', intervals: [0, 4, 7], noteSuffix: 'maj', romanSuperscript: null, romanNumeralCase: 'upper' },
-    { id: 'minor', label: 'Minor', intervals: [0, 3, 7], noteSuffix: 'min', romanSuperscript: null, romanNumeralCase: 'lower' },
-    { id: 'dim', label: 'Dim', intervals: [0, 3, 6], noteSuffix: 'dim', romanSuperscript: 'o', romanNumeralCase: 'lower' },
-    { id: 'aug', label: 'Aug', intervals: [0, 4, 8], noteSuffix: 'aug', romanSuperscript: '+', romanNumeralCase: 'upper' },
-    { id: 'sus2', label: 'Sus2', intervals: [0, 2, 7], noteSuffix: 'sus2', romanSuperscript: 'sus2', romanNumeralCase: 'upper' },
-    { id: 'sus4', label: 'Sus4', intervals: [0, 5, 7], noteSuffix: 'sus4', romanSuperscript: 'sus4', romanNumeralCase: 'upper' },
-    { id: '7', label: '7', intervals: [0, 4, 7, 10], analysisIntervals: [[0, 4, 7, 10], [0, 4, 10]], noteSuffix: '7', romanSuperscript: '7', romanNumeralCase: 'upper' },
+    {
+        id: 'major', label: 'major', intervals: [0, 4, 7],
+        noteSuffix: '', romanSuperscript: null, romanNumeralCase: 'upper',
+    },
+    {
+        id: 'minor', label: 'minor', intervals: [0, 3, 7],
+        noteSuffix: 'm', romanSuperscript: null, romanNumeralCase: 'lower',
+    },
+    {
+        id: 'dim', label: 'dim', intervals: [0, 3, 6],
+        noteSuffix: 'dim', romanSuperscript: 'o', romanNumeralCase: 'lower',
+    },
+    {
+        id: 'aug', label: 'aug', intervals: [0, 4, 8],
+        noteSuffix: 'aug', romanSuperscript: '+', romanNumeralCase: 'upper',
+    },
+    {
+        id: 'sus2', label: 'sus2', intervals: [0, 2, 7],
+        noteSuffix: 'sus2', romanSuperscript: 'sus2', romanNumeralCase: 'upper',
+    },
+    {
+        id: 'sus4', label: 'sus4', intervals: [0, 5, 7],
+        noteSuffix: 'sus4', romanSuperscript: 'sus4', romanNumeralCase: 'upper',
+    },
+    {
+        id: '7', label: '7', intervals: [0, 4, 7, 10],
+        analysisIntervals: [[0, 4, 7, 10], [0, 4, 10]],
+        noteSuffix: '7', romanSuperscript: '7', romanNumeralCase: 'upper',
+    },
+    {
+        id: 'maj7', label: 'M7', intervals: [0, 4, 7, 11],
+        analysisIntervals: [[0, 4, 7, 11], [0, 4, 11]],
+        noteSuffix: 'M7', romanSuperscript: '∆7', romanNumeralCase: 'upper',
+    },
+    {
+        id: 'min7', label: 'm7', intervals: [0, 3, 7, 10],
+        analysisIntervals: [[0, 3, 7, 10], [0, 3, 10]],
+        noteSuffix: 'm7', romanSuperscript: '7', romanNumeralCase: 'lower',
+    },
+    {
+        id: 'minmaj7', label: 'mM7', intervals: [0, 3, 7, 11],
+        analysisIntervals: [[0, 3, 7, 11], [0, 3, 11]],
+        noteSuffix: 'mM7', romanSuperscript: '∆7', romanNumeralCase: 'lower',
+    },
+    {
+        id: 'dim7', label: 'dim7', intervals: [0, 3, 6, 9],
+        noteSuffix: 'dim7', romanSuperscript: 'o7', romanNumeralCase: 'lower',
+    },
+    {
+        id: 'm7b5', label: 'm7♭5', intervals: [0, 3, 6, 10],
+        noteSuffix: 'm7♭5', romanSuperscript: 'ø7', romanNumeralCase: 'lower',
+    },
 ] as const;
 
 export type ChordQualityId = typeof CHORD_QUALITIES[number]['id'];
