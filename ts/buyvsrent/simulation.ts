@@ -1,18 +1,18 @@
-import type { BuyingSimulationResult, RentingSimulationResult } from './types.ts';
+import type { BuyVsRentInputs, BuyingSimulationResult, RentingSimulationResult } from './types.ts';
 
-export function simulateRenting(
-    months: number,
-    startingCash: number,
-    monthlyIncome: number,
-    monthlyExpenses: number,
-    monthlyRent: number,
-    yearlyRentIncreaseRatePercent: number,
-    yearlyReturnRatePercent: number
-): RentingSimulationResult {
+export function simulateRenting(months: number, inputs: BuyVsRentInputs): RentingSimulationResult {
+    const {
+        startingCash,
+        monthlyIncome,
+        monthlyExpenses,
+        monthlyRent,
+        yearlyRentIncreaseRate,
+        yearlyInvestmentReturnRate,
+    } = inputs;
     const series: number[] = [];
     let cash = startingCash;
-    const monthlyReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
-    const monthlyRentIncrease = getMonthlyReturnRate(yearlyRentIncreaseRatePercent);
+    const monthlyReturn = monthlyRate(yearlyInvestmentReturnRate);
+    const monthlyRentIncrease = monthlyRate(yearlyRentIncreaseRate);
     let currentMonthlyRent = monthlyRent;
 
     for (let month = 0; month < months; month++) {
@@ -28,41 +28,41 @@ export function simulateRenting(
     };
 }
 
-export function simulateBuying(
-    months: number,
-    startingCash: number,
-    monthlyIncome: number,
-    monthlyExpenses: number,
-    homePrice: number,
-    deposit: number,
-    oneTimeBuyingCost: number,
-    yearsToSellHouse: number,
-    sellingCostRatePercent: number,
-    mortgageRatePercent: number,
-    mortgageYears: number,
-    yearlyHomeAppreciationRatePercent: number,
-    annualOwnershipCostRatePercent: number,
-    yearlyReturnRatePercent: number
-): BuyingSimulationResult {
+export function simulateBuying(months: number, inputs: BuyVsRentInputs): BuyingSimulationResult {
+    const {
+        startingCash,
+        monthlyIncome,
+        monthlyExpenses,
+        homePrice,
+        deposit,
+        oneTimeBuyingCost,
+        yearsToSellHouse,
+        sellingCostRate,
+        mortgageRate,
+        mortgageYears,
+        yearlyHomeAppreciationRate,
+        annualOwnershipCostRate,
+        yearlyInvestmentReturnRate,
+    } = inputs;
     const totalSeries: number[] = [];
     const cashSeries: number[] = [];
     const houseSeries: number[] = [];
     const effectiveHomePrice = Math.max(0, homePrice);
     const effectiveDeposit = Math.min(startingCash, Math.max(0, deposit), effectiveHomePrice);
     const effectiveBuyingCost = Math.max(0, oneTimeBuyingCost);
-    const effectiveSellingCostRate = Math.max(0, sellingCostRatePercent) / 100;
+    const effectiveSellingCostRate = Math.max(0, sellingCostRate) / 100;
     const sellAfterMonths = Math.max(0, Math.floor(yearsToSellHouse * 12));
     const initialMortgage = effectiveHomePrice - effectiveDeposit;
-    const monthlyInvestmentReturn = getMonthlyReturnRate(yearlyReturnRatePercent);
-    const monthlyMortgageRate = getMonthlyReturnRate(mortgageRatePercent);
-    const monthlyHomeAppreciation = getMonthlyReturnRate(yearlyHomeAppreciationRatePercent);
+    const monthlyInvestmentReturn = monthlyRate(yearlyInvestmentReturnRate);
+    const monthlyMortgageRate = monthlyRate(mortgageRate);
+    const monthlyHomeAppreciation = monthlyRate(yearlyHomeAppreciationRate);
     const totalMortgageMonths = Math.floor(mortgageYears * 12);
-    const monthlyMortgagePayment = getMonthlyMortgagePayment(
+    const monthlyMortgagePayment = mortgagePayment(
         initialMortgage,
         monthlyMortgageRate,
         totalMortgageMonths
     );
-    const ownershipCostRate = Math.max(0, annualOwnershipCostRatePercent) / 100;
+    const ownershipCostRate = Math.max(0, annualOwnershipCostRate) / 100;
 
     let investedCash = startingCash - effectiveDeposit - effectiveBuyingCost;
     let mortgageBalance = initialMortgage;
@@ -75,21 +75,21 @@ export function simulateBuying(
         cashSeries.push(Number(investedCash.toFixed(2)));
         houseSeries.push(Number(houseEquity.toFixed(2)));
 
-        let mortgagePayment = 0;
+        let payment = 0;
         if (mortgageBalance > 0) {
             const mortgageInterest = mortgageBalance * monthlyMortgageRate;
             const mortgageDue = mortgageBalance + mortgageInterest;
             if (month < totalMortgageMonths - 1) {
-                mortgagePayment = monthlyMortgagePayment;
+                payment = monthlyMortgagePayment;
             } else if (month === totalMortgageMonths - 1) {
                 // Final scheduled month pays remaining balance to avoid drift.
-                mortgagePayment = mortgageDue;
+                payment = mortgageDue;
             }
-            mortgageBalance = mortgageDue - mortgagePayment;
+            mortgageBalance = mortgageDue - payment;
         }
 
         const ownershipCost = homeValue * ownershipCostRate / 12;
-        const investedAfterCashflow = investedCash + monthlyIncome - monthlyExpenses - mortgagePayment - ownershipCost;
+        const investedAfterCashflow = investedCash + monthlyIncome - monthlyExpenses - payment - ownershipCost;
         investedCash = investedAfterCashflow * (1 + monthlyInvestmentReturn);
         homeValue *= 1 + monthlyHomeAppreciation;
 
@@ -114,17 +114,17 @@ export function simulateBuying(
     };
 }
 
-export function getMonthlyReturnRate(yearlyReturnRatePercent: number) {
-    return (1 + yearlyReturnRatePercent / 100) ** (1 / 12) - 1;
+export function monthlyRate(yearlyRatePercent: number) {
+    return (1 + yearlyRatePercent / 100) ** (1 / 12) - 1;
 }
 
-function getMonthlyMortgagePayment(principal: number, monthlyRate: number, totalMonths: number) {
+function mortgagePayment(principal: number, rate: number, totalMonths: number) {
     if (totalMonths <= 0 || principal <= 0) {
         return 0;
     }
-    if (monthlyRate === 0) {
+    if (rate === 0) {
         return principal / totalMonths;
     }
-    const growth = (1 + monthlyRate) ** totalMonths;
-    return principal * (monthlyRate * growth) / (growth - 1);
+    const growth = (1 + rate) ** totalMonths;
+    return principal * (rate * growth) / (growth - 1);
 }

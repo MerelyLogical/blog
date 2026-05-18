@@ -45,59 +45,10 @@ function printSeriesCheck(label: string, actual: number[], expected: number[]) {
 
 const months = DEFAULT_INPUTS.yearsShown * 12;
 const comparisonMonths = DEFAULT_INPUTS.yearsToSellHouse * 12;
-const actualRenting = simulateRenting(
-    months,
-    DEFAULT_INPUTS.startingCash,
-    DEFAULT_INPUTS.monthlyIncome,
-    DEFAULT_INPUTS.monthlyExpenses,
-    DEFAULT_INPUTS.monthlyRent,
-    DEFAULT_INPUTS.yearlyRentIncreaseRate,
-    DEFAULT_INPUTS.yearlyInvestmentReturnRate
-);
-
-const actualRentingComparison = simulateRenting(
-    comparisonMonths,
-    DEFAULT_INPUTS.startingCash,
-    DEFAULT_INPUTS.monthlyIncome,
-    DEFAULT_INPUTS.monthlyExpenses,
-    DEFAULT_INPUTS.monthlyRent,
-    DEFAULT_INPUTS.yearlyRentIncreaseRate,
-    DEFAULT_INPUTS.yearlyInvestmentReturnRate
-);
-
-const actualBuying = simulateBuying(
-    months,
-    DEFAULT_INPUTS.startingCash,
-    DEFAULT_INPUTS.monthlyIncome,
-    DEFAULT_INPUTS.monthlyExpenses,
-    DEFAULT_INPUTS.homePrice,
-    DEFAULT_INPUTS.deposit,
-    DEFAULT_INPUTS.oneTimeBuyingCost,
-    DEFAULT_INPUTS.yearsToSellHouse,
-    DEFAULT_INPUTS.sellingCostRate,
-    DEFAULT_INPUTS.mortgageRate,
-    DEFAULT_INPUTS.mortgageYears,
-    DEFAULT_INPUTS.yearlyHomeAppreciationRate,
-    DEFAULT_INPUTS.annualOwnershipCostRate,
-    DEFAULT_INPUTS.yearlyInvestmentReturnRate
-);
-
-const actualBuyingComparison = simulateBuying(
-    comparisonMonths,
-    DEFAULT_INPUTS.startingCash,
-    DEFAULT_INPUTS.monthlyIncome,
-    DEFAULT_INPUTS.monthlyExpenses,
-    DEFAULT_INPUTS.homePrice,
-    DEFAULT_INPUTS.deposit,
-    DEFAULT_INPUTS.oneTimeBuyingCost,
-    DEFAULT_INPUTS.yearsToSellHouse,
-    DEFAULT_INPUTS.sellingCostRate,
-    DEFAULT_INPUTS.mortgageRate,
-    DEFAULT_INPUTS.mortgageYears,
-    DEFAULT_INPUTS.yearlyHomeAppreciationRate,
-    DEFAULT_INPUTS.annualOwnershipCostRate,
-    DEFAULT_INPUTS.yearlyInvestmentReturnRate
-);
+const actualRenting = simulateRenting(months, DEFAULT_INPUTS);
+const actualRentingComparison = simulateRenting(comparisonMonths, DEFAULT_INPUTS);
+const actualBuying = simulateBuying(months, DEFAULT_INPUTS);
+const actualBuyingComparison = simulateBuying(comparisonMonths, DEFAULT_INPUTS);
 
 const interpreted = evaluateBuyVsRentSpec(DEFAULT_INPUTS);
 const interpretedComparison = evaluateBuyVsRentSpec({
