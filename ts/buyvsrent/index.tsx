@@ -34,115 +34,23 @@ export function BuyVsRentChart() {
     const { axisLabels, fullLabels } = useMemo(() => createMonthLabels(chartMonths), [chartMonths]);
 
     const rentingChartResult = useMemo(
-        () => simulateRenting(
-            chartMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.monthlyRent,
-            inputs.yearlyRentIncreaseRate,
-            inputs.yearlyInvestmentReturnRate
-        ),
-        [
-            chartMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.monthlyRent,
-            inputs.yearlyRentIncreaseRate,
-            inputs.yearlyInvestmentReturnRate,
-        ]
+        () => simulateRenting(chartMonths, inputs),
+        [chartMonths, inputs]
     );
 
     const rentingComparisonResult = useMemo(
-        () => simulateRenting(
-            comparisonMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.monthlyRent,
-            inputs.yearlyRentIncreaseRate,
-            inputs.yearlyInvestmentReturnRate
-        ),
-        [
-            comparisonMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.monthlyRent,
-            inputs.yearlyRentIncreaseRate,
-            inputs.yearlyInvestmentReturnRate,
-        ]
+        () => simulateRenting(comparisonMonths, inputs),
+        [comparisonMonths, inputs]
     );
 
     const buyingChartResult = useMemo(
-        () => simulateBuying(
-            chartMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.homePrice,
-            inputs.deposit,
-            inputs.oneTimeBuyingCost,
-            inputs.yearsToSellHouse,
-            inputs.sellingCostRate,
-            inputs.mortgageRate,
-            inputs.mortgageYears,
-            inputs.yearlyHomeAppreciationRate,
-            inputs.annualOwnershipCostRate,
-            inputs.yearlyInvestmentReturnRate
-        ),
-        [
-            chartMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.homePrice,
-            inputs.deposit,
-            inputs.oneTimeBuyingCost,
-            inputs.yearsToSellHouse,
-            inputs.sellingCostRate,
-            inputs.mortgageRate,
-            inputs.mortgageYears,
-            inputs.yearlyHomeAppreciationRate,
-            inputs.annualOwnershipCostRate,
-            inputs.yearlyInvestmentReturnRate
-        ]
+        () => simulateBuying(chartMonths, inputs),
+        [chartMonths, inputs]
     );
 
     const buyingComparisonResult = useMemo(
-        () => simulateBuying(
-            comparisonMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.homePrice,
-            inputs.deposit,
-            inputs.oneTimeBuyingCost,
-            inputs.yearsToSellHouse,
-            inputs.sellingCostRate,
-            inputs.mortgageRate,
-            inputs.mortgageYears,
-            inputs.yearlyHomeAppreciationRate,
-            inputs.annualOwnershipCostRate,
-            inputs.yearlyInvestmentReturnRate
-        ),
-        [
-            comparisonMonths,
-            inputs.startingCash,
-            inputs.monthlyIncome,
-            inputs.monthlyExpenses,
-            inputs.homePrice,
-            inputs.deposit,
-            inputs.oneTimeBuyingCost,
-            inputs.yearsToSellHouse,
-            inputs.sellingCostRate,
-            inputs.mortgageRate,
-            inputs.mortgageYears,
-            inputs.yearlyHomeAppreciationRate,
-            inputs.annualOwnershipCostRate,
-            inputs.yearlyInvestmentReturnRate
-        ]
+        () => simulateBuying(comparisonMonths, inputs),
+        [comparisonMonths, inputs]
     );
 
     const rentingSeries = rentingChartResult.series;

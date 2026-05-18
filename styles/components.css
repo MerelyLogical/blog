@@ -294,7 +294,7 @@ html[data-theme='dark'] .app-input::placeholder {
   font-weight: 700;
 }
 
-.fretboard-note-toggle {
+.app-toggle-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -310,13 +310,13 @@ html[data-theme='dark'] .app-input::placeholder {
   cursor: pointer;
 }
 
-.fretboard-note-toggle--aligned {
+.app-toggle-pill--aligned {
   width: 100%;
   min-height: 2rem;
   margin: 0;
 }
 
-.fretboard-note-toggle input {
+.app-toggle-pill input {
   margin: 0;
 }
 

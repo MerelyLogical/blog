@@ -7,8 +7,10 @@ import {
     AGENT_HUE_VARIANCE,
     AGENT_LIGHTNESS_RANGE,
     AGENT_SATURATION_RANGE,
+    CENTER_BIAS,
     FIGHT_RANGE,
     FLEE_RANGE,
+    FINISH_SCAN,
     FLASH_DURATION,
     FIGHTER_STATS,
     HEAL_RATE,
@@ -394,6 +396,10 @@ function senseAgents(agents: Agent[]): Perception[] {
         let distance = Infinity;
         let nearestInFightRange: Agent | null = null;
         let distanceInFightRange = Infinity;
+        let finisher: Agent | null = null;
+        let finisherDist = Infinity;
+        // Tanks never flee, so they never need a finish-instead-of-flee target.
+        const dmg = agent.kind === 'tank' ? 0 : getAttackDamage(agent);
 
         for (const other of agents) {
             if (other.id === agent.id || other.health.hp <= 0) continue;
@@ -406,9 +412,13 @@ function senseAgents(agents: Agent[]): Perception[] {
                 distanceInFightRange = d;
                 nearestInFightRange = other;
             }
+            if (dmg > 0 && d <= FINISH_SCAN && other.health.hp <= dmg && d < finisherDist) {
+                finisherDist = d;
+                finisher = other;
+            }
         }
 
-        return { nearest, distance, nearestInFightRange };
+        return { nearest, distance, nearestInFightRange, finisher };
     });
 }
 
@@ -435,6 +445,10 @@ function decideState(agent: Agent, perception: Perception): AgentState {
     const lowHealth = agent.fleeHpThreshold >= 0 && agent.health.hp < agent.fleeHpThreshold;
     const enemyInFleeRange = !!nearestEnemy && perception.distance <= FLEE_RANGE;
     const shouldFlee = lowHealth && enemyInFleeRange;
+
+    // A near-dead enemy is one hit from death: finish it instead of fleeing or
+    // healing. Overrides every branch below (flee/heal can't otherwise reach fight).
+    if (perception.finisher) return 'fight';
 
     if (agent.state === 'flee') {
         if (!nearestEnemy || perception.distance > FLEE_RANGE) {
@@ -483,7 +497,9 @@ function chooseHeading(agent: Agent, perception: Perception, dt: number) {
     } else if (agent.state === 'idle') {
         agent.steering.directionTimer -= dt;
         if (agent.steering.directionTimer <= 0) {
-            heading = randRange(0, Math.PI * 2);
+            const wander = randRange(0, Math.PI * 2);
+            const toCenter = Math.atan2(HEIGHT / 2 - agent.y, WIDTH / 2 - agent.x);
+            heading = wander + wrapAngle(toCenter - wander) * CENTER_BIAS;
             agent.steering.directionTimer = randRange(0.75, 2.5);
         }
     }
@@ -594,12 +610,12 @@ function getMaxHp(agent: Agent) {
 
 function pickTarget(agent: Agent, perception: Perception) {
     if (agent.state !== 'fight') return null;
-    return perception.nearest;
+    return perception.finisher ?? perception.nearest;
 }
 
 function selectFightTarget(perception: Perception) {
     // TODO: refactor targeting into a proper behavior tree.
-    return perception.nearestInFightRange ?? perception.nearest;
+    return perception.finisher ?? perception.nearestInFightRange ?? perception.nearest;
 }
 
 function turnTowards(current: number, target: number, maxDelta: number) {

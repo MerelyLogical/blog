@@ -5,17 +5,21 @@ import {
     chordOffsets,
     DEGREE_LABELS,
     KEYS,
+    keyByLabel,
     noteChordAnalyses,
     octave,
     pc,
     PITCH_CLASS_COUNT,
     QUALITIES,
+    qualityById,
     romanLabel,
     scalePc,
     TUNINGS,
+    tuningById,
     toggleSet,
 } from './music';
 import type { KeyLabel, NoteChordAnalysis, QualityId, TuningId } from './music';
+import { TogglePill } from '@/ts/ui/TogglePill';
 
 const EMPTY = '-';
 const STRING_COUNT = 6;
@@ -28,13 +32,35 @@ const RIGHT = 252;
 const TOP = 76;
 const BOTTOM = 904;
 
+// Fractional distance from the nut to fret n, using equal-temperament spacing
+// (each octave halves the remaining string). The visible range is mapped onto a
+// longer implied scale so the drawn frets fill the board at real proportions.
+function fretFraction(n: number) {
+    return 1 - 2 ** (-n / 12);
+}
+
+const SCALE_LEN = (BOTTOM - TOP) / fretFraction(FRET_COUNT);
+const STRING_GAP = (RIGHT - LEFT) / (STRING_COUNT - 1);
+
+function fretY(fret: number) {
+    return TOP + SCALE_LEN * fretFraction(fret);
+}
+
+function noteY(fret: number) {
+    if (fret === 0) {
+        return TOP - 34;
+    }
+
+    return (fretY(fret - 1) + fretY(fret)) / 2;
+}
+
 const strings = Array.from({ length: STRING_COUNT }, (_, index) => index);
 const frets = Array.from({ length: FRET_COUNT + 1 }, (_, index) => index);
 const capoFrets = Array.from({ length: 8 }, (_, index) => index);
 const baseQualityIds: readonly QualityId[] = ['major', 'minor', 'dim', 'aug', 'sus2', 'sus4', '6', 'm6', 'add9'];
 const seventhQualityIds: readonly QualityId[] = ['7', 'maj7', 'min7', 'minmaj7', 'dim7', 'm7b5', '9', 'M9', 'm9'];
-const baseQualities = baseQualityIds.map((id) => QUALITIES.find((quality) => quality.id === id) ?? QUALITIES[0]);
-const seventhQualities = seventhQualityIds.map((id) => QUALITIES.find((quality) => quality.id === id) ?? QUALITIES[0]);
+const baseQualities = baseQualityIds.map(qualityById);
+const seventhQualities = seventhQualityIds.map(qualityById);
 
 type ControlRow = {
     pitchClass: number;
@@ -68,27 +94,6 @@ type BuildRoot = {
     value: number;
 };
 
-function TogglePill({
-    label,
-    checked,
-    onToggle,
-}: {
-    label: string | number;
-    checked: boolean;
-    onToggle: () => void;
-}) {
-    return (
-        <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
-            <input
-                type="checkbox"
-                checked={checked}
-                onChange={onToggle}
-            />
-            <span>{label}</span>
-        </label>
-    );
-}
-
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
     const [selectedTuningId, setSelectedTuningId] = useState<TuningId>('standard');
@@ -98,14 +103,9 @@ export default function Fretboard() {
     const [isBuildingChord, setIsBuildingChord] = useState(false);
     const [buildRoot, setBuildRoot] = useState<BuildRoot | null>(null);
     const [buildQuality, setBuildQuality] = useState<QualityId | null>(null);
-    const stringGap = (RIGHT - LEFT) / (STRING_COUNT - 1);
-    const visibleScaleRatio = 1 - 1 / (2 ** (FRET_COUNT / 12));
-    const scaleLen = (BOTTOM - TOP) / visibleScaleRatio;
-    const selectedKeyOption = KEYS.find((key) => key.label === selectedKeyLabel)
-        ?? KEYS[0];
+    const selectedKeyOption = keyByLabel(selectedKeyLabel);
     const selectedKey = selectedKeyOption.pitchClass;
-    const selectedTuning = TUNINGS.find((tuning) => tuning.id === selectedTuningId)
-        ?? TUNINGS[0];
+    const selectedTuning = tuningById(selectedTuningId);
     const noteLabels = selectedKeyOption.noteLabels;
     const capoY = fretY(selectedCapoFret);
     const selectedPitchClasses = useMemo(() => {
@@ -119,8 +119,7 @@ export default function Fretboard() {
     }, [selectedDegrees, selectedKey, selectedNotes]);
     const chordAnalyses = useMemo(() => {
         function formatAnalysis(analysis: NoteChordAnalysis): FormattedChordAnalysis {
-            const quality = QUALITIES.find((option) => option.id === analysis.qualityId)
-                ?? QUALITIES[0];
+            const quality = qualityById(analysis.qualityId);
             const rootOffset = scalePc(analysis.rootPitchClass, -selectedKey);
 
             return {
@@ -167,12 +166,12 @@ export default function Fretboard() {
                     degree,
                     octave: octave(midi),
                     label: selectedDegreeLabels.get(pitchClass) ?? noteLabels[pitchClass],
-                    x: LEFT + stringIndex * stringGap,
+                    x: LEFT + stringIndex * STRING_GAP,
                     y: noteY(fret),
                 };
             });
         });
-    }, [noteLabels, scaleLen, selectedDegreeLabels, selectedKey, selectedTuning, stringGap]);
+    }, [noteLabels, selectedDegreeLabels, selectedKey, selectedTuning]);
     const visibleNotes = useMemo<FretboardNote[]>(() => {
         return fretboardPositions.filter((note) => selectedPitchClasses.has(note.pitchClass));
     }, [fretboardPositions, selectedPitchClasses]);
@@ -240,18 +239,6 @@ export default function Fretboard() {
 
     function changeCapo(event: ChangeEvent<HTMLSelectElement>) {
         setSelectedCapoFret(Number(event.target.value));
-    }
-
-    function fretY(fret: number) {
-        return TOP + scaleLen * (1 - 1 / (2 ** (fret / 12)));
-    }
-
-    function noteY(fret: number) {
-        if (fret === 0) {
-            return TOP - 34;
-        }
-
-        return (fretY(fret - 1) + fretY(fret)) / 2;
     }
 
     function finishChord(root: BuildRoot | null, quality: QualityId | null) {
@@ -332,12 +319,13 @@ export default function Fretboard() {
             return EMPTY;
         }
 
-        return QUALITIES.find((quality) => quality.id === buildQuality)?.label ?? EMPTY;
+        return qualityById(buildQuality).label;
     }
 
     function degreeToggle(degree: number) {
         return (
             <TogglePill
+                className="app-toggle-pill app-toggle-pill--aligned"
                 label={DEGREE_LABELS[degree]}
                 checked={selectedDegrees.has(degree)}
                 onToggle={() => toggleDegree(degree)}
@@ -388,7 +376,7 @@ export default function Fretboard() {
                     );
                 })}
                 {strings.map((string) => {
-                    const x = LEFT + string * stringGap;
+                    const x = LEFT + string * STRING_GAP;
                     return (
                         <line
                             key={string}
@@ -528,6 +516,7 @@ export default function Fretboard() {
                                 </div>
                                 <div className="fretboard-aligned-cell">
                                     <TogglePill
+                                        className="app-toggle-pill app-toggle-pill--aligned"
                                         label={row.note}
                                         checked={selectedNotes.has(row.pitchClass)}
                                         onToggle={() => toggleNote(row.pitchClass)}

@@ -50,16 +50,16 @@ function parseNote(note: string) {
     return { letter, accidentalOffset };
 }
 
-function noteName(letter: NoteLetter, accidentalOffset: number) {
-    const accidentals: Record<number, string> = {
-        [-2]: '𝄫',
-        [-1]: '♭',
-        0: '',
-        1: '♯',
-        2: '𝄪',
-    };
+const ACCIDENTALS: Record<number, string> = {
+    [-2]: '𝄫',
+    [-1]: '♭',
+    0: '',
+    1: '♯',
+    2: '𝄪',
+};
 
-    return `${letter}${accidentals[accidentalOffset] ?? ''}`;
+function noteName(letter: NoteLetter, accidentalOffset: number) {
+    return `${letter}${ACCIDENTALS[accidentalOffset] ?? ''}`;
 }
 
 function alterNote(note: string, accidentalOffset: number) {
@@ -106,6 +106,10 @@ export const KEYS = [
 
 export type KeyLabel = typeof KEYS[number]['label'];
 
+export function keyByLabel(label: KeyLabel) {
+    return KEYS.find((key) => key.label === label) ?? KEYS[0];
+}
+
 export const QUALITIES = [
     { id: 'major',   label: 'major', suffix: '',      sup: null,   romanCase: 'upper', intervals: [0, 4, 7] },
     { id: 'minor',   label: 'minor', suffix: 'm',     sup: null,   romanCase: 'lower', intervals: [0, 3, 7] },
@@ -129,6 +133,10 @@ export const QUALITIES = [
 
 export type QualityId = typeof QUALITIES[number]['id'];
 
+export function qualityById(id: QualityId) {
+    return QUALITIES.find((quality) => quality.id === id) ?? QUALITIES[0];
+}
+
 export type NoteChordAnalysis = {
     rootPitchClass: number;
     qualityId: QualityId;
@@ -147,6 +155,10 @@ export const TUNINGS = [
 
 export type TuningId = typeof TUNINGS[number]['id'];
 
+export function tuningById(id: TuningId) {
+    return TUNINGS.find((tuning) => tuning.id === id) ?? TUNINGS[0];
+}
+
 export function pc(midi: number) {
     return ((midi % PITCH_CLASS_COUNT) + PITCH_CLASS_COUNT) % PITCH_CLASS_COUNT;
 }
@@ -160,9 +172,7 @@ export function scalePc(rootPitchClass: number, interval: number) {
 }
 
 export function chordOffsets(rootOffset: number, qualityId: QualityId) {
-    const quality = QUALITIES.find((option) => option.id === qualityId) ?? QUALITIES[0];
-
-    return quality.intervals.map((interval) => scalePc(rootOffset, interval));
+    return qualityById(qualityId).intervals.map((interval) => scalePc(rootOffset, interval));
 }
 
 export function romanLabel(rootOffset: number, romanCase: 'lower' | 'upper') {

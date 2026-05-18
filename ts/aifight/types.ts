@@ -78,4 +78,5 @@ export type Perception = {
     nearest: Agent | null;
     distance: number;
     nearestInFightRange: Agent | null;
+    finisher: Agent | null;
 };

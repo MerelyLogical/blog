@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { TogglePill } from '@/ts/ui/TogglePill';
 
 const HEIGHT = 1000;
 const WIDTH  = 1000;
@@ -64,6 +65,14 @@ type SimFlags = {
     elasticwall: boolean;
     gravity: boolean;
 };
+
+const FLAG_LABELS: { key: keyof SimFlags; label: string }[] = [
+    { key: 'heater',      label: 'Heater' },
+    { key: 'freezer',     label: 'Freezer' },
+    { key: 'wrap',        label: 'Wrap walls' },
+    { key: 'elasticwall', label: 'Perfectly elastic walls' },
+    { key: 'gravity',     label: 'Gravity' },
+];
 
 type InputState = {
     left: boolean;
@@ -325,27 +334,17 @@ export default function PhysicsCanvas() {
 
     return (
         <div>
-            <fieldset>
-                <input type="checkbox" checked={flags.heater}
-                    onChange={e => setFlags(f => ({ ...f, heater: e.target.checked }))}
-                    /> Heater
-                {' '}
-                <input type="checkbox" checked={flags.freezer}
-                    onChange={e => setFlags(f => ({ ...f, freezer: e.target.checked }))}
-                    /> Freezer
-                {' '}
-                <input type="checkbox" checked={flags.wrap}
-                    onChange={e => setFlags(f => ({ ...f, wrap: e.target.checked }))}
-                    /> Wrap walls
-                {' '}
-                <input type="checkbox" checked={flags.elasticwall}
-                    onChange={e => setFlags(f => ({ ...f, elasticwall: e.target.checked }))}
-                    /> Perfectly elastic walls
-                {' '}
-                <input type="checkbox" checked={flags.gravity}
-                    onChange={e => setFlags(f => ({ ...f, gravity: e.target.checked }))}
-                    /> Gravity
-            </fieldset>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: 8 }}>
+                {FLAG_LABELS.map(({ key, label }) => (
+                    <TogglePill
+                        key={key}
+                        className="app-toggle-pill"
+                        label={label}
+                        checked={flags[key]}
+                        onToggle={() => setFlags(f => ({ ...f, [key]: !f[key] }))}
+                    />
+                ))}
+            </div>
 
             <div style={{ marginTop: 8, marginBottom: 8 }}>
                   ½Σv: <strong>{keDisp.toFixed(5)}</strong>
