@@ -4,17 +4,15 @@ import { useEffect, useRef } from 'react';
 
 import { HEIGHT, WIDTH } from './constants';
 import { runSimulation } from './simulation';
-import type { Particle } from './types';
 
 export default function AiCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const particlesRef = useRef<Particle[]>([]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         // TODO: add debug panel: click an agent to inspect stats/details in a div outside the canvas.
-        return runSimulation(canvas, particlesRef);
+        return runSimulation(canvas);
     }, []);
 
     return (
