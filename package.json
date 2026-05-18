@@ -1,4 +1,8 @@
 {
+	"packageManager": "pnpm@11.1.2",
+	"engines": {
+		"node": ">=22.13"
+	},
 	"scripts": {
 		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
 		"build": "next build",
