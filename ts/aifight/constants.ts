@@ -3,11 +3,14 @@ import type { AgentStats, HslColor } from './types';
 export const HEIGHT = 1000;
 export const WIDTH = 1000;
 export const WORLD_PADDING = 10;
+// Idle wander rotates each new heading this fraction toward the field center.
+export const CENTER_BIAS = 0.2;
 export const NUM_FIGHTERS = 15;
 export const NUM_TANK = 10;
 export const NUM_RANGERS = 5;
 export const FIGHT_RANGE = 250;
 export const FLEE_RANGE = 150;
+export const FINISH_SCAN = 100;
 export const MELEE_ATTACK_RANGE = 5;
 export const RANGER_ATTACK_RANGE = 150;
 export const ATTACK_ANGLE = Math.PI / 12;
