@@ -1,5 +1,3 @@
-import type { RefObject } from 'react';
-
 export type AgentStats = {
     radius: number;
     maxHp: number;
@@ -45,7 +43,6 @@ export type Agent = {
     kind: AgentKind;
     color: HslColor;
     state: AgentState;
-    behavior: AgentBehavior;
     health: Health;
     combat: Combat;
     steering: Steering;
@@ -81,21 +78,4 @@ export type Perception = {
     nearest: Agent | null;
     distance: number;
     nearestInFightRange: Agent | null;
-    nearestTankInFightRange: Agent | null;
-    countInFightRange: number;
-};
-
-export type AgentBehavior = {
-    decideState: (agent: Agent, perception: Perception) => AgentState;
-    chooseHeading: (agent: Agent, perception: Perception, dt: number) => number;
-    pickTarget: (agent: Agent, perception: Perception) => Agent | null;
-    getSpeed: (agent: Agent) => number;
-    act: (
-        agent: Agent,
-        target: Agent | null,
-        dt: number,
-        particlesRef: RefObject<Particle[]>,
-        projectiles: Projectile[]
-    ) => void;
-    getColor: (agent: Agent) => HslColor;
 };
