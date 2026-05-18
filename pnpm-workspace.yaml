@@ -1,5 +1,5 @@
-onlyBuiltDependencies:
-  - sharp
+allowBuilds:
+  sharp: true
 
 overrides:
   '@xmldom/xmldom': 0.9.10
