@@ -19,6 +19,7 @@ import {
     toggleSet,
 } from './music';
 import type { KeyLabel, NoteChordAnalysis, QualityId, TuningId } from './music';
+import { TogglePill } from '@/ts/ui/TogglePill';
 
 const EMPTY = '-';
 const STRING_COUNT = 6;
@@ -92,27 +93,6 @@ type BuildRoot = {
     source: 'degree' | 'note';
     value: number;
 };
-
-function TogglePill({
-    label,
-    checked,
-    onToggle,
-}: {
-    label: string | number;
-    checked: boolean;
-    onToggle: () => void;
-}) {
-    return (
-        <label className="fretboard-note-toggle fretboard-note-toggle--aligned">
-            <input
-                type="checkbox"
-                checked={checked}
-                onChange={onToggle}
-            />
-            <span>{label}</span>
-        </label>
-    );
-}
 
 export default function Fretboard() {
     const [selectedNotes, setSelectedNotes] = useState<Set<number>>(new Set());
@@ -345,6 +325,7 @@ export default function Fretboard() {
     function degreeToggle(degree: number) {
         return (
             <TogglePill
+                className="app-toggle-pill app-toggle-pill--aligned"
                 label={DEGREE_LABELS[degree]}
                 checked={selectedDegrees.has(degree)}
                 onToggle={() => toggleDegree(degree)}
@@ -535,6 +516,7 @@ export default function Fretboard() {
                                 </div>
                                 <div className="fretboard-aligned-cell">
                                     <TogglePill
+                                        className="app-toggle-pill app-toggle-pill--aligned"
                                         label={row.note}
                                         checked={selectedNotes.has(row.pitchClass)}
                                         onToggle={() => toggleNote(row.pitchClass)}

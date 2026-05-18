@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Table } from 'nextra/components';
 import { Button } from '@/ts/ui/Button';
+import { loadChartJs } from '@/ts/chartjs';
 
 // TODO:
 // [x] record price history
@@ -103,31 +104,6 @@ export function MarketNumber({ field, decimals }: MarketNumberProps) {
     const value = numbers[field];
     const resolvedDecimals = decimals ?? (Number.isInteger(value) ? 0 : 2);
     return <span aria-live="polite">{formatNumber(value, resolvedDecimals)}</span>;
-}
-
-const chartJsCdn = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js";
-
-let chartPromise: Promise<void> | null = null;
-
-function loadChartJs(): Promise<void> {
-    if (typeof window === "undefined") {
-        return Promise.resolve();
-    }
-    if ((window as any).Chart) {
-        return Promise.resolve();
-    }
-    if (chartPromise) {
-        return chartPromise;
-    }
-    chartPromise = new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = chartJsCdn;
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Failed to load Chart.js"));
-        document.body.appendChild(script);
-    });
-    return chartPromise;
 }
 
 // Standard Normal variate using Box-Muller transform

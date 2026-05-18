@@ -12,7 +12,7 @@ export const DEFAULT_INPUTS: BuyVsRentInputs = {
     startingCash: 200_000,
     monthlyIncome: 3_500,
     monthlyExpenses: 1500,
-    monthlyRent: 850,
+    monthlyRent: 1700,
     yearlyInvestmentReturnRate: 5,
     yearlyRentIncreaseRate: 5,
     homePrice: 375_000,
