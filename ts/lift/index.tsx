@@ -13,6 +13,7 @@ const STEP_MS = WALK_MS / 2;
 const LINGER_MS = 3000;
 const FADE_MS = 450;
 const SPAWN_MS = 1400;
+const SAMPLE_MS = 100;
 const MAX_RIDERS = 18;
 const TOP = FLOORS - 1;
 const CAR_H = 72;
@@ -42,16 +43,34 @@ type Dir = -1 | 1;
 type Phase = 'moving' | 'stopped';
 type Place = 'waiting' | 'boarding' | 'riding' | 'leaving' | 'fading';
 type Action = 'alight' | 'board';
-type Step = { riders: Rider[]; acted: boolean; action: Action };
+type Step = {
+    riders: Rider[];
+    acted: boolean;
+    action: Action;
+    floorWait?: number;
+    liftWait?: number;
+    trip?: boolean;
+};
 type Rider = {
     id: number;
     floor: number;
     dest: number;
     place: Place;
+    spawnedAt: number;
+    boardedAt?: number;
     slot?: number;
     walkUntil?: number;
     fadeAt?: number;
     removeAt?: number;
+};
+type Sample = {
+    time: number;
+    waiting: number;
+    load: number;
+};
+type Event = {
+    time: number;
+    value: number;
 };
 
 function next(floor: number, dir: Dir) {
@@ -89,6 +108,7 @@ function spawn(current: Rider[]): Rider[] {
             floor,
             dest,
             place: 'waiting',
+            spawnedAt: Date.now(),
         },
     ];
 }
@@ -122,6 +142,7 @@ function boardStep(current: Rider[], floor: number, now: number): Step {
         .map((rider) => rider.slot));
 
     let acted = false;
+    let floorWait: number | undefined;
     const riders = current.map((rider) => {
         if (acted || rider.place !== 'waiting' || rider.floor !== floor) {
             return rider;
@@ -134,21 +155,29 @@ function boardStep(current: Rider[], floor: number, now: number): Step {
         }
 
         acted = true;
+        floorWait = now - rider.spawnedAt;
         used.add(slot);
-        return { ...rider, place: 'boarding', slot, walkUntil: now + WALK_MS };
+        return { ...rider, place: 'boarding', slot, boardedAt: now, walkUntil: now + WALK_MS };
     });
 
-    return { riders, acted, action: 'board' };
+    return {
+        riders,
+        acted,
+        action: 'board',
+        floorWait,
+    };
 }
 
 function alightStep(current: Rider[], floor: number, now: number): Step {
     let acted = false;
+    let liftWait: number | undefined;
     const riders = current.map((rider) => {
         if (acted || rider.place !== 'riding' || rider.dest !== floor) {
             return rider;
         }
 
         acted = true;
+        liftWait = now - (rider.boardedAt ?? now);
         const fadeAt = now + LINGER_MS;
 
         return {
@@ -162,7 +191,7 @@ function alightStep(current: Rider[], floor: number, now: number): Step {
         };
     });
 
-    return { riders, acted, action: 'alight' };
+    return { riders, acted, action: 'alight', trip: acted, liftWait };
 }
 
 function stepRiders(current: Rider[], floor: number, now: number, action: Action): Step {
@@ -261,17 +290,90 @@ function lanePos(pos: number) {
     return { col, row };
 }
 
+function waitingCount(riders: Rider[]) {
+    return riders.filter((rider) => rider.place === 'waiting').length;
+}
+
+function loadCount(riders: Rider[]) {
+    return riders.filter((rider) => (
+        rider.place === 'boarding' || rider.place === 'riding'
+    )).length;
+}
+
+function currentMaxWait(riders: Rider[], now: number) {
+    const waits = riders
+        .filter((rider) => rider.place === 'waiting')
+        .map((rider) => now - rider.spawnedAt);
+
+    return waits.length === 0 ? 0 : Math.max(...waits);
+}
+
+function currentAvgWait(riders: Rider[], now: number) {
+    return avg(riders
+        .filter((rider) => rider.place === 'waiting')
+        .map((rider) => now - rider.spawnedAt));
+}
+
+function avg(values: number[]) {
+    if (values.length === 0) {
+        return 0;
+    }
+
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function since<T extends { time: number }>(items: T[], now: number, ms: number) {
+    return items.filter((item) => item.time >= now - ms);
+}
+
+function fmtNum(value: number) {
+    return value.toFixed(1);
+}
+
+function fmtTime(ms: number) {
+    return `${(ms / 1000).toFixed(1)}s`;
+}
+
 export default function Lift() {
     const [floor, setFloor] = useState(0);
     const [dir, setDir] = useState<Dir>(1);
     const [running, setRunning] = useState(true);
     const [phase, setPhase] = useState<Phase>('moving');
     const [riders, setRiders] = useState<Rider[]>([]);
+    const [clock, setClock] = useState(Date.now());
     const ridersRef = useRef<Rider[]>([]);
+    const samplesRef = useRef<Sample[]>([]);
+    const floorWaitsRef = useRef<Event[]>([]);
+    const liftWaitsRef = useRef<Event[]>([]);
+    const tripsRef = useRef<Event[]>([]);
+    const tripsTotalRef = useRef(0);
+    const maxFloorWaitRef = useRef(0);
+    const maxLiftWaitRef = useRef(0);
 
     useEffect(() => {
         ridersRef.current = riders;
     }, [riders]);
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            const now = Date.now();
+            setClock(now);
+
+            samplesRef.current = [
+                ...since(samplesRef.current, now, 60000),
+                {
+                    time: now,
+                    waiting: waitingCount(ridersRef.current),
+                    load: loadCount(ridersRef.current),
+                },
+            ];
+            floorWaitsRef.current = since(floorWaitsRef.current, now, 60000);
+            liftWaitsRef.current = since(liftWaitsRef.current, now, 60000);
+            tripsRef.current = since(tripsRef.current, now, 60000);
+        }, SAMPLE_MS);
+
+        return () => window.clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         if (!running) {
@@ -285,6 +387,30 @@ export default function Lift() {
             const now = Date.now();
             const aged = ageRiders(ridersRef.current, now);
             const stepped = stepRiders(aged, floor, now, action);
+
+            if (stepped.floorWait !== undefined) {
+                maxFloorWaitRef.current = Math.max(maxFloorWaitRef.current, stepped.floorWait);
+                floorWaitsRef.current = [
+                    ...floorWaitsRef.current,
+                    { time: now, value: stepped.floorWait },
+                ];
+            }
+
+            if (stepped.liftWait !== undefined) {
+                maxLiftWaitRef.current = Math.max(maxLiftWaitRef.current, stepped.liftWait);
+                liftWaitsRef.current = [
+                    ...liftWaitsRef.current,
+                    { time: now, value: stepped.liftWait },
+                ];
+            }
+
+            if (stepped.trip) {
+                tripsTotalRef.current += 1;
+                tripsRef.current = [
+                    ...tripsRef.current,
+                    { time: now, value: 1 },
+                ];
+            }
 
             ridersRef.current = stepped.riders;
             setRiders(stepped.riders);
@@ -363,6 +489,14 @@ export default function Lift() {
         setRunning(false);
         setPhase('moving');
         ridersRef.current = [];
+        samplesRef.current = [];
+        floorWaitsRef.current = [];
+        liftWaitsRef.current = [];
+        tripsRef.current = [];
+        tripsTotalRef.current = 0;
+        maxFloorWaitRef.current = 0;
+        maxLiftWaitRef.current = 0;
+        setClock(Date.now());
         setRiders([]);
     }
 
@@ -409,17 +543,66 @@ export default function Lift() {
         };
     }
 
+    const samples10 = since(samplesRef.current, clock, 10000);
+    const samples60 = since(samplesRef.current, clock, 60000);
+    const floorWaits10 = since(floorWaitsRef.current, clock, 10000).map((event) => event.value);
+    const floorWaits60 = since(floorWaitsRef.current, clock, 60000).map((event) => event.value);
+    const liftWaits10 = since(liftWaitsRef.current, clock, 10000).map((event) => event.value);
+    const liftWaits60 = since(liftWaitsRef.current, clock, 60000).map((event) => event.value);
+    const trips10 = since(tripsRef.current, clock, 10000).length;
+    const trips60 = since(tripsRef.current, clock, 60000).length;
+    const metrics = [
+        {
+            name: 'Waiting',
+            now: String(waitingCount(riders)),
+            ten: fmtNum(avg(samples10.map((sample) => sample.waiting))),
+            sixty: fmtNum(avg(samples60.map((sample) => sample.waiting))),
+        },
+        {
+            name: 'Load',
+            now: String(loadCount(riders)),
+            ten: fmtNum(avg(samples10.map((sample) => sample.load))),
+            sixty: fmtNum(avg(samples60.map((sample) => sample.load))),
+        },
+        {
+            name: 'Floor wait',
+            now: fmtTime(currentAvgWait(riders, clock)),
+            ten: fmtTime(avg(floorWaits10)),
+            sixty: fmtTime(avg(floorWaits60)),
+        },
+        {
+            name: 'Lift wait',
+            now: '-',
+            ten: fmtTime(avg(liftWaits10)),
+            sixty: fmtTime(avg(liftWaits60)),
+        },
+        {
+            name: 'Trips',
+            now: String(tripsTotalRef.current),
+            ten: String(trips10),
+            sixty: String(trips60),
+        },
+    ];
+
     return (
         <div style={styles.wrap}>
             <div style={styles.status}>
-                <strong>Floor {floor}</strong>
-                <span>
-                    {running
-                        ? phase === 'moving'
-                            ? `Moving ${dir === 1 ? 'up' : 'down'}`
-                            : 'Boarding'
-                        : 'Paused'}
-                </span>
+                <div style={styles.statusText}>
+                    <strong>Floor {floor}</strong>
+                    <span>
+                        {running
+                            ? phase === 'moving'
+                                ? `Moving ${dir === 1 ? 'up' : 'down'}`
+                                : 'Boarding'
+                            : 'Paused'}
+                    </span>
+                </div>
+                <div style={styles.controls}>
+                    <Button style={styles.action} onClick={() => setRunning((value) => !value)}>
+                        {running ? 'Pause' : 'Run'}
+                    </Button>
+                    <Button style={styles.action} onClick={reset}>Reset</Button>
+                </div>
             </div>
             <div style={styles.sim}>
                 <div style={styles.shaft}>
@@ -470,12 +653,31 @@ export default function Lift() {
                         </span>
                     ))}
                 </div>
-                <div style={styles.controls}>
-                    <Button onClick={() => setRunning((value) => !value)}>
-                        {running ? 'Pause' : 'Run'}
-                    </Button>
-                    <Button onClick={reset}>Reset</Button>
-                </div>
+                <aside style={styles.metrics}>
+                    <div style={styles.metricsTitle}>Metrics</div>
+                    <div style={styles.metricHeader}>
+                        <span />
+                        <span style={styles.metricCell}>Now</span>
+                        <span style={styles.metricCell}>10s</span>
+                        <span style={styles.metricCell}>60s</span>
+                    </div>
+                    {metrics.map((metric) => (
+                        <div key={metric.name} style={styles.metricRow}>
+                            <span style={styles.metricName}>{metric.name}</span>
+                            <span style={styles.metricCell}>{metric.now}</span>
+                            <span style={styles.metricCell}>{metric.ten}</span>
+                            <span style={styles.metricCell}>{metric.sixty}</span>
+                        </div>
+                    ))}
+                    <div style={styles.metricMax}>
+                        <span>Max floor wait</span>
+                        <strong>{fmtTime(Math.max(maxFloorWaitRef.current, currentMaxWait(riders, clock)))}</strong>
+                    </div>
+                    <div style={styles.metricMax}>
+                        <span>Max lift wait</span>
+                        <strong>{fmtTime(maxLiftWaitRef.current)}</strong>
+                    </div>
+                </aside>
             </div>
         </div>
     );
@@ -486,19 +688,25 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
-        maxWidth: 520,
+        maxWidth: 760,
         marginTop: '1.5rem',
     },
     status: {
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'center',
         gap: '1rem',
         color: 'var(--app-text-color)',
     },
+    statusText: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.15rem',
+    },
     sim: {
         display: 'grid',
-        gridTemplateColumns: 'minmax(160px, 1fr) auto',
-        alignItems: 'center',
+        gridTemplateColumns: 'minmax(360px, 1fr) minmax(260px, 300px)',
+        alignItems: 'start',
         gap: '1rem',
     },
     shaft: {
@@ -586,8 +794,68 @@ const styles = {
     },
     controls: {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         gap: '0.5rem',
         alignItems: 'stretch',
+    },
+    action: {
+        margin: 0,
+    },
+    metrics: {
+        border: '1px solid var(--app-card-border)',
+        borderRadius: 5,
+        background: 'var(--app-card-bg)',
+        color: 'var(--app-text-color)',
+        padding: '0.8rem',
+    },
+    metricsTitle: {
+        fontWeight: 700,
+        marginBottom: '0.55rem',
+    },
+    metricHeader: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(4.7rem, 1fr) repeat(3, minmax(3.2rem, 1fr))',
+        gap: '0.25rem',
+        paddingBottom: '0.35rem',
+        color: 'var(--app-text-muted)',
+        fontSize: '0.72rem',
+        fontWeight: 700,
+        textAlign: 'right',
+    },
+    metricRow: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(4.7rem, 1fr) repeat(3, minmax(3.2rem, 1fr))',
+        gap: '0.25rem',
+        padding: '0.34rem 0',
+        borderTop: '1px solid var(--app-card-border)',
+        fontSize: '0.78rem',
+        fontVariantNumeric: 'tabular-nums',
+        textAlign: 'right',
+    },
+    metricCell: {
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+    metricName: {
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        color: 'var(--app-text-muted)',
+        fontWeight: 700,
+        textAlign: 'left',
+    },
+    metricMax: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '0.5rem',
+        borderTop: '1px solid var(--app-card-border)',
+        paddingTop: '0.45rem',
+        marginTop: '0.35rem',
+        color: 'var(--app-text-muted)',
+        fontSize: '0.8rem',
+        fontVariantNumeric: 'tabular-nums',
     },
 } satisfies Record<string, CSSProperties>;
