@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { Button } from '@/ts/ui/Button';
@@ -8,7 +8,8 @@ import { Button } from '@/ts/ui/Button';
 const FLOORS = 6;
 const MOVE_MS = 700;
 const STOP_MS = 450;
-const WALK_MS = 520;
+const WALK_MS = 800;
+const STEP_MS = WALK_MS / 2;
 const LINGER_MS = 3000;
 const FADE_MS = 450;
 const SPAWN_MS = 1400;
@@ -40,12 +41,15 @@ const SLOTS = Array.from({ length: SLOT_ROWS }, (_, row) => (
 type Dir = -1 | 1;
 type Phase = 'moving' | 'stopped';
 type Place = 'waiting' | 'boarding' | 'riding' | 'leaving' | 'fading';
+type Action = 'alight' | 'board';
+type Step = { riders: Rider[]; acted: boolean; action: Action };
 type Rider = {
     id: number;
     floor: number;
     dest: number;
     place: Place;
     slot?: number;
+    walkUntil?: number;
     fadeAt?: number;
     removeAt?: number;
 };
@@ -89,55 +93,91 @@ function spawn(current: Rider[]): Rider[] {
     ];
 }
 
-function stopRiders(current: Rider[], floor: number, now: number): Rider[] {
+function canBoard(current: Rider[], floor: number) {
     const used = new Set(current
         .filter((rider) => (
             (rider.place === 'riding' || rider.place === 'boarding') &&
-            rider.dest !== floor &&
+            rider.slot !== undefined
+        ))
+        .map((rider) => rider.slot));
+    const waiting = current.some((rider) => rider.place === 'waiting' && rider.floor === floor);
+    const slot = SLOTS.findIndex((_, index) => !used.has(index));
+
+    return waiting && slot !== -1;
+}
+
+function stopWork(current: Rider[], floor: number, now: number) {
+    return current.some((rider) => (
+        (rider.place === 'riding' && rider.dest === floor) ||
+        (rider.walkUntil !== undefined && rider.walkUntil > now)
+    )) || canBoard(current, floor);
+}
+
+function boardStep(current: Rider[], floor: number, now: number): Step {
+    const used = new Set(current
+        .filter((rider) => (
+            (rider.place === 'riding' || rider.place === 'boarding') &&
             rider.slot !== undefined
         ))
         .map((rider) => rider.slot));
 
-    return current.map((rider) => {
-        if (rider.place === 'riding' && rider.dest === floor) {
-            const fadeAt = now + LINGER_MS;
-
-            return {
-                ...rider,
-                floor,
-                place: 'leaving',
-                slot: undefined,
-                fadeAt,
-                removeAt: fadeAt + FADE_MS,
-            };
+    let acted = false;
+    const riders = current.map((rider) => {
+        if (acted || rider.place !== 'waiting' || rider.floor !== floor) {
+            return rider;
         }
 
-        if (rider.place === 'waiting' && rider.floor === floor) {
-            const slot = SLOTS.findIndex((_, index) => !used.has(index));
+        const slot = SLOTS.findIndex((_, index) => !used.has(index));
 
-            if (slot === -1) {
-                return rider;
-            }
-
-            used.add(slot);
-            return { ...rider, place: 'boarding', slot };
+        if (slot === -1) {
+            return rider;
         }
 
-        return rider;
+        acted = true;
+        used.add(slot);
+        return { ...rider, place: 'boarding', slot, walkUntil: now + WALK_MS };
     });
+
+    return { riders, acted, action: 'board' };
 }
 
-function boardRiders(current: Rider[], floor: number): Rider[] {
-    return current.map((rider) => {
-        if (rider.place === 'boarding') {
-            return { ...rider, floor, place: 'riding' };
+function alightStep(current: Rider[], floor: number, now: number): Step {
+    let acted = false;
+    const riders = current.map((rider) => {
+        if (acted || rider.place !== 'riding' || rider.dest !== floor) {
+            return rider;
         }
 
-        return rider;
+        acted = true;
+        const fadeAt = now + LINGER_MS;
+
+        return {
+            ...rider,
+            floor,
+            place: 'leaving',
+            slot: undefined,
+            walkUntil: now + WALK_MS,
+            fadeAt,
+            removeAt: fadeAt + FADE_MS,
+        };
     });
+
+    return { riders, acted, action: 'alight' };
+}
+
+function stepRiders(current: Rider[], floor: number, now: number, action: Action): Step {
+    if (action === 'alight') {
+        return alightStep(current, floor, now);
+    }
+
+    return boardStep(current, floor, now);
 }
 
 function riderDue(rider: Rider) {
+    if (rider.walkUntil !== undefined) {
+        return rider.walkUntil;
+    }
+
     if (rider.place === 'leaving') {
         return rider.fadeAt;
     }
@@ -164,6 +204,14 @@ function nextRiderDue(riders: Rider[]) {
 function ageRiders(current: Rider[], now: number): Rider[] {
     return current
         .map((rider) => {
+            if (rider.place === 'boarding' && rider.walkUntil !== undefined && rider.walkUntil <= now) {
+                return { ...rider, place: 'riding', walkUntil: undefined };
+            }
+
+            if (rider.place === 'leaving' && rider.walkUntil !== undefined && rider.walkUntil <= now) {
+                return { ...rider, walkUntil: undefined };
+            }
+
             if (rider.place === 'leaving' && rider.fadeAt !== undefined && rider.fadeAt <= now) {
                 return { ...rider, place: 'fading' };
             }
@@ -219,6 +267,11 @@ export default function Lift() {
     const [running, setRunning] = useState(true);
     const [phase, setPhase] = useState<Phase>('moving');
     const [riders, setRiders] = useState<Rider[]>([]);
+    const ridersRef = useRef<Rider[]>([]);
+
+    useEffect(() => {
+        ridersRef.current = riders;
+    }, [riders]);
 
     useEffect(() => {
         if (!running) {
@@ -226,14 +279,30 @@ export default function Lift() {
         }
 
         let done: number | undefined;
+        let action: Action = 'alight';
+
+        function stopCycle() {
+            const now = Date.now();
+            const aged = ageRiders(ridersRef.current, now);
+            const stepped = stepRiders(aged, floor, now, action);
+
+            ridersRef.current = stepped.riders;
+            setRiders(stepped.riders);
+
+            done = window.setTimeout(() => {
+                action = stepped.action === 'alight' ? 'board' : 'alight';
+
+                if (stopWork(ridersRef.current, floor, Date.now())) {
+                    stopCycle();
+                } else {
+                    setPhase('moving');
+                }
+            }, STEP_MS);
+        }
+
         const timer = window.setTimeout(() => {
             if (phase === 'stopped') {
-                setRiders((current) => stopRiders(current, floor, Date.now()));
-
-                done = window.setTimeout(() => {
-                    setRiders((current) => boardRiders(current, floor));
-                    setPhase('moving');
-                }, WALK_MS);
+                stopCycle();
                 return;
             }
 
@@ -259,7 +328,11 @@ export default function Lift() {
         }
 
         const timer = window.setInterval(() => {
-            setRiders(spawn);
+            setRiders((current) => {
+                const spawned = spawn(current);
+                ridersRef.current = spawned;
+                return spawned;
+            });
         }, SPAWN_MS);
 
         return () => window.clearInterval(timer);
@@ -274,7 +347,11 @@ export default function Lift() {
 
         const wait = Math.max(0, due - Date.now());
         const timer = window.setTimeout(() => {
-            setRiders((current) => ageRiders(current, Date.now()));
+            setRiders((current) => {
+                const aged = ageRiders(current, Date.now());
+                ridersRef.current = aged;
+                return aged;
+            });
         }, wait);
 
         return () => window.clearTimeout(timer);
@@ -285,6 +362,7 @@ export default function Lift() {
         setDir(1);
         setRunning(false);
         setPhase('moving');
+        ridersRef.current = [];
         setRiders([]);
     }
 
