@@ -1,13 +1,14 @@
 export const FLOORS = 6;
-export const MOVE_MS = 700;
-export const STOP_MS = 450;
+export const MOVE_MS = 1500;
+export const STOP_MS = 500;
 export const WALK_MS = 800;
 export const STEP_MS = WALK_MS / 2;
 export const LINGER_MS = 3000;
-export const FADE_MS = 450;
-export const SPAWN_MS = 1400;
+export const FADE_MS = 500;
+export const SPAWN_MIN_MS = 500;
+export const SPAWN_MAX_MS = 2000;
 export const SAMPLE_MS = 100;
-export const MAX_RIDERS = 18;
+export const MAX_RIDERS = 100;
 export const TOP = FLOORS - 1;
 
 export const CAR_H = 72;

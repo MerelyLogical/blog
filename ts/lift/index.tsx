@@ -17,7 +17,8 @@ import {
     SAMPLE_MS,
     SPACE,
     SPACE_BORDER,
-    SPAWN_MS,
+    SPAWN_MAX_MS,
+    SPAWN_MIN_MS,
     STEP_MS,
     STOP_MS,
     TOP,
@@ -57,6 +58,10 @@ import {
     stopWork,
 } from './sim';
 import type { Action, Dir, Event, Phase, Rider, Sample } from './types';
+
+function spawnDelay() {
+    return SPAWN_MIN_MS + Math.random() * (SPAWN_MAX_MS - SPAWN_MIN_MS);
+}
 
 export default function Lift() {
     const [floor, setFloor] = useState(0);
@@ -177,15 +182,26 @@ export default function Lift() {
             return;
         }
 
-        const timer = window.setInterval(() => {
-            setRiders((current) => {
-                const spawned = spawn(current);
-                ridersRef.current = spawned;
-                return spawned;
-            });
-        }, SPAWN_MS);
+        let timer: number | undefined;
 
-        return () => window.clearInterval(timer);
+        function queueSpawn() {
+            timer = window.setTimeout(() => {
+                setRiders((current) => {
+                    const spawned = spawn(current);
+                    ridersRef.current = spawned;
+                    return spawned;
+                });
+                queueSpawn();
+            }, spawnDelay());
+        }
+
+        queueSpawn();
+
+        return () => {
+            if (timer !== undefined) {
+                window.clearTimeout(timer);
+            }
+        };
     }, [running]);
 
     useEffect(() => {
