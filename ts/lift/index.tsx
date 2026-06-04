@@ -14,27 +14,26 @@ const FADE_MS = 450;
 const SPAWN_MS = 1400;
 const MAX_RIDERS = 18;
 const TOP = FLOORS - 1;
-const CAR_H = 60;
-const CAR_W = 112;
+const CAR_H = 72;
+const CAR_W = 126;
 const EDGE = 36;
 const RIDER = 22;
+const SPACE_BORDER = 2;
+const SPACE = RIDER + SPACE_BORDER * 2;
 const GAP = 3;
 const CAR_X = '50%';
 const WAIT_X = 42;
+const WAIT_ROWS = 2;
 const EXIT_GAP = 16;
 const EXIT_RIGHT = 42;
 const SLOT_COLS = 3;
 const SLOT_ROWS = 2;
-const SLOT_GAP_X = 8;
-const SLOT_GAP_Y = 6;
-const SLOT_W = SLOT_COLS * RIDER + (SLOT_COLS - 1) * SLOT_GAP_X;
-const SLOT_H = SLOT_ROWS * RIDER + (SLOT_ROWS - 1) * SLOT_GAP_Y;
-const SLOT_LEFT = (CAR_W - SLOT_W) / 2;
-const SLOT_BOTTOM = (CAR_H - SLOT_H) / 2;
+const SLOT_STEP_X = 30;
+const SLOT_STEP_Y = 30;
 const SLOTS = Array.from({ length: SLOT_ROWS }, (_, row) => (
     Array.from({ length: SLOT_COLS }, (_, col) => ({
-        x: SLOT_LEFT + col * (RIDER + SLOT_GAP_X),
-        y: SLOT_BOTTOM + (SLOT_ROWS - 1 - row) * (RIDER + SLOT_GAP_Y),
+        x: (col - (SLOT_COLS - 1) / 2) * SLOT_STEP_X,
+        y: ((SLOT_ROWS - 1) / 2 - row) * SLOT_STEP_Y,
     }))
 )).flat();
 
@@ -184,19 +183,34 @@ function y(floor: number) {
 }
 
 function floorPos(floor: number, row: number) {
-    return `calc(${y(floor)} - ${RIDER / 2}px + ${row * (RIDER + GAP)}px)`;
+    return `calc(${y(floor)} + ${row * (RIDER + GAP)}px)`;
 }
 
 function carLeft(space: { x: number }) {
-    return `calc(50% - ${CAR_W / 2}px + ${space.x}px)`;
+    return `calc(50% + ${space.x}px)`;
 }
 
 function carBottom(floor: number, space: { y: number }) {
-    return `calc(${y(floor)} - ${CAR_H / 2}px + ${space.y}px)`;
+    return `calc(${y(floor)} + ${space.y}px)`;
+}
+
+function spaceLeft(space: { x: number }) {
+    return carLeft(space);
+}
+
+function spaceBottom(floor: number, space: { y: number }) {
+    return carBottom(floor, space);
 }
 
 function exitLeft(col: number) {
-    return `calc(100% - ${EXIT_RIGHT + RIDER + col * (RIDER + GAP)}px)`;
+    return `calc(100% - ${EXIT_RIGHT + RIDER / 2 + col * (RIDER + GAP)}px)`;
+}
+
+function lanePos(pos: number) {
+    const row = pos % WAIT_ROWS;
+    const col = Math.floor(pos / WAIT_ROWS);
+
+    return { col, row };
 }
 
 export default function Lift() {
@@ -294,11 +308,9 @@ export default function Lift() {
 
     function riderStyle(rider: Rider, index: number) {
         const car = rider.place === 'boarding' || rider.place === 'riding';
-        const perRow = 10;
         const pos = slot(rider, index);
-        const col = pos % perRow;
-        const row = Math.floor(pos / perRow);
-        let left: string | number = WAIT_X + col * (RIDER + GAP);
+        const { col, row } = lanePos(pos);
+        let left: string | number = WAIT_X + RIDER / 2 + col * (RIDER + GAP);
 
         if (car) {
             const space = SLOTS[rider.slot ?? 0];
@@ -353,18 +365,17 @@ export default function Lift() {
                             ...styles.car,
                             bottom: y(floor),
                         }}
-                    >
-                        {SLOTS.map((space, index) => (
-                            <span
-                                key={index}
-                                style={{
-                                    ...styles.space,
-                                    left: space.x,
-                                    bottom: space.y,
-                                }}
-                            />
-                        ))}
-                    </div>
+                    />
+                    {SLOTS.map((space, index) => (
+                        <span
+                            key={index}
+                            style={{
+                                ...styles.space,
+                                left: spaceLeft(space),
+                                bottom: spaceBottom(floor, space),
+                            }}
+                        />
+                    ))}
                     {riders.map((rider, index) => (
                         <span key={rider.id} style={riderStyle(rider, index)}>
                             {rider.dest}
@@ -443,6 +454,7 @@ const styles = {
         fontSize: '0.7rem',
         fontWeight: 700,
         lineHeight: 1,
+        transform: 'translate(-50%, 50%)',
         transition: [
             `left ${WALK_MS}ms ease-in-out`,
             `bottom ${MOVE_MS - 120}ms ease-in-out`,
@@ -469,11 +481,13 @@ const styles = {
     },
     space: {
         position: 'absolute',
-        width: RIDER,
-        height: RIDER,
-        border: '1px dotted rgba(255, 255, 255, 0.72)',
+        width: SPACE,
+        height: SPACE,
+        border: `${SPACE_BORDER}px solid rgba(255, 255, 255, 0.86)`,
         borderRadius: '50%',
         boxSizing: 'border-box',
+        transform: 'translate(-50%, 50%)',
+        transition: `bottom ${MOVE_MS - 120}ms ease-in-out`,
     },
     controls: {
         display: 'flex',
