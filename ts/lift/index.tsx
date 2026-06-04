@@ -231,7 +231,7 @@ function y(floor: number) {
 }
 
 function floorPos(floor: number, row: number) {
-    return `calc(${y(floor)} + ${row * (RIDER + GAP)}px)`;
+    return `calc(${y(floor)} + ${(row - (WAIT_ROWS - 1) / 2) * (RIDER + GAP)}px)`;
 }
 
 function carLeft(space: { x: number }) {
@@ -427,14 +427,24 @@ export default function Lift() {
                         const shown = TOP - index;
 
                         return (
-                            <div
-                                key={shown}
-                                style={{
-                                    ...styles.row,
-                                    bottom: y(shown),
-                                }}
-                            >
-                                <span style={styles.label}>{shown}</span>
+                            <div key={shown}>
+                                <div
+                                    style={{
+                                        ...styles.band,
+                                        top: `${index * (100 / FLOORS)}%`,
+                                        background: shown % 2 === 0
+                                            ? 'rgba(148, 163, 184, 0.08)'
+                                            : 'rgba(29, 82, 197, 0.06)',
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        ...styles.row,
+                                        bottom: y(shown),
+                                    }}
+                                >
+                                    <span style={styles.label}>{shown}</span>
+                                </div>
                             </div>
                         );
                     })}
@@ -499,6 +509,12 @@ const styles = {
         background: 'var(--app-card-bg)',
         overflow: 'hidden',
     },
+    band: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: `${100 / FLOORS}%`,
+    },
     row: {
         position: 'absolute',
         left: 0,
@@ -515,7 +531,8 @@ const styles = {
         position: 'absolute',
         left: 12,
         width: '2ch',
-        fontSize: '0.8rem',
+        fontSize: '1rem',
+        fontWeight: 700,
         color: 'var(--app-text-muted)',
     },
     rider: {
