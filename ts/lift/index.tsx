@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { Button } from '@/ts/ui/Button';
@@ -22,6 +22,21 @@ const GAP = 3;
 const CAR_X = '50%';
 const WAIT_X = 42;
 const EXIT_GAP = 16;
+const EXIT_RIGHT = 42;
+const SLOT_COLS = 3;
+const SLOT_ROWS = 2;
+const SLOT_GAP_X = 8;
+const SLOT_GAP_Y = 6;
+const SLOT_W = SLOT_COLS * RIDER + (SLOT_COLS - 1) * SLOT_GAP_X;
+const SLOT_H = SLOT_ROWS * RIDER + (SLOT_ROWS - 1) * SLOT_GAP_Y;
+const SLOT_LEFT = (CAR_W - SLOT_W) / 2;
+const SLOT_BOTTOM = (CAR_H - SLOT_H) / 2;
+const SLOTS = Array.from({ length: SLOT_ROWS }, (_, row) => (
+    Array.from({ length: SLOT_COLS }, (_, col) => ({
+        x: SLOT_LEFT + col * (RIDER + SLOT_GAP_X),
+        y: SLOT_BOTTOM + (SLOT_ROWS - 1 - row) * (RIDER + SLOT_GAP_Y),
+    }))
+)).flat();
 
 type Dir = -1 | 1;
 type Phase = 'moving' | 'stopped';
@@ -31,6 +46,9 @@ type Rider = {
     floor: number;
     dest: number;
     place: Place;
+    slot?: number;
+    fadeAt?: number;
+    removeAt?: number;
 };
 
 function next(floor: number, dir: Dir) {
@@ -45,9 +63,140 @@ function next(floor: number, dir: Dir) {
     return { floor: floor + dir, dir };
 }
 
+function randFloor() {
+    return Math.floor(Math.random() * FLOORS);
+}
+
+function spawn(current: Rider[]): Rider[] {
+    if (current.length >= MAX_RIDERS) {
+        return current;
+    }
+
+    const floor = randFloor();
+    let dest = randFloor();
+
+    while (dest === floor) {
+        dest = randFloor();
+    }
+
+    return [
+        ...current,
+        {
+            id: Date.now() + Math.random(),
+            floor,
+            dest,
+            place: 'waiting',
+        },
+    ];
+}
+
+function stopRiders(current: Rider[], floor: number, now: number): Rider[] {
+    const used = new Set(current
+        .filter((rider) => (
+            (rider.place === 'riding' || rider.place === 'boarding') &&
+            rider.dest !== floor &&
+            rider.slot !== undefined
+        ))
+        .map((rider) => rider.slot));
+
+    return current.map((rider) => {
+        if (rider.place === 'riding' && rider.dest === floor) {
+            const fadeAt = now + LINGER_MS;
+
+            return {
+                ...rider,
+                floor,
+                place: 'leaving',
+                slot: undefined,
+                fadeAt,
+                removeAt: fadeAt + FADE_MS,
+            };
+        }
+
+        if (rider.place === 'waiting' && rider.floor === floor) {
+            const slot = SLOTS.findIndex((_, index) => !used.has(index));
+
+            if (slot === -1) {
+                return rider;
+            }
+
+            used.add(slot);
+            return { ...rider, place: 'boarding', slot };
+        }
+
+        return rider;
+    });
+}
+
+function boardRiders(current: Rider[], floor: number): Rider[] {
+    return current.map((rider) => {
+        if (rider.place === 'boarding') {
+            return { ...rider, floor, place: 'riding' };
+        }
+
+        return rider;
+    });
+}
+
+function riderDue(rider: Rider) {
+    if (rider.place === 'leaving') {
+        return rider.fadeAt;
+    }
+
+    if (rider.place === 'fading') {
+        return rider.removeAt;
+    }
+
+    return undefined;
+}
+
+function nextRiderDue(riders: Rider[]) {
+    const due = riders
+        .map(riderDue)
+        .filter((time): time is number => time !== undefined);
+
+    if (due.length === 0) {
+        return undefined;
+    }
+
+    return Math.min(...due);
+}
+
+function ageRiders(current: Rider[], now: number): Rider[] {
+    return current
+        .map((rider) => {
+            if (rider.place === 'leaving' && rider.fadeAt !== undefined && rider.fadeAt <= now) {
+                return { ...rider, place: 'fading' };
+            }
+
+            return rider;
+        })
+        .filter((rider) => !(
+            rider.place === 'fading' &&
+            rider.removeAt !== undefined &&
+            rider.removeAt <= now
+        ));
+}
+
 function y(floor: number) {
     const progress = floor / TOP;
     return `calc(${EDGE}px + ${progress * 100}% - ${progress * EDGE * 2}px)`;
+}
+
+function floorPos(floor: number, row: number) {
+    return `calc(${y(floor)} - ${RIDER / 2}px + ${row * (RIDER + GAP)}px)`;
+}
+
+function carLeft(space: { x: number }) {
+    return `calc(50% - ${CAR_W / 2}px + ${space.x}px)`;
+}
+
+function carBottom(floor: number, space: { y: number }) {
+    return `calc(${y(floor)} - ${CAR_H / 2}px + ${space.y}px)`;
+}
+
+function exitLeft(col: number) {
+    return `calc(100% - ${EXIT_RIGHT + RIDER + col * (RIDER + GAP)}px)`;
 }
 
 export default function Lift() {
@@ -56,20 +205,6 @@ export default function Lift() {
     const [running, setRunning] = useState(true);
     const [phase, setPhase] = useState<Phase>('moving');
     const [riders, setRiders] = useState<Rider[]>([]);
-    const timers = useRef<number[]>([]);
-
-    function later(fn: () => void, ms: number) {
-        const timer = window.setTimeout(fn, ms);
-        timers.current.push(timer);
-        return timer;
-    }
-
-    function clearTimers() {
-        timers.current.forEach((timer) => window.clearTimeout(timer));
-        timers.current = [];
-    }
-
-    useEffect(() => clearTimers, []);
 
     useEffect(() => {
         if (!running) {
@@ -79,44 +214,11 @@ export default function Lift() {
         let done: number | undefined;
         const timer = window.setTimeout(() => {
             if (phase === 'stopped') {
-                setRiders((current) => current.map((rider) => {
-                    if (rider.place === 'riding' && rider.dest === floor) {
-                        return { ...rider, floor, place: 'leaving' };
-                    }
+                setRiders((current) => stopRiders(current, floor, Date.now()));
 
-                    if (rider.place === 'waiting' && rider.floor === floor) {
-                        return { ...rider, place: 'boarding' };
-                    }
-
-                    return rider;
-                }));
-
-                done = later(() => {
-                    setRiders((current) => current
-                        .map((rider) => {
-                            if (rider.place === 'boarding') {
-                                return { ...rider, floor, place: 'riding' };
-                            }
-
-                            return rider;
-                        }));
+                done = window.setTimeout(() => {
+                    setRiders((current) => boardRiders(current, floor));
                     setPhase('moving');
-
-                    later(() => {
-                        setRiders((current) => current.map((rider) => {
-                            if (rider.place === 'leaving' && rider.floor === floor) {
-                                return { ...rider, place: 'fading' };
-                            }
-
-                            return rider;
-                        }));
-
-                        later(() => {
-                            setRiders((current) => current.filter((rider) => !(
-                                rider.place === 'fading' && rider.floor === floor
-                            )));
-                        }, FADE_MS);
-                    }, LINGER_MS);
                 }, WALK_MS);
                 return;
             }
@@ -143,35 +245,28 @@ export default function Lift() {
         }
 
         const timer = window.setInterval(() => {
-            setRiders((current) => {
-                if (current.length >= MAX_RIDERS) {
-                    return current;
-                }
-
-                const riderFloor = Math.floor(Math.random() * FLOORS);
-                let dest = Math.floor(Math.random() * FLOORS);
-
-                while (dest === riderFloor) {
-                    dest = Math.floor(Math.random() * FLOORS);
-                }
-
-                return [
-                    ...current,
-                    {
-                        id: Date.now() + Math.random(),
-                        floor: riderFloor,
-                        dest,
-                        place: 'waiting',
-                    },
-                ];
-            });
+            setRiders(spawn);
         }, SPAWN_MS);
 
         return () => window.clearInterval(timer);
     }, [running]);
 
+    useEffect(() => {
+        const due = nextRiderDue(riders);
+
+        if (due === undefined) {
+            return;
+        }
+
+        const wait = Math.max(0, due - Date.now());
+        const timer = window.setTimeout(() => {
+            setRiders((current) => ageRiders(current, Date.now()));
+        }, wait);
+
+        return () => window.clearTimeout(timer);
+    }, [riders]);
+
     function reset() {
-        clearTimers();
         setFloor(0);
         setDir(1);
         setRunning(false);
@@ -181,7 +276,7 @@ export default function Lift() {
 
     function target(rider: Rider) {
         if (rider.place === 'boarding' || rider.place === 'riding') {
-            return 'car';
+            return `car-${rider.slot ?? 0}`;
         }
 
         if (rider.place === 'leaving' || rider.place === 'fading') {
@@ -199,21 +294,22 @@ export default function Lift() {
 
     function riderStyle(rider: Rider, index: number) {
         const car = rider.place === 'boarding' || rider.place === 'riding';
-        const perRow = car ? 4 : 10;
+        const perRow = 10;
         const pos = slot(rider, index);
         const col = pos % perRow;
         const row = Math.floor(pos / perRow);
         let left: string | number = WAIT_X + col * (RIDER + GAP);
 
         if (car) {
-            left = `calc(50% - ${(CAR_W / 2) - 12 - col * (RIDER + GAP)}px)`;
+            const space = SLOTS[rider.slot ?? 0];
+            left = carLeft(space);
         } else if (rider.place === 'leaving' || rider.place === 'fading') {
-            left = `calc(50% + ${(CAR_W / 2) + EXIT_GAP + col * (RIDER + GAP)}px)`;
+            left = exitLeft(col);
         }
 
         const bottom = car
-            ? `calc(${y(floor)} - 6px + ${row * (RIDER + GAP)}px)`
-            : `calc(${y(rider.floor)} + ${row * (RIDER + GAP)}px)`;
+            ? carBottom(floor, SLOTS[rider.slot ?? 0])
+            : floorPos(rider.floor, row);
 
         return {
             ...styles.rider,
@@ -258,6 +354,16 @@ export default function Lift() {
                             bottom: y(floor),
                         }}
                     >
+                        {SLOTS.map((space, index) => (
+                            <span
+                                key={index}
+                                style={{
+                                    ...styles.space,
+                                    left: space.x,
+                                    bottom: space.y,
+                                }}
+                            />
+                        ))}
                     </div>
                     {riders.map((rider, index) => (
                         <span key={rider.id} style={riderStyle(rider, index)}>
@@ -337,7 +443,6 @@ const styles = {
         fontSize: '0.7rem',
         fontWeight: 700,
         lineHeight: 1,
-        transform: 'translateY(50%)',
         transition: [
             `left ${WALK_MS}ms ease-in-out`,
             `bottom ${MOVE_MS - 120}ms ease-in-out`,
@@ -361,6 +466,14 @@ const styles = {
         fontWeight: 700,
         transform: 'translate(-50%, 50%)',
         transition: `bottom ${MOVE_MS - 120}ms ease-in-out`,
+    },
+    space: {
+        position: 'absolute',
+        width: RIDER,
+        height: RIDER,
+        border: '1px dotted rgba(255, 255, 255, 0.72)',
+        borderRadius: '50%',
+        boxSizing: 'border-box',
     },
     controls: {
         display: 'flex',
