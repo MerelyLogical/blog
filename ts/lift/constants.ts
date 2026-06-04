@@ -1,0 +1,28 @@
+export const FLOORS = 6;
+export const MOVE_MS = 700;
+export const STOP_MS = 450;
+export const WALK_MS = 800;
+export const STEP_MS = WALK_MS / 2;
+export const LINGER_MS = 3000;
+export const FADE_MS = 450;
+export const SPAWN_MS = 1400;
+export const SAMPLE_MS = 100;
+export const MAX_RIDERS = 18;
+export const TOP = FLOORS - 1;
+
+export const CAR_H = 72;
+export const CAR_W = 126;
+export const EDGE = 36;
+export const RIDER = 22;
+export const SPACE_BORDER = 2;
+export const SPACE = RIDER + SPACE_BORDER * 2;
+export const GAP = 3;
+export const CAR_X = '50%';
+export const WAIT_X = 42;
+export const WAIT_ROWS = 2;
+export const EXIT_RIGHT = 42;
+
+export const SLOT_COLS = 3;
+export const SLOT_ROWS = 2;
+export const SLOT_STEP_X = 30;
+export const SLOT_STEP_Y = 30;

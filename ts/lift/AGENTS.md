@@ -1,5 +1,6 @@
 # Lift Simulator Notes
 
+- File boundaries: `constants.ts` holds shared tuning/layout constants, `types.ts` holds model types, `layout.ts` holds coordinate helpers, `sim.ts` holds pure lift/rider transitions, `metrics.ts` holds metric helpers, and `index.tsx` owns React state/effects/rendering.
 - Keep visual positions derived from shared layout constants. The lift slots, dotted outlines, and rider targets should use the same coordinate helpers rather than separate hand-tuned offsets.
 - Render riders in one overlay layer and move them by changing coordinates. Moving a rider between React parents causes visible disappear/reappear artefacts.
 - Keep lift timing, rider lifecycle, and display layout as separate helpers. The React component may own state, but effects should delegate to small transition functions like spawning, stop handling, boarding completion, and exit ageing.

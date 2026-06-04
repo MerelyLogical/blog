@@ -5,334 +5,58 @@ import type { CSSProperties } from 'react';
 
 import { Button } from '@/ts/ui/Button';
 
-const FLOORS = 6;
-const MOVE_MS = 700;
-const STOP_MS = 450;
-const WALK_MS = 800;
-const STEP_MS = WALK_MS / 2;
-const LINGER_MS = 3000;
-const FADE_MS = 450;
-const SPAWN_MS = 1400;
-const SAMPLE_MS = 100;
-const MAX_RIDERS = 18;
-const TOP = FLOORS - 1;
-const CAR_H = 72;
-const CAR_W = 126;
-const EDGE = 36;
-const RIDER = 22;
-const SPACE_BORDER = 2;
-const SPACE = RIDER + SPACE_BORDER * 2;
-const GAP = 3;
-const CAR_X = '50%';
-const WAIT_X = 42;
-const WAIT_ROWS = 2;
-const EXIT_GAP = 16;
-const EXIT_RIGHT = 42;
-const SLOT_COLS = 3;
-const SLOT_ROWS = 2;
-const SLOT_STEP_X = 30;
-const SLOT_STEP_Y = 30;
-const SLOTS = Array.from({ length: SLOT_ROWS }, (_, row) => (
-    Array.from({ length: SLOT_COLS }, (_, col) => ({
-        x: (col - (SLOT_COLS - 1) / 2) * SLOT_STEP_X,
-        y: ((SLOT_ROWS - 1) / 2 - row) * SLOT_STEP_Y,
-    }))
-)).flat();
-
-type Dir = -1 | 1;
-type Phase = 'moving' | 'stopped';
-type Place = 'waiting' | 'boarding' | 'riding' | 'leaving' | 'fading';
-type Action = 'alight' | 'board';
-type Step = {
-    riders: Rider[];
-    acted: boolean;
-    action: Action;
-    floorWait?: number;
-    liftWait?: number;
-    trip?: boolean;
-};
-type Rider = {
-    id: number;
-    floor: number;
-    dest: number;
-    place: Place;
-    spawnedAt: number;
-    boardedAt?: number;
-    slot?: number;
-    walkUntil?: number;
-    fadeAt?: number;
-    removeAt?: number;
-};
-type Sample = {
-    time: number;
-    waiting: number;
-    load: number;
-};
-type Event = {
-    time: number;
-    value: number;
-};
-
-function next(floor: number, dir: Dir) {
-    if (floor === TOP && dir === 1) {
-        return { floor: floor - 1, dir: -1 as Dir };
-    }
-
-    if (floor === 0 && dir === -1) {
-        return { floor: floor + 1, dir: 1 as Dir };
-    }
-
-    return { floor: floor + dir, dir };
-}
-
-function randFloor() {
-    return Math.floor(Math.random() * FLOORS);
-}
-
-function spawn(current: Rider[]): Rider[] {
-    if (current.length >= MAX_RIDERS) {
-        return current;
-    }
-
-    const floor = randFloor();
-    let dest = randFloor();
-
-    while (dest === floor) {
-        dest = randFloor();
-    }
-
-    return [
-        ...current,
-        {
-            id: Date.now() + Math.random(),
-            floor,
-            dest,
-            place: 'waiting',
-            spawnedAt: Date.now(),
-        },
-    ];
-}
-
-function canBoard(current: Rider[], floor: number) {
-    const used = new Set(current
-        .filter((rider) => (
-            (rider.place === 'riding' || rider.place === 'boarding') &&
-            rider.slot !== undefined
-        ))
-        .map((rider) => rider.slot));
-    const waiting = current.some((rider) => rider.place === 'waiting' && rider.floor === floor);
-    const slot = SLOTS.findIndex((_, index) => !used.has(index));
-
-    return waiting && slot !== -1;
-}
-
-function stopWork(current: Rider[], floor: number, now: number) {
-    return current.some((rider) => (
-        (rider.place === 'riding' && rider.dest === floor) ||
-        (rider.walkUntil !== undefined && rider.walkUntil > now)
-    )) || canBoard(current, floor);
-}
-
-function boardStep(current: Rider[], floor: number, now: number): Step {
-    const used = new Set(current
-        .filter((rider) => (
-            (rider.place === 'riding' || rider.place === 'boarding') &&
-            rider.slot !== undefined
-        ))
-        .map((rider) => rider.slot));
-
-    let acted = false;
-    let floorWait: number | undefined;
-    const riders = current.map((rider) => {
-        if (acted || rider.place !== 'waiting' || rider.floor !== floor) {
-            return rider;
-        }
-
-        const slot = SLOTS.findIndex((_, index) => !used.has(index));
-
-        if (slot === -1) {
-            return rider;
-        }
-
-        acted = true;
-        floorWait = now - rider.spawnedAt;
-        used.add(slot);
-        return { ...rider, place: 'boarding', slot, boardedAt: now, walkUntil: now + WALK_MS };
-    });
-
-    return {
-        riders,
-        acted,
-        action: 'board',
-        floorWait,
-    };
-}
-
-function alightStep(current: Rider[], floor: number, now: number): Step {
-    let acted = false;
-    let liftWait: number | undefined;
-    const riders = current.map((rider) => {
-        if (acted || rider.place !== 'riding' || rider.dest !== floor) {
-            return rider;
-        }
-
-        acted = true;
-        liftWait = now - (rider.boardedAt ?? now);
-        const fadeAt = now + LINGER_MS;
-
-        return {
-            ...rider,
-            floor,
-            place: 'leaving',
-            slot: undefined,
-            walkUntil: now + WALK_MS,
-            fadeAt,
-            removeAt: fadeAt + FADE_MS,
-        };
-    });
-
-    return { riders, acted, action: 'alight', trip: acted, liftWait };
-}
-
-function stepRiders(current: Rider[], floor: number, now: number, action: Action): Step {
-    if (action === 'alight') {
-        return alightStep(current, floor, now);
-    }
-
-    return boardStep(current, floor, now);
-}
-
-function riderDue(rider: Rider) {
-    if (rider.walkUntil !== undefined) {
-        return rider.walkUntil;
-    }
-
-    if (rider.place === 'leaving') {
-        return rider.fadeAt;
-    }
-
-    if (rider.place === 'fading') {
-        return rider.removeAt;
-    }
-
-    return undefined;
-}
-
-function nextRiderDue(riders: Rider[]) {
-    const due = riders
-        .map(riderDue)
-        .filter((time): time is number => time !== undefined);
-
-    if (due.length === 0) {
-        return undefined;
-    }
-
-    return Math.min(...due);
-}
-
-function ageRiders(current: Rider[], now: number): Rider[] {
-    return current
-        .map((rider) => {
-            if (rider.place === 'boarding' && rider.walkUntil !== undefined && rider.walkUntil <= now) {
-                return { ...rider, place: 'riding', walkUntil: undefined };
-            }
-
-            if (rider.place === 'leaving' && rider.walkUntil !== undefined && rider.walkUntil <= now) {
-                return { ...rider, walkUntil: undefined };
-            }
-
-            if (rider.place === 'leaving' && rider.fadeAt !== undefined && rider.fadeAt <= now) {
-                return { ...rider, place: 'fading' };
-            }
-
-            return rider;
-        })
-        .filter((rider) => !(
-            rider.place === 'fading' &&
-            rider.removeAt !== undefined &&
-            rider.removeAt <= now
-        ));
-}
-
-function y(floor: number) {
-    const progress = floor / TOP;
-    return `calc(${EDGE}px + ${progress * 100}% - ${progress * EDGE * 2}px)`;
-}
-
-function floorPos(floor: number, row: number) {
-    return `calc(${y(floor)} + ${(row - (WAIT_ROWS - 1) / 2) * (RIDER + GAP)}px)`;
-}
-
-function carLeft(space: { x: number }) {
-    return `calc(50% + ${space.x}px)`;
-}
-
-function carBottom(floor: number, space: { y: number }) {
-    return `calc(${y(floor)} + ${space.y}px)`;
-}
-
-function spaceLeft(space: { x: number }) {
-    return carLeft(space);
-}
-
-function spaceBottom(floor: number, space: { y: number }) {
-    return carBottom(floor, space);
-}
-
-function exitLeft(col: number) {
-    return `calc(100% - ${EXIT_RIGHT + RIDER / 2 + col * (RIDER + GAP)}px)`;
-}
-
-function lanePos(pos: number) {
-    const row = pos % WAIT_ROWS;
-    const col = Math.floor(pos / WAIT_ROWS);
-
-    return { col, row };
-}
-
-function waitingCount(riders: Rider[]) {
-    return riders.filter((rider) => rider.place === 'waiting').length;
-}
-
-function loadCount(riders: Rider[]) {
-    return riders.filter((rider) => (
-        rider.place === 'boarding' || rider.place === 'riding'
-    )).length;
-}
-
-function currentMaxWait(riders: Rider[], now: number) {
-    const waits = riders
-        .filter((rider) => rider.place === 'waiting')
-        .map((rider) => now - rider.spawnedAt);
-
-    return waits.length === 0 ? 0 : Math.max(...waits);
-}
-
-function currentAvgWait(riders: Rider[], now: number) {
-    return avg(riders
-        .filter((rider) => rider.place === 'waiting')
-        .map((rider) => now - rider.spawnedAt));
-}
-
-function avg(values: number[]) {
-    if (values.length === 0) {
-        return 0;
-    }
-
-    return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function since<T extends { time: number }>(items: T[], now: number, ms: number) {
-    return items.filter((item) => item.time >= now - ms);
-}
-
-function fmtNum(value: number) {
-    return value.toFixed(1);
-}
-
-function fmtTime(ms: number) {
-    return `${(ms / 1000).toFixed(1)}s`;
-}
+import {
+    CAR_H,
+    CAR_W,
+    CAR_X,
+    FADE_MS,
+    FLOORS,
+    GAP,
+    MOVE_MS,
+    RIDER,
+    SAMPLE_MS,
+    SPACE,
+    SPACE_BORDER,
+    SPAWN_MS,
+    STEP_MS,
+    STOP_MS,
+    TOP,
+    WAIT_X,
+    WALK_MS,
+} from './constants';
+import {
+    bandTop,
+    carBottom,
+    carLeft,
+    exitLeft,
+    floorPos,
+    lanePos,
+    SLOTS,
+    spaceBottom,
+    spaceLeft,
+    y,
+} from './layout';
+import {
+    avg,
+    currentAvgLiftWait,
+    currentAvgWait,
+    currentMaxLiftWait,
+    currentMaxWait,
+    fmtNum,
+    fmtTime,
+    loadCount,
+    since,
+    waitingCount,
+} from './metrics';
+import {
+    ageRiders,
+    next,
+    nextRiderDue,
+    spawn,
+    stepRiders,
+    stopWork,
+} from './sim';
+import type { Action, Dir, Event, Phase, Rider, Sample } from './types';
 
 export default function Lift() {
     const [floor, setFloor] = useState(0);
@@ -551,6 +275,30 @@ export default function Lift() {
     const liftWaits60 = since(liftWaitsRef.current, clock, 60000).map((event) => event.value);
     const trips10 = since(tripsRef.current, clock, 10000).length;
     const trips60 = since(tripsRef.current, clock, 60000).length;
+    const maxFloorRider = riders
+        .filter((rider) => rider.place === 'waiting')
+        .reduce<Rider | undefined>((best, rider) => {
+            if (best === undefined || rider.spawnedAt < best.spawnedAt) {
+                return rider;
+            }
+
+            return best;
+        }, undefined);
+    const maxLiftRider = riders
+        .filter((rider) => (
+            (rider.place === 'boarding' || rider.place === 'riding') &&
+            rider.boardedAt !== undefined
+        ))
+        .reduce<Rider | undefined>((best, rider) => {
+            if (
+                best === undefined ||
+                (rider.boardedAt ?? Number.POSITIVE_INFINITY) < (best.boardedAt ?? Number.POSITIVE_INFINITY)
+            ) {
+                return rider;
+            }
+
+            return best;
+        }, undefined);
     const metrics = [
         {
             name: 'Waiting',
@@ -572,7 +320,7 @@ export default function Lift() {
         },
         {
             name: 'Lift wait',
-            now: '-',
+            now: fmtTime(currentAvgLiftWait(riders, clock)),
             ten: fmtTime(avg(liftWaits10)),
             sixty: fmtTime(avg(liftWaits60)),
         },
@@ -614,7 +362,7 @@ export default function Lift() {
                                 <div
                                     style={{
                                         ...styles.band,
-                                        top: `${index * (100 / FLOORS)}%`,
+                                        top: bandTop(index),
                                         background: shown % 2 === 0
                                             ? 'rgba(148, 163, 184, 0.08)'
                                             : 'rgba(29, 82, 197, 0.06)',
@@ -648,7 +396,15 @@ export default function Lift() {
                         />
                     ))}
                     {riders.map((rider, index) => (
-                        <span key={rider.id} style={riderStyle(rider, index)}>
+                        <span
+                            key={rider.id}
+                            style={{
+                                ...riderStyle(rider, index),
+                                ...(rider.id === maxFloorRider?.id || rider.id === maxLiftRider?.id
+                                    ? styles.riderMax
+                                    : {}),
+                            }}
+                        >
                             {rider.dest}
                         </span>
                     ))}
@@ -675,7 +431,7 @@ export default function Lift() {
                     </div>
                     <div style={styles.metricMax}>
                         <span>Max lift wait</span>
-                        <strong>{fmtTime(maxLiftWaitRef.current)}</strong>
+                        <strong>{fmtTime(Math.max(maxLiftWaitRef.current, currentMaxLiftWait(riders, clock)))}</strong>
                     </div>
                 </aside>
             </div>
@@ -762,7 +518,12 @@ const styles = {
             `left ${WALK_MS}ms ease-in-out`,
             `bottom ${MOVE_MS - 120}ms ease-in-out`,
             `opacity ${FADE_MS}ms ease-in-out`,
+            'background 160ms ease',
         ].join(', '),
+    },
+    riderMax: {
+        background: '#dc2626',
+        color: '#fff',
     },
     car: {
         position: 'absolute',
