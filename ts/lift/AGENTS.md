@@ -6,6 +6,8 @@
 - Render riders in one overlay layer and move them by changing coordinates. Moving a rider between React parents causes visible disappear/reappear artefacts.
 - Waiting riders render from the lift outwards. Show at most `WAIT_SHOWN` waiting riders per floor; if more are queued, use the last visible circle as a `+x` marker while keeping hidden riders in the simulation state.
 - Keep lift timing, rider lifecycle, and display layout as separate helpers. The React component may own state, but effects should delegate to small transition functions like spawning, stop handling, boarding completion, and exit ageing.
+- Keep physics math in `motion.ts` pure and derived from the tuning constants in `constants.ts`. `posAt`, `velAt`, and `travelMs` should share the same motion profile so the rendered car, velocity readout, and arrival timer cannot drift apart.
+- During active lift motion, car and onboard rider vertical positions are driven by `requestAnimationFrame`; do not add CSS `bottom` transitions to those moving elements. Boarding/leaving riders still need short CSS transitions so they walk into and out of slots smoothly.
 - Exit timing belongs to each rider, not to a floor. Use rider-level properties such as `fadeAt` and `removeAt` so later passengers alighting on the same floor do not inherit an older fade timer.
 - The lift has six fixed slots: two rows of three. Boarding assigns the first free slot in `SLOTS` order; if no slot is free, the rider keeps waiting.
 - Add future algorithms in `algo.ts`, then expose them via `ALGOS`.
@@ -17,5 +19,4 @@
 
 - Passengers calling the lift.
 - Multiple lifts.
-- Physics-based movement with acceleration/deceleration so algorithms can be rewarded for skipping floors.
 - Control knobs for simulation settings.

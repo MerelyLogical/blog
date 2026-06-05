@@ -7,7 +7,7 @@ export const ALGOS: { id: Algo; label: string }[] = [
     { id: 'bounce',  label: 'Bounce' },
 ];
 
-export function requestedFloor(riders: Rider[], floor: number) {
+function requestedFloor(riders: Rider[], floor: number) {
     const riding = riders.filter((rider) => rider.place === 'riding');
 
     if (riding.length === 0) {

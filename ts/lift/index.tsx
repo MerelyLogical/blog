@@ -63,7 +63,7 @@ import {
     stepRiders,
     stopWork,
 } from './sim';
-import type { Action, ActiveMotion, Algo, Dir, Event, Phase, Rider, Sample } from './types';
+import type { Action, ActiveMotion, Algo, Dir, Event, Phase, Rider, Sample, Step } from './types';
 
 type SeenRider = Rider & {
     hidden?: number;
@@ -126,11 +126,7 @@ export default function Lift() {
         let timer: number | undefined;
         let action: Action = 'alight';
 
-        function stopCycle() {
-            const now = Date.now();
-            const aged = ageRiders(ridersRef.current, now);
-            const stepped = stepRiders(aged, floor, now, action);
-
+        function recordStep(stepped: Step, now: number) {
             if (stepped.floorWait !== undefined) {
                 maxFloorWaitRef.current = Math.max(maxFloorWaitRef.current, stepped.floorWait);
                 floorWaitsRef.current = [
@@ -157,6 +153,14 @@ export default function Lift() {
 
             ridersRef.current = stepped.riders;
             setRiders(stepped.riders);
+        }
+
+        function stopCycle() {
+            const now = Date.now();
+            const aged = ageRiders(ridersRef.current, now);
+            const stepped = stepRiders(aged, floor, now, action);
+
+            recordStep(stepped, now);
 
             done = window.setTimeout(() => {
                 action = stepped.action === 'alight' ? 'board' : 'alight';
@@ -169,48 +173,56 @@ export default function Lift() {
             }, STEP_MS);
         }
 
+        function arrive(active: ActiveMotion) {
+            const now = Date.now();
+            const aged = ageRiders(ridersRef.current, now);
+
+            ridersRef.current = aged;
+            setRiders(aged);
+            setFloor(active.to);
+            setDir(active.dir);
+            setMotion(undefined);
+            setAnimClock(now);
+            setPhase(active.stop ? 'stopped' : 'moving');
+        }
+
+        function depart() {
+            const now = Date.now();
+            const aged = ageRiders(ridersRef.current, now);
+            const moved = move(algo, floor, dir, aged, now);
+            const ms = travelMs(Math.abs(moved.floor - floor));
+
+            ridersRef.current = aged;
+            setRiders(aged);
+            setDir(moved.dir);
+            setAnimClock(now);
+
+            if (ms === 0) {
+                setPhase(moved.stop ? 'stopped' : 'moving');
+                return;
+            }
+
+            setMotion({
+                from: floor,
+                to: moved.floor,
+                startedAt: now,
+                arriveAt: now + ms,
+                dir: moved.dir,
+                stop: moved.stop,
+            });
+        }
+
         if (phase === 'stopped') {
             timer = window.setTimeout(() => {
                 stopCycle();
             }, STOP_MS);
         } else if (motion !== undefined) {
             timer = window.setTimeout(() => {
-                const now = Date.now();
-                const aged = ageRiders(ridersRef.current, now);
-
-                ridersRef.current = aged;
-                setRiders(aged);
-                setFloor(motion.to);
-                setDir(motion.dir);
-                setMotion(undefined);
-                setAnimClock(now);
-                setPhase(motion.stop ? 'stopped' : 'moving');
+                arrive(motion);
             }, Math.max(0, motion.arriveAt - Date.now()));
         } else {
             timer = window.setTimeout(() => {
-                const now = Date.now();
-                const aged = ageRiders(ridersRef.current, now);
-                const moved = move(algo, floor, dir, aged, now);
-                const ms = travelMs(Math.abs(moved.floor - floor));
-
-                ridersRef.current = aged;
-                setRiders(aged);
-                setDir(moved.dir);
-                setAnimClock(now);
-
-                if (ms === 0) {
-                    setPhase(moved.stop ? 'stopped' : 'moving');
-                    return;
-                }
-
-                setMotion({
-                    from: floor,
-                    to: moved.floor,
-                    startedAt: now,
-                    arriveAt: now + ms,
-                    dir: moved.dir,
-                    stop: moved.stop,
-                });
+                depart();
             }, 0);
         }
 
