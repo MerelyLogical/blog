@@ -22,9 +22,9 @@ import {
     STEP_MS,
     STOP_MS,
     TOP,
+    WAIT_LEFT,
     WAIT_ROWS,
     WAIT_SHOWN,
-    WAIT_X,
     WALK_MS,
 } from './constants';
 import {
@@ -301,7 +301,7 @@ export default function Lift() {
         const lane = lanePos(pos);
         const row = lane.row;
         let col = lane.col;
-        let left: string | number = WAIT_X + RIDER / 2 + col * (RIDER + GAP);
+        let left: string | number = WAIT_LEFT + RIDER / 2 + col * (RIDER + GAP);
 
         if (car) {
             const space = SLOTS[rider.slot ?? 0];
@@ -310,7 +310,7 @@ export default function Lift() {
             left = exitLeft(col);
         } else {
             col = Math.ceil(WAIT_SHOWN / WAIT_ROWS) - 1 - col;
-            left = WAIT_X + RIDER / 2 + col * (RIDER + GAP);
+            left = WAIT_LEFT + RIDER / 2 + col * (RIDER + GAP);
         }
 
         const bottom = car

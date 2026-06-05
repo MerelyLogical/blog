@@ -18,11 +18,13 @@ export const RIDER = 22;
 export const SPACE_BORDER = 2;
 export const SPACE = RIDER + SPACE_BORDER * 2;
 export const GAP = 3;
-export const CAR_X = 'calc(50% + 18px)';
-export const WAIT_X = 42;
+export const LANE_EDGE = 18;
+export const CAR_X = `calc(50% + ${LANE_EDGE}px)`;
+export const LABEL_W = 24;
+export const WAIT_LEFT = LANE_EDGE + LABEL_W;
 export const WAIT_ROWS = 2;
 export const WAIT_SHOWN = 6;
-export const EXIT_RIGHT = 18;
+export const EXIT_RIGHT = LANE_EDGE;
 
 export const SLOT_COLS = 3;
 export const SLOT_ROWS = 2;
