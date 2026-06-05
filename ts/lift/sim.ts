@@ -21,42 +21,6 @@ export function next(floor: number, dir: Dir) {
     return { floor: floor + dir, dir };
 }
 
-export function requestedFloor(riders: Rider[], floor: number) {
-    const riding = riders.filter((rider) => rider.place === 'riding');
-
-    if (riding.length === 0) {
-        return undefined;
-    }
-
-    return riding.reduce((best, rider) => {
-        if (Math.abs(rider.dest - floor) < Math.abs(best - floor)) {
-            return rider.dest;
-        }
-
-        return best;
-    }, riding[0].dest);
-}
-
-export function nextRequested(floor: number, dir: Dir, riders: Rider[]) {
-    const dest = requestedFloor(riders, floor);
-
-    if (dest === undefined) {
-        return next(floor, dir);
-    }
-
-    if (dest === floor) {
-        return { floor, dir };
-    }
-
-    const nextDir = dest > floor ? 1 : -1;
-
-    return { floor: floor + nextDir, dir: nextDir as Dir };
-}
-
-export function hasDrop(current: Rider[], floor: number) {
-    return current.some((rider) => rider.place === 'riding' && rider.dest === floor);
-}
-
 function randFloor() {
     return Math.floor(Math.random() * FLOORS);
 }

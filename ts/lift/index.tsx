@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 
 import { Button } from '@/ts/ui/Button';
 
+import { ALGOS, move, targetFloor } from './algo';
 import {
     CAR_H,
     CAR_W,
@@ -53,22 +54,16 @@ import {
 } from './metrics';
 import {
     ageRiders,
-    hasDrop,
-    next,
-    nextRequested,
-    requestedFloor,
     nextRiderDue,
     spawn,
     stepRiders,
     stopWork,
 } from './sim';
-import type { Action, Dir, Event, Phase, Rider, Sample } from './types';
+import type { Action, Algo, Dir, Event, Phase, Rider, Sample } from './types';
 
 type SeenRider = Rider & {
     hidden?: number;
 };
-
-type Algo = 'bounce' | 'nearest';
 
 function spawnDelay() {
     return SPAWN_MIN_MS + Math.random() * (SPAWN_MAX_MS - SPAWN_MIN_MS);
@@ -179,20 +174,10 @@ export default function Lift() {
                 ridersRef.current = aged;
                 setRiders(aged);
 
-                const requested = requestedFloor(aged, current);
-                const moved = algo === 'bounce' || requested === undefined
-                    ? next(current, dir)
-                    : nextRequested(current, dir, aged);
-                let shouldStop = true;
-
-                if (algo === 'nearest') {
-                    shouldStop = requested === undefined
-                        ? stopWork(aged, moved.floor, now)
-                        : hasDrop(aged, moved.floor);
-                }
+                const moved = move(algo, current, dir, aged, now);
 
                 setDir(moved.dir);
-                setPhase(shouldStop ? 'stopped' : 'moving');
+                setPhase(moved.stop ? 'stopped' : 'moving');
                 return moved.floor;
             });
         }, phase === 'moving' ? MOVE_MS : STOP_MS);
@@ -381,10 +366,7 @@ export default function Lift() {
             return best;
         }, undefined);
     const visibleRiders = shown(riders);
-    const request = requestedFloor(riders, floor);
-    const targetFloor = algo === 'nearest'
-        ? request ?? next(floor, dir).floor
-        : next(floor, dir).floor;
+    const goal = targetFloor(algo, floor, dir, riders);
     const metrics = [
         {
             name: 'Waiting',
@@ -424,7 +406,7 @@ export default function Lift() {
                 <div style={styles.statusText}>
                     <div style={styles.statusLine}>
                         <strong>Floor {floor}</strong>
-                        <span>Target {targetFloor}</span>
+                        <span>Target {goal}</span>
                     </div>
                     <span>
                         {running
@@ -441,8 +423,11 @@ export default function Lift() {
                         value={algo}
                         onChange={(event) => setAlgo(event.target.value as Algo)}
                     >
-                        <option value="nearest">Nearest request</option>
-                        <option value="bounce">Bounce</option>
+                        {ALGOS.map((option) => (
+                            <option key={option.id} value={option.id}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                     <Button style={styles.action} onClick={() => setRunning((value) => !value)}>
                         {running ? 'Pause' : 'Run'}

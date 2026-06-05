@@ -2,6 +2,13 @@ export type Dir = -1 | 1;
 export type Phase = 'moving' | 'stopped';
 export type Place = 'waiting' | 'boarding' | 'riding' | 'leaving' | 'fading';
 export type Action = 'alight' | 'board';
+export type Algo = 'bounce' | 'nearest';
+
+export type Move = {
+    floor: number;
+    dir: Dir;
+    stop: boolean;
+};
 
 export type Step = {
     riders: Rider[];
