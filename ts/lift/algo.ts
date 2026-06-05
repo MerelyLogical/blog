@@ -49,7 +49,14 @@ function popularFloor(riders: Rider[], floor: number) {
     const dir = up === down
         ? riding[0].dest > floor ? 1 : -1
         : up > down ? 1 : -1;
-    const request = riding.find((rider) => dir === 1 ? rider.dest > floor : rider.dest < floor);
+    const side = riding.filter((rider) => dir === 1 ? rider.dest > floor : rider.dest < floor);
+    const request = side.reduce((best, rider) => {
+        if (Math.abs(rider.dest - floor) < Math.abs(best.dest - floor)) {
+            return rider;
+        }
+
+        return best;
+    }, side[0]);
 
     return request?.dest;
 }

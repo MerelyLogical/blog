@@ -3,3 +3,11 @@ import Lift from '@/ts/lift'
 # Lift Simulator
 
 <Lift />
+
+## Algorithms
+
+| Algorithm | When empty | Onboard target | Tie breaker | Stop rule |
+| --- | --- | --- | --- | --- |
+| `bounce` | Bouncing up/down. | Ignore | - | Stop at every floor. |
+| `nearest` | Bouncing up & down. | Nearest onboard destination to the current floor. | First rider on board. | Stop only at requested destinations while occupied. |
+| `popular` | Bouncing up & down. | Everyone on board vote up/down, then nearest rider on that side. | First rider on board. | Stop only at requested destinations while occupied. |
