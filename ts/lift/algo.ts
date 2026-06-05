@@ -3,6 +3,7 @@ import type { Algo, Dir, Move, Rider } from './types';
 
 export const ALGOS: { id: Algo; label: string }[] = [
     { id: 'nearest', label: 'Nearest request' },
+    { id: 'popular', label: 'Most requests' },
     { id: 'bounce',  label: 'Bounce' },
 ];
 
@@ -36,18 +37,43 @@ function hasDrop(riders: Rider[], floor: number) {
     return riders.some((rider) => rider.place === 'riding' && rider.dest === floor);
 }
 
+function popularFloor(riders: Rider[], floor: number) {
+    const riding = riders.filter((rider) => rider.place === 'riding' && rider.dest !== floor);
+
+    if (riding.length === 0) {
+        return undefined;
+    }
+
+    const up = riding.filter((rider) => rider.dest > floor).length;
+    const down = riding.length - up;
+    const dir = up === down
+        ? riding[0].dest > floor ? 1 : -1
+        : up > down ? 1 : -1;
+    const request = riding.find((rider) => dir === 1 ? rider.dest > floor : rider.dest < floor);
+
+    return request?.dest;
+}
+
+function requested(algo: Algo, riders: Rider[], floor: number) {
+    if (algo === 'popular') {
+        return popularFloor(riders, floor);
+    }
+
+    return requestedFloor(riders, floor);
+}
+
 export function targetFloor(algo: Algo, floor: number, dir: Dir, riders: Rider[]) {
-    if (algo === 'nearest') {
-        return requestedFloor(riders, floor) ?? next(floor, dir).floor;
+    if (algo !== 'bounce') {
+        return requested(algo, riders, floor) ?? next(floor, dir).floor;
     }
 
     return next(floor, dir).floor;
 }
 
 export function move(algo: Algo, floor: number, dir: Dir, riders: Rider[], now: number): Move {
-    const requested = requestedFloor(riders, floor);
+    const dest = requested(algo, riders, floor);
 
-    if (algo === 'bounce' || requested === undefined) {
+    if (algo === 'bounce' || dest === undefined) {
         const moved = next(floor, dir);
 
         return {
@@ -56,7 +82,7 @@ export function move(algo: Algo, floor: number, dir: Dir, riders: Rider[], now: 
         };
     }
 
-    const moved = nextRequested(floor, dir, requested);
+    const moved = nextRequested(floor, dir, dest);
 
     return {
         ...moved,
