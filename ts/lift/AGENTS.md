@@ -8,3 +8,10 @@
 - The lift has six fixed slots: two rows of three. Boarding assigns the first free slot in `SLOTS` order; if no slot is free, the rider keeps waiting.
 - Boarding time is staggered. A stop alternates alight ticks and board ticks every `STEP_MS`; each lane therefore starts one rider every `WALK_MS`. Empty ticks still count, so board-only queues still board every `WALK_MS`, not every `STEP_MS`.
 - Metrics use lightweight histories: sampled counts for waiting/load and event histories for wait/trip completions. Keep the panel compact with current, 10s, and 60s values before adding graphs.
+
+## TODO
+
+- Passengers calling the lift.
+- Switching between different lift algorithms.
+- Multiple lifts.
+- Control knobs for simulation settings.

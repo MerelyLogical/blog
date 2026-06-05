@@ -22,6 +22,8 @@ import {
     STEP_MS,
     STOP_MS,
     TOP,
+    WAIT_ROWS,
+    WAIT_SHOWN,
     WAIT_X,
     WALK_MS,
 } from './constants';
@@ -58,6 +60,10 @@ import {
     stopWork,
 } from './sim';
 import type { Action, Dir, Event, Phase, Rider, Sample } from './types';
+
+type SeenRider = Rider & {
+    hidden?: number;
+};
 
 function spawnDelay() {
     return SPAWN_MIN_MS + Math.random() * (SPAWN_MAX_MS - SPAWN_MIN_MS);
@@ -252,16 +258,49 @@ export default function Lift() {
         return `floor-${rider.floor}`;
     }
 
-    function slot(rider: Rider, index: number) {
-        return riders.slice(0, index).filter((other) => (
+    function shown(riders: Rider[]): SeenRider[] {
+        const waiting = new Map<number, number>();
+        const seen = new Map<number, number>();
+
+        for (const rider of riders) {
+            if (rider.place === 'waiting') {
+                waiting.set(rider.floor, (waiting.get(rider.floor) ?? 0) + 1);
+            }
+        }
+
+        return riders.flatMap((rider) => {
+            if (rider.place !== 'waiting') {
+                return [rider];
+            }
+
+            const total = waiting.get(rider.floor) ?? 0;
+            const index = seen.get(rider.floor) ?? 0;
+            seen.set(rider.floor, index + 1);
+
+            if (total > WAIT_SHOWN && index >= WAIT_SHOWN) {
+                return [];
+            }
+
+            if (total > WAIT_SHOWN && index === WAIT_SHOWN - 1) {
+                return [{ ...rider, hidden: total - WAIT_SHOWN }];
+            }
+
+            return [rider];
+        });
+    }
+
+    function slot(shown: SeenRider[], rider: SeenRider, index: number) {
+        return shown.slice(0, index).filter((other) => (
             target(other) === target(rider)
         )).length;
     }
 
-    function riderStyle(rider: Rider, index: number) {
+    function riderStyle(shown: SeenRider[], rider: SeenRider, index: number) {
         const car = rider.place === 'boarding' || rider.place === 'riding';
-        const pos = slot(rider, index);
-        const { col, row } = lanePos(pos);
+        const pos = slot(shown, rider, index);
+        const lane = lanePos(pos);
+        const row = lane.row;
+        let col = lane.col;
         let left: string | number = WAIT_X + RIDER / 2 + col * (RIDER + GAP);
 
         if (car) {
@@ -269,6 +308,9 @@ export default function Lift() {
             left = carLeft(space);
         } else if (rider.place === 'leaving' || rider.place === 'fading') {
             left = exitLeft(col);
+        } else {
+            col = Math.ceil(WAIT_SHOWN / WAIT_ROWS) - 1 - col;
+            left = WAIT_X + RIDER / 2 + col * (RIDER + GAP);
         }
 
         const bottom = car
@@ -280,6 +322,7 @@ export default function Lift() {
             left,
             bottom,
             opacity: rider.place === 'fading' ? 0 : 1,
+            ...(rider.hidden !== undefined ? styles.riderQueue : {}),
         };
     }
 
@@ -315,6 +358,7 @@ export default function Lift() {
 
             return best;
         }, undefined);
+    const visibleRiders = shown(riders);
     const metrics = [
         {
             name: 'Waiting',
@@ -411,17 +455,17 @@ export default function Lift() {
                             }}
                         />
                     ))}
-                    {riders.map((rider, index) => (
+                    {visibleRiders.map((rider, index) => (
                         <span
                             key={rider.id}
                             style={{
-                                ...riderStyle(rider, index),
+                                ...riderStyle(visibleRiders, rider, index),
                                 ...(rider.id === maxFloorRider?.id || rider.id === maxLiftRider?.id
                                     ? styles.riderMax
                                     : {}),
                             }}
                         >
-                            {rider.dest}
+                            {rider.hidden === undefined ? rider.dest : `+${rider.hidden}`}
                         </span>
                     ))}
                 </div>
@@ -540,6 +584,11 @@ const styles = {
     riderMax: {
         background: '#dc2626',
         color: '#fff',
+    },
+    riderQueue: {
+        background: '#111827',
+        color: '#fff',
+        fontSize: '0.62rem',
     },
     car: {
         position: 'absolute',

@@ -1,6 +1,7 @@
 import {
     CAR_H,
     CAR_W,
+    CAR_X,
     EDGE,
     EXIT_RIGHT,
     FLOORS,
@@ -31,7 +32,7 @@ export function floorPos(floor: number, row: number) {
 }
 
 export function carLeft(space: { x: number }) {
-    return `calc(50% + ${space.x}px)`;
+    return `calc(${CAR_X} + ${space.x}px)`;
 }
 
 export function carBottom(floor: number, space: { y: number }) {
