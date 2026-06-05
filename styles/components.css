@@ -151,6 +151,11 @@ html[data-theme='dark'] .app-input::placeholder {
   min-width: 8ch;
 }
 
+.app-select {
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+}
+
 .app-form-inline {
   display: flex;
   align-items: center;
@@ -277,8 +282,7 @@ html[data-theme='dark'] .app-input::placeholder {
 }
 
 .fretboard-key-select {
-  margin: 0;
-  padding: 0.35rem 0.55rem;
+  min-width: 0;
 }
 
 .fretboard-clear-button {

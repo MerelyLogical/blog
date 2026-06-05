@@ -456,7 +456,7 @@ export default function Fretboard() {
                             Tuning
                             <select
                                 id="fretboard-tuning"
-                                className="app-input app-input--compact fretboard-key-select"
+                                className="app-input app-input--compact app-select fretboard-key-select"
                                 value={selectedTuningId}
                                 onChange={changeTuning}
                             >
@@ -471,7 +471,7 @@ export default function Fretboard() {
                             Capo
                             <select
                                 id="fretboard-capo"
-                                className="app-input app-input--compact fretboard-key-select"
+                                className="app-input app-input--compact app-select fretboard-key-select"
                                 value={selectedCapoFret}
                                 onChange={changeCapo}
                             >
@@ -490,7 +490,7 @@ export default function Fretboard() {
                             Key
                             <select
                                 id="fretboard-key"
-                                className="app-input app-input--compact fretboard-key-select"
+                                className="app-input app-input--compact app-select fretboard-key-select"
                                 value={selectedKeyLabel}
                                 onChange={changeKey}
                             >
