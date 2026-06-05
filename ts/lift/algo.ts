@@ -30,7 +30,7 @@ function nextRequested(floor: number, dir: Dir, dest: number) {
 
     const nextDir = dest > floor ? 1 : -1;
 
-    return { floor: floor + nextDir, dir: nextDir as Dir };
+    return { floor: dest, dir: nextDir as Dir };
 }
 
 function hasDrop(riders: Rider[], floor: number) {

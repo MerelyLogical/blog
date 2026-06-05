@@ -1,5 +1,8 @@
 export const FLOORS = 6;
-export const MOVE_MS = 1200;
+
+export const ACCEL_FPS2 = 3;
+export const MAX_SPEED_FPS = 3;
+
 export const STOP_MS = 500;
 export const WALK_MS = 800;
 export const STEP_MS = WALK_MS / 2;

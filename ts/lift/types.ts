@@ -10,6 +10,18 @@ export type Move = {
     stop: boolean;
 };
 
+export type Motion = {
+    from: number;
+    to: number;
+    startedAt: number;
+};
+
+export type ActiveMotion = Motion & {
+    arriveAt: number;
+    dir: Dir;
+    stop: boolean;
+};
+
 export type Step = {
     riders: Rider[];
     acted: boolean;

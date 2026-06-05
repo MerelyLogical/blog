@@ -13,7 +13,6 @@ import {
     FADE_MS,
     FLOORS,
     GAP,
-    MOVE_MS,
     RIDER,
     SAMPLE_MS,
     SPACE,
@@ -53,13 +52,18 @@ import {
     waitingCount,
 } from './metrics';
 import {
+    posAt,
+    travelMs,
+    velAt,
+} from './motion';
+import {
     ageRiders,
     nextRiderDue,
     spawn,
     stepRiders,
     stopWork,
 } from './sim';
-import type { Action, Algo, Dir, Event, Phase, Rider, Sample } from './types';
+import type { Action, ActiveMotion, Algo, Dir, Event, Phase, Rider, Sample } from './types';
 
 type SeenRider = Rider & {
     hidden?: number;
@@ -77,6 +81,8 @@ export default function Lift() {
     const [algo, setAlgo] = useState<Algo>('nearest');
     const [riders, setRiders] = useState<Rider[]>([]);
     const [clock, setClock] = useState(Date.now());
+    const [animClock, setAnimClock] = useState(Date.now());
+    const [motion, setMotion] = useState<ActiveMotion | undefined>(undefined);
     const ridersRef = useRef<Rider[]>([]);
     const samplesRef = useRef<Sample[]>([]);
     const floorWaitsRef = useRef<Event[]>([]);
@@ -117,6 +123,7 @@ export default function Lift() {
         }
 
         let done: number | undefined;
+        let timer: number | undefined;
         let action: Action = 'alight';
 
         function stopCycle() {
@@ -162,33 +169,77 @@ export default function Lift() {
             }, STEP_MS);
         }
 
-        const timer = window.setTimeout(() => {
-            if (phase === 'stopped') {
+        if (phase === 'stopped') {
+            timer = window.setTimeout(() => {
                 stopCycle();
-                return;
-            }
-
-            setFloor((current) => {
+            }, STOP_MS);
+        } else if (motion !== undefined) {
+            timer = window.setTimeout(() => {
                 const now = Date.now();
                 const aged = ageRiders(ridersRef.current, now);
+
                 ridersRef.current = aged;
                 setRiders(aged);
+                setFloor(motion.to);
+                setDir(motion.dir);
+                setMotion(undefined);
+                setAnimClock(now);
+                setPhase(motion.stop ? 'stopped' : 'moving');
+            }, Math.max(0, motion.arriveAt - Date.now()));
+        } else {
+            timer = window.setTimeout(() => {
+                const now = Date.now();
+                const aged = ageRiders(ridersRef.current, now);
+                const moved = move(algo, floor, dir, aged, now);
+                const ms = travelMs(Math.abs(moved.floor - floor));
 
-                const moved = move(algo, current, dir, aged, now);
-
+                ridersRef.current = aged;
+                setRiders(aged);
                 setDir(moved.dir);
-                setPhase(moved.stop ? 'stopped' : 'moving');
-                return moved.floor;
-            });
-        }, phase === 'moving' ? MOVE_MS : STOP_MS);
+                setAnimClock(now);
+
+                if (ms === 0) {
+                    setPhase(moved.stop ? 'stopped' : 'moving');
+                    return;
+                }
+
+                setMotion({
+                    from: floor,
+                    to: moved.floor,
+                    startedAt: now,
+                    arriveAt: now + ms,
+                    dir: moved.dir,
+                    stop: moved.stop,
+                });
+            }, 0);
+        }
 
         return () => {
-            window.clearTimeout(timer);
+            if (timer !== undefined) {
+                window.clearTimeout(timer);
+            }
             if (done !== undefined) {
                 window.clearTimeout(done);
             }
         };
-    }, [algo, dir, floor, phase, running]);
+    }, [algo, dir, floor, motion, phase, running]);
+
+    useEffect(() => {
+        if (!running || motion === undefined) {
+            return;
+        }
+
+        let frame: number;
+
+        function tick() {
+            setAnimClock(Date.now());
+            frame = window.requestAnimationFrame(tick);
+        }
+
+        frame = window.requestAnimationFrame(tick);
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [motion, running]);
 
     useEffect(() => {
         if (!running) {
@@ -241,6 +292,10 @@ export default function Lift() {
         setDir(1);
         setRunning(false);
         setPhase('moving');
+        setMotion(undefined);
+        const now = Date.now();
+        setClock(now);
+        setAnimClock(now);
         ridersRef.current = [];
         samplesRef.current = [];
         floorWaitsRef.current = [];
@@ -249,7 +304,6 @@ export default function Lift() {
         tripsTotalRef.current = 0;
         maxFloorWaitRef.current = 0;
         maxLiftWaitRef.current = 0;
-        setClock(Date.now());
         setRiders([]);
     }
 
@@ -302,10 +356,18 @@ export default function Lift() {
         )).length;
     }
 
+    const pos = motion === undefined ? floor : posAt(motion, animClock);
+    const riderMove = [
+        `left ${WALK_MS}ms ease-in-out`,
+        `opacity ${FADE_MS}ms ease-in-out`,
+        'background 160ms ease',
+    ];
+
     function riderStyle(shown: SeenRider[], rider: SeenRider, index: number) {
         const car = rider.place === 'boarding' || rider.place === 'riding';
-        const pos = slot(shown, rider, index);
-        const lane = lanePos(pos);
+        const riderPos = car ? pos : rider.floor;
+        const spot = slot(shown, rider, index);
+        const lane = lanePos(spot);
         const row = lane.row;
         let col = lane.col;
         let left: string | number = WAIT_LEFT + RIDER / 2 + col * (RIDER + GAP);
@@ -321,13 +383,17 @@ export default function Lift() {
         }
 
         const bottom = car
-            ? carBottom(floor, SLOTS[rider.slot ?? 0])
+            ? carBottom(riderPos, SLOTS[rider.slot ?? 0])
             : floorPos(rider.floor, row);
 
         return {
             ...styles.rider,
             left,
             bottom,
+            transition: [
+                ...riderMove,
+                ...(car && motion !== undefined ? [] : [`bottom ${WALK_MS}ms ease-in-out`]),
+            ].join(', '),
             opacity: rider.place === 'fading' ? 0 : 1,
             ...(rider.hidden !== undefined ? styles.riderQueue : {}),
         };
@@ -366,7 +432,10 @@ export default function Lift() {
             return best;
         }, undefined);
     const visibleRiders = shown(riders);
-    const goal = targetFloor(algo, floor, dir, riders);
+    const goal = motion?.to ?? targetFloor(algo, floor, dir, riders);
+    const current = motion === undefined ? `Floor ${floor}` : `Floor ${motion.from} → Floor ${motion.to}`;
+    const vel = running && motion !== undefined ? velAt(motion, animClock) : 0;
+    const velText = `${vel > 0 ? '+' : ''}${vel.toFixed(1)} f/s`;
     const metrics = [
         {
             name: 'Waiting',
@@ -405,16 +474,10 @@ export default function Lift() {
             <div style={styles.status}>
                 <div style={styles.statusText}>
                     <div style={styles.statusLine}>
-                        <strong>Floor {floor}</strong>
-                        <span>Target {goal}</span>
+                        <span>{current}</span>
+                        {motion === undefined && <span>Target {goal}</span>}
+                        <span style={styles.velocity}>{velText}</span>
                     </div>
-                    <span>
-                        {running
-                            ? phase === 'moving'
-                                ? `Moving ${dir === 1 ? 'up' : 'down'}`
-                                : 'Boarding'
-                            : 'Paused'}
-                    </span>
                 </div>
                 <div style={styles.controls}>
                     <select
@@ -465,7 +528,7 @@ export default function Lift() {
                     <div
                         style={{
                             ...styles.car,
-                            bottom: y(floor),
+                            bottom: y(pos),
                         }}
                     />
                     {SLOTS.map((space, index) => (
@@ -474,7 +537,7 @@ export default function Lift() {
                             style={{
                                 ...styles.space,
                                 left: spaceLeft(space),
-                                bottom: spaceBottom(floor, space),
+                                bottom: spaceBottom(pos, space),
                             }}
                         />
                     ))}
@@ -547,6 +610,10 @@ const styles = {
         alignItems: 'baseline',
         gap: '0.75rem',
     },
+    velocity: {
+        color: 'var(--app-text-muted)',
+        fontVariantNumeric: 'tabular-nums',
+    },
     sim: {
         display: 'grid',
         gridTemplateColumns: 'minmax(360px, 1fr) minmax(260px, 300px)',
@@ -602,12 +669,6 @@ const styles = {
         fontWeight: 700,
         lineHeight: 1,
         transform: 'translate(-50%, 50%)',
-        transition: [
-            `left ${WALK_MS}ms ease-in-out`,
-            `bottom ${MOVE_MS - 120}ms ease-in-out`,
-            `opacity ${FADE_MS}ms ease-in-out`,
-            'background 160ms ease',
-        ].join(', '),
     },
     riderMax: {
         background: '#dc2626',
@@ -634,7 +695,6 @@ const styles = {
         color: '#fff',
         fontWeight: 700,
         transform: 'translate(-50%, 50%)',
-        transition: `bottom ${MOVE_MS - 120}ms ease-in-out`,
     },
     space: {
         position: 'absolute',
@@ -644,7 +704,6 @@ const styles = {
         borderRadius: '50%',
         boxSizing: 'border-box',
         transform: 'translate(-50%, 50%)',
-        transition: `bottom ${MOVE_MS - 120}ms ease-in-out`,
     },
     controls: {
         display: 'flex',
