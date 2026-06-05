@@ -1,4 +1,5 @@
 import {
+    DEST_WEIGHTS,
     FADE_MS,
     FLOORS,
     LINGER_MS,
@@ -25,17 +26,48 @@ function randFloor() {
     return Math.floor(Math.random() * FLOORS);
 }
 
+function randDest(floor: number) {
+    const weights = Array.from({ length: FLOORS }, (_, dest) => (
+        dest === floor ? 0 : Math.max(0, DEST_WEIGHTS[dest] ?? 0)
+    ));
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+
+    if (total <= 0) {
+        let dest = randFloor();
+
+        while (dest === floor) {
+            dest = randFloor();
+        }
+
+        return dest;
+    }
+
+    let roll = Math.random() * total;
+
+    for (let dest = 0; dest < FLOORS; dest += 1) {
+        roll -= weights[dest];
+
+        if (roll < 0) {
+            return dest;
+        }
+    }
+
+    for (let dest = FLOORS - 1; dest >= 0; dest -= 1) {
+        if (weights[dest] > 0) {
+            return dest;
+        }
+    }
+
+    return 0;
+}
+
 export function spawn(current: Rider[], now = Date.now()): Rider[] {
     if (current.length >= MAX_RIDERS) {
         return current;
     }
 
     const floor = randFloor();
-    let dest = randFloor();
-
-    while (dest === floor) {
-        dest = randFloor();
-    }
+    const dest = randDest(floor);
 
     return [
         ...current,

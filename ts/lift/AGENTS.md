@@ -10,6 +10,7 @@
 - During active lift motion, car and onboard rider vertical positions are driven by `requestAnimationFrame`; do not add CSS `bottom` transitions to those moving elements. Boarding/leaving riders still need short CSS transitions so they walk into and out of slots smoothly.
 - Exit timing belongs to each rider, not to a floor. Use rider-level properties such as `fadeAt` and `removeAt` so later passengers alighting on the same floor do not inherit an older fade timer.
 - The lift has six fixed slots: two rows of three. Boarding assigns the first free slot in `SLOTS` order; if no slot is free, the rider keeps waiting.
+- `DEST_WEIGHTS` in `constants.ts` controls destination demand by floor. Origins stay uniformly random; destinations use the weights while excluding the rider's origin floor.
 - Add future algorithms in `algo.ts`, then expose them via `ALGOS`.
 - Keep the algorithms table in `content/playground/lift.mdx` as the source of truth for implemented algorithm behaviour. Any algorithm change must leave the code and table consistent.
 - Boarding time is staggered. A stop alternates alight ticks and board ticks every `STEP_MS`; each lane therefore starts one rider every `WALK_MS`. Empty ticks still count, so board-only queues still board every `WALK_MS`, not every `STEP_MS`.

@@ -1,7 +1,7 @@
 export const FLOORS = 6;
 
 export const ACCEL_FPS2 = 3;
-export const MAX_SPEED_FPS = 3;
+export const MAX_SPEED_FPS = 2.5;
 
 export const STOP_MS = 500;
 export const WALK_MS = 800;
@@ -13,6 +13,7 @@ export const SPAWN_MAX_MS = 2000;
 export const SAMPLE_MS = 100;
 export const MAX_RIDERS = 100;
 export const TOP = FLOORS - 1;
+export const DEST_WEIGHTS = [2, 1, 1, 1, 1, 2];
 
 export const CAR_H = 72;
 export const CAR_W = 126;
