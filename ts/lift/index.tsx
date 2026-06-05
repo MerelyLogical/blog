@@ -53,7 +53,10 @@ import {
 } from './metrics';
 import {
     ageRiders,
+    hasDrop,
     next,
+    nextRequested,
+    requestedFloor,
     nextRiderDue,
     spawn,
     stepRiders,
@@ -65,6 +68,8 @@ type SeenRider = Rider & {
     hidden?: number;
 };
 
+type Algo = 'bounce' | 'nearest';
+
 function spawnDelay() {
     return SPAWN_MIN_MS + Math.random() * (SPAWN_MAX_MS - SPAWN_MIN_MS);
 }
@@ -74,6 +79,7 @@ export default function Lift() {
     const [dir, setDir] = useState<Dir>(1);
     const [running, setRunning] = useState(true);
     const [phase, setPhase] = useState<Phase>('moving');
+    const [algo, setAlgo] = useState<Algo>('nearest');
     const [riders, setRiders] = useState<Rider[]>([]);
     const [clock, setClock] = useState(Date.now());
     const ridersRef = useRef<Rider[]>([]);
@@ -168,11 +174,27 @@ export default function Lift() {
             }
 
             setFloor((current) => {
-                const moved = next(current, dir);
+                const now = Date.now();
+                const aged = ageRiders(ridersRef.current, now);
+                ridersRef.current = aged;
+                setRiders(aged);
+
+                const requested = requestedFloor(aged, current);
+                const moved = algo === 'bounce' || requested === undefined
+                    ? next(current, dir)
+                    : nextRequested(current, dir, aged);
+                let shouldStop = true;
+
+                if (algo === 'nearest') {
+                    shouldStop = requested === undefined
+                        ? stopWork(aged, moved.floor, now)
+                        : hasDrop(aged, moved.floor);
+                }
+
                 setDir(moved.dir);
+                setPhase(shouldStop ? 'stopped' : 'moving');
                 return moved.floor;
             });
-            setPhase('stopped');
         }, phase === 'moving' ? MOVE_MS : STOP_MS);
 
         return () => {
@@ -181,7 +203,7 @@ export default function Lift() {
                 window.clearTimeout(done);
             }
         };
-    }, [dir, floor, phase, running]);
+    }, [algo, dir, floor, phase, running]);
 
     useEffect(() => {
         if (!running) {
@@ -359,6 +381,10 @@ export default function Lift() {
             return best;
         }, undefined);
     const visibleRiders = shown(riders);
+    const request = requestedFloor(riders, floor);
+    const targetFloor = algo === 'nearest'
+        ? request ?? next(floor, dir).floor
+        : next(floor, dir).floor;
     const metrics = [
         {
             name: 'Waiting',
@@ -396,7 +422,10 @@ export default function Lift() {
         <div style={styles.wrap}>
             <div style={styles.status}>
                 <div style={styles.statusText}>
-                    <strong>Floor {floor}</strong>
+                    <div style={styles.statusLine}>
+                        <strong>Floor {floor}</strong>
+                        <span>Target {targetFloor}</span>
+                    </div>
                     <span>
                         {running
                             ? phase === 'moving'
@@ -406,6 +435,15 @@ export default function Lift() {
                     </span>
                 </div>
                 <div style={styles.controls}>
+                    <select
+                        aria-label="Lift algorithm"
+                        className="app-input app-input--compact app-select"
+                        value={algo}
+                        onChange={(event) => setAlgo(event.target.value as Algo)}
+                    >
+                        <option value="nearest">Nearest request</option>
+                        <option value="bounce">Bounce</option>
+                    </select>
                     <Button style={styles.action} onClick={() => setRunning((value) => !value)}>
                         {running ? 'Pause' : 'Run'}
                     </Button>
@@ -518,6 +556,11 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         gap: '0.15rem',
+    },
+    statusLine: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: '0.75rem',
     },
     sim: {
         display: 'grid',
