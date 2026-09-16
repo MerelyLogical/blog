@@ -1,8 +1,8 @@
 import {
     ACCEL_FPS2,
     MAX_SPEED_FPS,
-} from './constants';
-import type { Motion } from './types';
+} from './constants.ts';
+import type { Motion } from './types.ts';
 
 const SEC = 1000;
 

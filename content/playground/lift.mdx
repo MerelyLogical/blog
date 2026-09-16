@@ -2,12 +2,31 @@ import Lift from '@/ts/lift'
 
 # Lift Simulator
 
+Compare two views with the same passenger arrivals. Only the two selected policy combinations run, and the results table compares those views. On smaller screens, switch between views using the tabs.
+
 <Lift />
 
-## Algorithms
+## Policies
 
-| Algorithm | When empty | Onboard target | Tie breaker | Stop rule |
-| --- | --- | --- | --- | --- |
-| `bounce` | Bouncing up/down. | Ignore | - | Stop at every floor. |
-| `nearest` | Bouncing up & down. | Nearest onboard destination to the current floor. | First rider on board. | Stop only at requested destinations while occupied. |
-| `popular` | Bouncing up & down. | Everyone on board vote up/down, then nearest rider on that side. | First rider on board. | Stop only at requested destinations while occupied. |
+Choose one policy for an empty lift and another for an occupied lift. Changing either selector restarts both views and clears their results so the comparison begins together. If paused, it stays paused.
+
+### When empty
+
+| Policy | Behaviour | Tie breaker |
+| --- | --- | --- |
+| Patrol | Travel up/down between the end floors. With **Every floor**, stop at each floor; otherwise stop where passengers are waiting. | — |
+| Nearest call | Go directly to the nearest floor with waiting passengers. | Oldest waiting passenger. |
+| Oldest call | Go directly to the floor of the longest-waiting passenger. | First passenger in the queue. |
+
+Nearest call and Oldest call stay idle when nobody is waiting. Passengers arriving during a journey do not change its target.
+
+### When occupied
+
+| Policy | Target | Tie breaker | Stop rule |
+| --- | --- | --- | --- |
+| Every floor | Continue up/down between the end floors, ignoring onboard destinations when choosing a direction. | — | Stop at every floor. |
+| Nearest destination | Nearest onboard destination. | First rider to board. | Stop at the target destination. |
+| Popular direction | Direction wanted by most onboard riders, then the nearest destination that way. | First rider to board, for both direction and distance ties. | Stop at the target destination. |
+| Continue direction | Nearest onboard destination in the current direction; reverse only when none remain ahead. | First rider to board. | Stop at the target destination. |
+
+At any stop, passengers can board if there is space, regardless of their direction. Occupied lifts using Nearest destination, Popular direction or Continue direction do not make extra stops for waiting passengers along the route.

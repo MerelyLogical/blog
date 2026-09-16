@@ -2,7 +2,9 @@ export type Dir = -1 | 1;
 export type Phase = 'moving' | 'stopped';
 export type Place = 'waiting' | 'boarding' | 'riding' | 'leaving' | 'fading';
 export type Action = 'alight' | 'board';
-export type Algo = 'bounce' | 'nearest' | 'popular';
+export type Empty = 'patrol' | 'nearest' | 'oldest';
+export type Occupied = 'every' | 'nearest' | 'popular' | 'continue';
+export type Algo = `${Empty}:${Occupied}`;
 
 export type Move = {
     floor: number;

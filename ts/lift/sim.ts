@@ -6,9 +6,9 @@ import {
     MAX_RIDERS,
     TOP,
     WALK_MS,
-} from './constants';
-import { SLOTS } from './layout';
-import type { Action, Dir, Rider, Step } from './types';
+} from './constants.ts';
+import { SLOTS } from './layout.ts';
+import type { Action, Dir, Rider, Step } from './types.ts';
 
 export function next(floor: number, dir: Dir) {
     if (floor === TOP && dir === 1) {
@@ -152,7 +152,6 @@ function alightStep(current: Rider[], floor: number, now: number): Step {
             ...rider,
             floor,
             place: 'leaving' as const,
-            slot: undefined,
             walkUntil: now + WALK_MS,
             fadeAt,
             removeAt: fadeAt + FADE_MS,

@@ -1,4 +1,4 @@
-import type { Rider } from './types';
+import type { Rider } from './types.ts';
 
 export function waitingCount(riders: Rider[]) {
     return riders.filter((rider) => rider.place === 'waiting').length;

@@ -13,7 +13,7 @@ import {
     SLOT_STEP_Y,
     TOP,
     WAIT_ROWS,
-} from './constants';
+} from './constants.ts';
 
 export const SLOTS = Array.from({ length: SLOT_ROWS }, (_, row) => (
     Array.from({ length: SLOT_COLS }, (_, col) => ({
