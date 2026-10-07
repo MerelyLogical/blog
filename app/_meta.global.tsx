@@ -65,6 +65,7 @@ export default {
       "fretboard": { title: "Fretboard" },
       "lift":      { title: "Lift Simulator" },
       "terrain":   { title: "Hex Terrain Generation" },
+      "formants":  { title: "Vowel Synth" },
 
     }
   },
