@@ -199,8 +199,9 @@ export default function FormantSynth() {
   }, [brightness, dry, enabled, f0, source])
 
   useEffect(() => {
-    const el = canvas.current
-    if (!el) return
+    const current = canvas.current
+    if (!current) return
+    const el: HTMLCanvasElement = current
     let frame = 0
     let bins = new Float32Array(0)
 
