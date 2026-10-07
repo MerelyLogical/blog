@@ -1,0 +1,101 @@
+.formant-synth {
+  --formant-panel: var(--app-card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: var(--app-text-color);
+}
+
+.formant-toolbar,
+.formant-presets,
+.formant-set,
+.formant-play-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.formant-play { margin: 0; min-width: 6rem; }
+.formant-play-row { min-height: 2rem; }
+.formant-source-control,
+.formant-pitch,
+.formant-brightness,
+.formant-dry { display: flex; align-items: center; gap: .45rem; color: var(--app-text-muted); font-size: .82rem; }
+.formant-pitch { flex: 1 1 230px; }
+.formant-pitch input { flex: 1; min-width: 100px; }
+.formant-pitch output { min-width: 7.5rem; color: var(--app-text-color); font-variant-numeric: tabular-nums; }
+.formant-brightness { flex: 1 1 210px; }
+.formant-brightness input { flex: 1; min-width: 90px; }
+.formant-brightness output { min-width: 2.6rem; color: var(--app-text-color); font-variant-numeric: tabular-nums; }
+.formant-presets { align-items: stretch; }
+.formant-presets button,
+.formant-set button {
+  display: flex;
+  align-items: baseline;
+  gap: .35rem;
+  border: 1px solid var(--app-card-border);
+  border-radius: 999px;
+  padding: .35rem .7rem;
+  background: var(--formant-panel);
+  color: var(--app-text-color);
+  cursor: pointer;
+}
+.formant-preset-label { font-size: .68rem; font-weight: 700; letter-spacing: .025em; }
+.formant-glyph { font-size: 1rem; font-weight: 500; line-height: 1; }
+.formant-presets button[aria-pressed='true'],
+.formant-set button[aria-pressed='true'] { background: #1d52c5; color: #fff; }
+.formant-set > span { margin-right: .15rem; color: var(--app-text-muted); font-size: .82rem; }
+
+.formant-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: 1rem; }
+.formant-card {
+  min-width: 0;
+  border: 1px solid var(--app-card-border);
+  border-radius: 5px;
+  padding: 1rem;
+  background: var(--formant-panel);
+}
+.formant-card h3 { margin: 0; font-size: 1rem; }
+.formant-card > p { margin: .25rem 0 .75rem; color: var(--app-text-muted); font-size: .82rem; }
+
+.formant-row {
+  display: grid;
+  grid-template-columns: 3.4rem repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: .6rem;
+  border-top: 1px solid var(--app-card-border);
+  padding: .75rem 0;
+}
+.formant-row:first-of-type { margin-top: .5rem; }
+.formant-row label { min-width: 0; font-size: .75rem; color: var(--app-text-muted); }
+.formant-row label span { display: flex; justify-content: space-between; gap: .35rem; }
+.formant-row output { color: var(--app-text-color); font-variant-numeric: tabular-nums; }
+.formant-row input[type='range'] { width: 100%; margin: .35rem 0 0; accent-color: var(--formant-colour); }
+.formant-enable { display: flex; align-items: center; gap: .3rem; color: var(--formant-colour) !important; font-size: .9rem !important; font-weight: 700; }
+.formant-row.is-off > label:not(.formant-enable) { opacity: .42; }
+
+.vowel-map { width: 100%; min-height: 220px; touch-action: none; cursor: crosshair; }
+.vowel-map rect { fill: rgba(148, 163, 184, .08); stroke: var(--app-card-border); }
+.vowel-map text { fill: var(--app-text-muted); font-size: 10px; user-select: none; }
+.vowel-point circle { fill: var(--app-text-muted); }
+.vowel-point-label { font-size: 9px !important; }
+.vowel-current { fill: #f59e0b; stroke: var(--app-text-color); stroke-width: 2; }
+
+.formant-spectrum canvas { display: block; width: 100%; height: 260px; color: var(--app-text-color); }
+
+@media (max-width: 720px) {
+  .formant-set > span { flex-basis: 100%; }
+
+  .formant-pitch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    flex-basis: 100%;
+  }
+  .formant-brightness { flex-basis: 100%; }
+  .formant-presets { width: 100%; margin-left: 0; }
+  .formant-grid { grid-template-columns: minmax(0, 1fr); }
+  .formant-row { grid-template-columns: 3.4rem minmax(0, 1fr); }
+  .formant-row > label:not(.formant-enable) { grid-column: 2; }
+  .formant-enable { grid-row: 1 / span 2; align-self: center; }
+}

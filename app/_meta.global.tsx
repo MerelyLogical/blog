@@ -63,6 +63,9 @@ export default {
       "aifight":   { title: "AI Arena" },
       "buyvsrent": { title: "Buy vs Rent Calculator"},
       "fretboard": { title: "Fretboard" },
+      "lift":      { title: "Lift Simulator" },
+      "terrain":   { title: "Hex Terrain Generation" },
+      "formants":  { title: "Vowel Synth" },
 
     }
   },

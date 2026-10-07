@@ -5,22 +5,20 @@ import type { CSSProperties } from 'react';
 
 import { Button } from '@/ts/ui/Button';
 
-import { ALGOS, move, targetFloor } from './algo';
+import { ALGOS, EMPTY, OCCUPIED, pair, policies, targetFloor } from './algo';
 import {
     CAR_H,
     CAR_W,
     CAR_X,
     FADE_MS,
     FLOORS,
+    MAX_RIDERS,
     GAP,
     RIDER,
-    SAMPLE_MS,
     SPACE,
     SPACE_BORDER,
     SPAWN_MAX_MS,
     SPAWN_MIN_MS,
-    STEP_MS,
-    STOP_MS,
     TOP,
     WAIT_LEFT,
     WAIT_ROWS,
@@ -53,17 +51,15 @@ import {
 } from './metrics';
 import {
     posAt,
-    travelMs,
     velAt,
 } from './motion';
 import {
-    ageRiders,
-    nextRiderDue,
     spawn,
-    stepRiders,
-    stopWork,
 } from './sim';
-import type { Action, ActiveMotion, Algo, Dir, Event, Phase, Rider, Sample, Step } from './types';
+import type { Algo, Empty, Occupied, Rider } from './types';
+import { advance, result, run } from './run';
+import type { Run } from './run';
+import './compare.css';
 
 type SeenRider = Rider & {
     hidden?: number;
@@ -74,251 +70,119 @@ function spawnDelay() {
 }
 
 export default function Lift() {
-    const [floor, setFloor] = useState(0);
-    const [dir, setDir] = useState<Dir>(1);
     const [running, setRunning] = useState(true);
-    const [phase, setPhase] = useState<Phase>('moving');
-    const [algo, setAlgo] = useState<Algo>('nearest');
-    const [riders, setRiders] = useState<Rider[]>([]);
-    const [clock, setClock] = useState(Date.now());
-    const [animClock, setAnimClock] = useState(Date.now());
-    const [motion, setMotion] = useState<ActiveMotion | undefined>(undefined);
-    const ridersRef = useRef<Rider[]>([]);
-    const samplesRef = useRef<Sample[]>([]);
-    const floorWaitsRef = useRef<Event[]>([]);
-    const liftWaitsRef = useRef<Event[]>([]);
-    const tripsRef = useRef<Event[]>([]);
-    const tripsTotalRef = useRef(0);
-    const maxFloorWaitRef = useRef(0);
-    const maxLiftWaitRef = useRef(0);
+    const [speed, setSpeed] = useState(1);
+    const [views, setViews] = useState<Algo[]>(['patrol:nearest', 'nearest:nearest']);
+    const [tab, setTab] = useState(0);
+    const [clock, setClock] = useState(0);
+    const [initial] = useState(() => ({ now: 0, next: spawnDelay(), runs: views.map(run) }));
+    const world = useRef(initial);
 
     useEffect(() => {
-        ridersRef.current = riders;
-    }, [riders]);
-
-    useEffect(() => {
-        const timer = window.setInterval(() => {
-            const now = Date.now();
-            setClock(now);
-
-            samplesRef.current = [
-                ...since(samplesRef.current, now, 60000),
-                {
-                    time: now,
-                    waiting: waitingCount(ridersRef.current),
-                    load: loadCount(ridersRef.current),
-                },
-            ];
-            floorWaitsRef.current = since(floorWaitsRef.current, now, 60000);
-            liftWaitsRef.current = since(liftWaitsRef.current, now, 60000);
-            tripsRef.current = since(tripsRef.current, now, 60000);
-        }, SAMPLE_MS);
-
-        return () => window.clearInterval(timer);
-    }, []);
-
-    useEffect(() => {
-        if (!running) {
-            return;
-        }
-
-        let done: number | undefined;
-        let timer: number | undefined;
-        let action: Action = 'alight';
-
-        function recordStep(stepped: Step, now: number) {
-            if (stepped.floorWait !== undefined) {
-                maxFloorWaitRef.current = Math.max(maxFloorWaitRef.current, stepped.floorWait);
-                floorWaitsRef.current = [
-                    ...floorWaitsRef.current,
-                    { time: now, value: stepped.floorWait },
-                ];
-            }
-
-            if (stepped.liftWait !== undefined) {
-                maxLiftWaitRef.current = Math.max(maxLiftWaitRef.current, stepped.liftWait);
-                liftWaitsRef.current = [
-                    ...liftWaitsRef.current,
-                    { time: now, value: stepped.liftWait },
-                ];
-            }
-
-            if (stepped.trip) {
-                tripsTotalRef.current += 1;
-                tripsRef.current = [
-                    ...tripsRef.current,
-                    { time: now, value: 1 },
-                ];
-            }
-
-            ridersRef.current = stepped.riders;
-            setRiders(stepped.riders);
-        }
-
-        function stopCycle() {
-            const now = Date.now();
-            const aged = ageRiders(ridersRef.current, now);
-            const stepped = stepRiders(aged, floor, now, action);
-
-            recordStep(stepped, now);
-
-            done = window.setTimeout(() => {
-                action = stepped.action === 'alight' ? 'board' : 'alight';
-
-                if (stopWork(ridersRef.current, floor, Date.now())) {
-                    stopCycle();
-                } else {
-                    setPhase('moving');
-                }
-            }, STEP_MS);
-        }
-
-        function arrive(active: ActiveMotion) {
-            const now = Date.now();
-            const aged = ageRiders(ridersRef.current, now);
-
-            ridersRef.current = aged;
-            setRiders(aged);
-            setFloor(active.to);
-            setDir(active.dir);
-            setMotion(undefined);
-            setAnimClock(now);
-            setPhase(active.stop ? 'stopped' : 'moving');
-        }
-
-        function depart() {
-            const now = Date.now();
-            const aged = ageRiders(ridersRef.current, now);
-            const moved = move(algo, floor, dir, aged, now);
-            const ms = travelMs(Math.abs(moved.floor - floor));
-
-            ridersRef.current = aged;
-            setRiders(aged);
-            setDir(moved.dir);
-            setAnimClock(now);
-
-            if (ms === 0) {
-                setPhase(moved.stop ? 'stopped' : 'moving');
-                return;
-            }
-
-            setMotion({
-                from: floor,
-                to: moved.floor,
-                startedAt: now,
-                arriveAt: now + ms,
-                dir: moved.dir,
-                stop: moved.stop,
-            });
-        }
-
-        if (phase === 'stopped') {
-            timer = window.setTimeout(() => {
-                stopCycle();
-            }, STOP_MS);
-        } else if (motion !== undefined) {
-            timer = window.setTimeout(() => {
-                arrive(motion);
-            }, Math.max(0, motion.arriveAt - Date.now()));
-        } else {
-            timer = window.setTimeout(() => {
-                depart();
-            }, 0);
-        }
-
-        return () => {
-            if (timer !== undefined) {
-                window.clearTimeout(timer);
-            }
-            if (done !== undefined) {
-                window.clearTimeout(done);
-            }
-        };
-    }, [algo, dir, floor, motion, phase, running]);
-
-    useEffect(() => {
-        if (!running || motion === undefined) {
-            return;
-        }
-
+        if (!running) return;
         let frame: number;
-
-        function tick() {
-            setAnimClock(Date.now());
-            frame = window.requestAnimationFrame(tick);
-        }
-
-        frame = window.requestAnimationFrame(tick);
-
-        return () => window.cancelAnimationFrame(frame);
-    }, [motion, running]);
-
-    useEffect(() => {
-        if (!running) {
-            return;
-        }
-
-        let timer: number | undefined;
-
-        function queueSpawn() {
-            timer = window.setTimeout(() => {
-                setRiders((current) => {
-                    const spawned = spawn(current);
-                    ridersRef.current = spawned;
-                    return spawned;
-                });
-                queueSpawn();
-            }, spawnDelay());
-        }
-
-        queueSpawn();
-
-        return () => {
-            if (timer !== undefined) {
-                window.clearTimeout(timer);
+        let last = performance.now();
+        function tick(time: number) {
+            const state = world.current;
+            // Limit background-tab catch-up work; every algorithm still shares this clock.
+            const now = state.now + Math.min(time - last, 100) * speed;
+            last = time;
+            while (state.next <= now) {
+                for (const sim of state.runs) advance(sim, state.next);
+                if (state.runs.every((sim) => sim.riders.length < MAX_RIDERS)) {
+                    const rider = spawn([], state.next)[0];
+                    for (const sim of state.runs) sim.riders.push({ ...rider });
+                }
+                state.next += spawnDelay();
             }
-        };
-    }, [running]);
-
-    useEffect(() => {
-        const due = nextRiderDue(riders);
-
-        if (due === undefined) {
-            return;
+            for (const sim of state.runs) advance(sim, now);
+            state.now = now;
+            setClock(now);
+            frame = requestAnimationFrame(tick);
         }
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [running, speed]);
 
-        const wait = Math.max(0, due - Date.now());
-        const timer = window.setTimeout(() => {
-            setRiders((current) => {
-                const aged = ageRiders(current, Date.now());
-                ridersRef.current = aged;
-                return aged;
-            });
-        }, wait);
-
-        return () => window.clearTimeout(timer);
-    }, [riders]);
-
-    function reset() {
-        setFloor(0);
-        setDir(1);
-        setRunning(false);
-        setPhase('moving');
-        setMotion(undefined);
-        const now = Date.now();
-        setClock(now);
-        setAnimClock(now);
-        ridersRef.current = [];
-        samplesRef.current = [];
-        floorWaitsRef.current = [];
-        liftWaitsRef.current = [];
-        tripsRef.current = [];
-        tripsTotalRef.current = 0;
-        maxFloorWaitRef.current = 0;
-        maxLiftWaitRef.current = 0;
-        setRiders([]);
+    function restart(selected: Algo[]) {
+        world.current = { now: 0, next: spawnDelay(), runs: selected.map(run) };
+        setClock(0);
     }
 
+    function reset() {
+        restart(views);
+        setRunning(false);
+    }
+
+    function choose(slot: number, algo: Algo) {
+        if (views[slot] === algo) return;
+        const selected = views.map((value, index) => index === slot ? algo : value);
+        restart(selected);
+        setViews(selected);
+    }
+
+    return (
+        <div className="lift-compare">
+            <p>Only the two selected combinations run, with identical passengers. Changing a policy restarts both views.</p>
+            <div className="lift-toolbar">
+                <Button style={styles.action} onClick={() => setRunning((value) => !value)}>{running ? 'Pause' : 'Run'}</Button>
+                <Button style={styles.action} onClick={reset}>Reset</Button>
+                <label>Speed <select className="app-input app-input--compact app-select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>
+                    {[1, 2, 4].map((value) => <option key={value} value={value}>{value}×</option>)}
+                </select></label>
+                <span>{fmtTime(clock)}</span>
+            </div>
+            <div className="lift-tabs" role="tablist" aria-label="Comparison views">
+                {views.map((algo, index) => <button key={index} id={`lift-tab-${index}`} role="tab" aria-selected={tab === index} aria-controls={`lift-view-${index}`} tabIndex={tab === index ? 0 : -1}
+                    onClick={() => setTab(index)} onKeyDown={(event) => {
+                        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            const next = 1 - index;
+                            setTab(next);
+                            document.getElementById(`lift-tab-${next}`)?.focus();
+                        }
+                    }} title={ALGOS.find(({ id }) => id === algo)?.label}>View {index + 1}</button>)}
+            </div>
+            <div className="lift-views">
+                {views.map((algo, index) => <section key={index} id={`lift-view-${index}`} className={`lift-view ${tab === index ? 'is-active' : ''}`} aria-label={`View ${index + 1}`}>
+                    <h3 className="lift-view-title">View {index + 1}</h3>
+                    <div className="lift-pickers">
+                        <label className="lift-picker">When empty
+                            <select aria-label={`When empty for view ${index + 1}`} className="app-input app-input--compact app-select" value={policies(algo).empty} onChange={(event) => choose(index, pair(event.target.value as Empty, policies(algo).occupied))}>
+                                {EMPTY.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                            </select>
+                        </label>
+                        <label className="lift-picker">When occupied
+                            <select aria-label={`When occupied for view ${index + 1}`} className="app-input app-input--compact app-select" value={policies(algo).occupied} onChange={(event) => choose(index, pair(policies(algo).empty, event.target.value as Occupied))}>
+                                {OCCUPIED.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                            </select>
+                        </label>
+                    </div>
+                    <View key={algo} state={world.current.runs[index]} clock={clock} running={running} />
+                </section>)}
+            </div>
+            <div className="lift-results">
+                <table>
+                    <caption>Selected combinations · average wait measures passengers who have boarded</caption>
+                    <thead><tr><th scope="col">View</th><th scope="col">When empty</th><th scope="col">When occupied</th><th scope="col">Average floor wait</th><th scope="col">Longest current wait</th><th scope="col">Waiting</th><th scope="col">Trips</th></tr></thead>
+                    <tbody>{world.current.runs.map((sim, index) => {
+                        const stats = result(sim, clock);
+                        return <tr key={index}>
+                            <th scope="row">View {index + 1}</th>
+                            <td>{EMPTY.find(({ id }) => id === policies(sim.algo).empty)?.label}</td>
+                            <td>{OCCUPIED.find(({ id }) => id === policies(sim.algo).occupied)?.label}</td>
+                            <td>{stats.wait === undefined ? '—' : fmtTime(stats.wait)}</td><td>{fmtTime(stats.longest)}</td><td>{stats.waiting}</td><td>{stats.trips}</td>
+                        </tr>;
+                    })}</tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+function View({ state, clock, running }: { state: Run; clock: number; running: boolean }) {
+    const { floor, dir, riders, motion, algo } = state;
+    const animClock = clock;
     function target(rider: Rider) {
         if (rider.place === 'boarding' || rider.place === 'riding') {
             return `car-${rider.slot ?? 0}`;
@@ -369,11 +233,10 @@ export default function Lift() {
     }
 
     const pos = motion === undefined ? floor : posAt(motion, animClock);
-    const riderMove = [
-        `left ${WALK_MS}ms ease-in-out`,
-        `opacity ${FADE_MS}ms ease-in-out`,
-        'background 160ms ease',
-    ];
+    function between(from: string | number, to: string | number, progress: number) {
+        const css = (value: string | number) => typeof value === 'number' ? `${value}px` : value;
+        return `calc(${css(from)} * ${1 - progress} + ${css(to)} * ${progress})`;
+    }
 
     function riderStyle(shown: SeenRider[], rider: SeenRider, index: number) {
         const car = rider.place === 'boarding' || rider.place === 'riding';
@@ -394,31 +257,40 @@ export default function Lift() {
             left = WAIT_LEFT + RIDER / 2 + col * (RIDER + GAP);
         }
 
-        const bottom = car
+        let bottom = car
             ? carBottom(riderPos, SLOTS[rider.slot ?? 0])
             : floorPos(rider.floor, row);
+
+        if (rider.walkUntil !== undefined) {
+            const progress = Math.min(1, Math.max(0, 1 - (rider.walkUntil - clock) / WALK_MS));
+            const space = SLOTS[rider.slot ?? 0];
+            if (rider.place === 'boarding') {
+                left = between(WAIT_LEFT + RIDER / 2 + (Math.ceil(WAIT_SHOWN / WAIT_ROWS) - 1) * (RIDER + GAP), left, progress);
+                bottom = between(floorPos(rider.floor, 0), bottom, progress);
+            } else if (rider.place === 'leaving') {
+                left = between(carLeft(space), left, progress);
+                bottom = between(carBottom(rider.floor, space), bottom, progress);
+            }
+        }
 
         return {
             ...styles.rider,
             left,
             bottom,
-            transition: [
-                ...riderMove,
-                ...(car && motion !== undefined ? [] : [`bottom ${WALK_MS}ms ease-in-out`]),
-            ].join(', '),
-            opacity: rider.place === 'fading' ? 0 : 1,
+            transition: 'background 160ms ease',
+            opacity: rider.place === 'fading' ? Math.max(0, 1 - (clock - (rider.fadeAt ?? clock)) / FADE_MS) : 1,
             ...(rider.hidden !== undefined ? styles.riderQueue : {}),
         };
     }
 
-    const samples10 = since(samplesRef.current, clock, 10000);
-    const samples60 = since(samplesRef.current, clock, 60000);
-    const floorWaits10 = since(floorWaitsRef.current, clock, 10000).map((event) => event.value);
-    const floorWaits60 = since(floorWaitsRef.current, clock, 60000).map((event) => event.value);
-    const liftWaits10 = since(liftWaitsRef.current, clock, 10000).map((event) => event.value);
-    const liftWaits60 = since(liftWaitsRef.current, clock, 60000).map((event) => event.value);
-    const trips10 = since(tripsRef.current, clock, 10000).length;
-    const trips60 = since(tripsRef.current, clock, 60000).length;
+    const samples10 = since(state.samples, clock, 10000);
+    const samples60 = since(state.samples, clock, 60000);
+    const floorWaits10 = since(state.floorWaits, clock, 10000).map((event) => event.value);
+    const floorWaits60 = since(state.floorWaits, clock, 60000).map((event) => event.value);
+    const liftWaits10 = since(state.liftWaits, clock, 10000).map((event) => event.value);
+    const liftWaits60 = since(state.liftWaits, clock, 60000).map((event) => event.value);
+    const trips10 = since(state.trips, clock, 10000).length;
+    const trips60 = since(state.trips, clock, 60000).length;
     const maxFloorRider = riders
         .filter((rider) => rider.place === 'waiting')
         .reduce<Rider | undefined>((best, rider) => {
@@ -475,7 +347,7 @@ export default function Lift() {
         },
         {
             name: 'Trips',
-            now: String(tripsTotalRef.current),
+            now: String(state.total),
             ten: String(trips10),
             sixty: String(trips60),
         },
@@ -490,24 +362,6 @@ export default function Lift() {
                         {motion === undefined && <span>Target {goal}</span>}
                         <span style={styles.velocity}>{velText}</span>
                     </div>
-                </div>
-                <div style={styles.controls}>
-                    <select
-                        aria-label="Lift algorithm"
-                        className="app-input app-input--compact app-select"
-                        value={algo}
-                        onChange={(event) => setAlgo(event.target.value as Algo)}
-                    >
-                        {ALGOS.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                    <Button style={styles.action} onClick={() => setRunning((value) => !value)}>
-                        {running ? 'Pause' : 'Run'}
-                    </Button>
-                    <Button style={styles.action} onClick={reset}>Reset</Button>
                 </div>
             </div>
             <div style={styles.sim}>
@@ -585,11 +439,11 @@ export default function Lift() {
                     ))}
                     <div style={styles.metricMax}>
                         <span>Max floor wait</span>
-                        <strong>{fmtTime(Math.max(maxFloorWaitRef.current, currentMaxWait(riders, clock)))}</strong>
+                        <strong>{fmtTime(Math.max(state.maxFloorWait, currentMaxWait(riders, clock)))}</strong>
                     </div>
                     <div style={styles.metricMax}>
                         <span>Max lift wait</span>
-                        <strong>{fmtTime(Math.max(maxLiftWaitRef.current, currentMaxLiftWait(riders, clock)))}</strong>
+                        <strong>{fmtTime(Math.max(state.maxLiftWait, currentMaxLiftWait(riders, clock)))}</strong>
                     </div>
                 </aside>
             </div>
@@ -602,8 +456,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
-        maxWidth: 760,
-        marginTop: '1.5rem',
+        minWidth: 0,
     },
     status: {
         display: 'flex',
@@ -620,6 +473,7 @@ const styles = {
     statusLine: {
         display: 'flex',
         alignItems: 'baseline',
+        flexWrap: 'wrap',
         gap: '0.75rem',
     },
     velocity: {
@@ -628,7 +482,7 @@ const styles = {
     },
     sim: {
         display: 'grid',
-        gridTemplateColumns: 'minmax(360px, 1fr) minmax(260px, 300px)',
+        gridTemplateColumns: 'minmax(0, 1fr)',
         alignItems: 'start',
         gap: '1rem',
     },
@@ -716,12 +570,6 @@ const styles = {
         borderRadius: '50%',
         boxSizing: 'border-box',
         transform: 'translate(-50%, 50%)',
-    },
-    controls: {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '0.5rem',
-        alignItems: 'stretch',
     },
     action: {
         margin: 0,

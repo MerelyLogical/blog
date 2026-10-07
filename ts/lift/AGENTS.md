@@ -7,17 +7,23 @@
 - Waiting riders render from the lift outwards. Show at most `WAIT_SHOWN` waiting riders per floor; if more are queued, use the last visible circle as a `+x` marker while keeping hidden riders in the simulation state.
 - Keep lift timing, rider lifecycle, and display layout as separate helpers. The React component may own state, but effects should delegate to small transition functions like spawning, stop handling, boarding completion, and exit ageing.
 - Keep physics math in `motion.ts` pure and derived from the tuning constants in `constants.ts`. `posAt`, `velAt`, and `travelMs` should share the same motion profile so the rendered car, velocity readout, and arrival timer cannot drift apart.
-- During active lift motion, car and onboard rider vertical positions are driven by `requestAnimationFrame`; do not add CSS `bottom` transitions to those moving elements. Boarding/leaving riders still need short CSS transitions so they walk into and out of slots smoothly.
+- During active lift motion, car and onboard rider vertical positions are driven by `requestAnimationFrame`; do not add CSS `bottom` transitions to those moving elements. Boarding/leaving riders interpolate from their walk timestamps on the same simulation clock so speed and pause affect walking too.
 - Exit timing belongs to each rider, not to a floor. Use rider-level properties such as `fadeAt` and `removeAt` so later passengers alighting on the same floor do not inherit an older fade timer.
-- The lift has six fixed slots: two rows of three. Boarding assigns the first free slot in `SLOTS` order; if no slot is free, the rider keeps waiting.
+- The lift has six fixed slots: two rows of three. Leaving riders retain their slot as the walk origin; only boarding/riding slots count as occupied. Boarding assigns the first free slot in `SLOTS` order; if no slot is free, the rider keeps waiting.
 - `DEST_WEIGHTS` in `constants.ts` controls destination demand by floor. Origins stay uniformly random; destinations use the weights while excluding the rider's origin floor.
-- Add future algorithms in `algo.ts`, then expose them via `ALGOS`.
-- Keep the algorithms table in `content/playground/lift.mdx` as the source of truth for implemented algorithm behaviour. Any algorithm change must leave the code and table consistent.
+- Add future policies to `EMPTY` or `OCCUPIED` in `algo.ts`; `ALGOS` derives all combinations. Each view selects the two policies independently.
+- Keep the policy tables in `content/playground/lift.mdx` as the source of truth for implemented algorithm behaviour. Any algorithm change must leave the code and table consistent.
 - Boarding time is staggered. A stop alternates alight ticks and board ticks every `STEP_MS`; each lane therefore starts one rider every `WALK_MS`. Empty ticks still count, so board-only queues still board every `WALK_MS`, not every `STEP_MS`.
 - Metrics use lightweight histories: sampled counts for waiting/load and event histories for wait/trip completions. Keep the panel compact with current, 10s, and 60s values before adding graphs.
 
+## Comparison
+
+- `run.ts` owns per-algorithm state and scheduled transitions. `index.tsx` advances only the two selected runs on one simulation clock and supplies identical arrivals. Changing a policy restarts both runs and clears their results, preserving whether the comparison is running or paused.
+- Pause freezes simulation time; speed changes its rate. Results include only the two selected views. Each view owns a separate run, even if both select the same policies.
+- `compare.css` uses the available container width to switch between two panels and one panel with tabs.
+
 ## TODO
 
-- Passengers calling the lift.
-- Multiple lifts.
-- Control knobs for simulation settings.
+- Pickups along the route while occupied, with direction-aware boarding.
+- Multiple lifts sharing one building.
+- Control knobs for floors, capacity and passenger demand.

@@ -2,8 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 
-import { type HexGrid, rectGridRange } from './hexgrid';
+import { Button } from '@/ts/ui/Button';
+
+import { type Cell, type HexGrid, rectGridRange } from './hexgrid';
+import { hexToPixel, type Layout } from './layout';
 import { drawGrid } from './render';
+import { type Biome, cleanupTerrain, generateTerrain } from './wfc';
 
 // COLS sets the hex SIZE: size is derived so this many columns span the canvas
 // width (left/right edges land on column centers). The height is snapped to a
@@ -12,13 +16,12 @@ import { drawGrid } from './render';
 const COLS = 22;
 const SQRT3 = Math.sqrt(3);
 
-// Whatever your generator chooses to attach to each hex. Start empty and fill
-// it in from your noise / wave-function-collapse pass.
+// Per-cell payload. WFC fills `biome` for every cell during generation; any
+// cell still unset after generation falls back to EMPTY_COLOR (only happens if
+// every retry hit a contradiction).
 interface TerrainData {
     biome?: Biome;
 }
-
-type Biome = 'water' | 'sand' | 'grass' | 'forest' | 'rock';
 
 const BIOME_COLORS: Record<Biome, string> = {
     water: '#3a6ea5',
@@ -31,6 +34,10 @@ const EMPTY_COLOR = '#2a2a2a';
 
 export default function HexMapCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    // Imperative regenerate handle: the effect publishes the current
+    // "re-run WFC on the existing grid and redraw" function here, and the
+    // button calls it. Keeps regeneration out of React's render path.
+    const regenerateRef = useRef<() => void>(() => {});
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -41,8 +48,33 @@ export default function HexMapCanvas() {
         if (!parent) return;
 
         let lastWidth = -1;
+        let grid: HexGrid<TerrainData> | null = null;
+        let layout: Layout | null = null;
+        let canvasW = 0;
+        let canvasH = 0;
 
-        const render = () => {
+        const draw = () => {
+            if (!grid || !layout) return;
+            drawGrid(ctx, grid, layout, {
+                fillOf: (cell) => (cell.data.biome ? BIOME_COLORS[cell.data.biome] : EMPTY_COLOR),
+                stroke: '#1a1a1a',
+            });
+        };
+
+        // Flip a coin per edge, seed each "heads" edge with water, run WFC, clean
+        // up, redraw. Used by both Regenerate clicks and resize-rebuilds.
+        const runGeneration = () => {
+            if (!grid || !layout) return;
+            const preseed = buildEdgeSeeds(grid, layout, canvasW, canvasH);
+            generateTerrain(grid, { preseed });
+            cleanupTerrain(grid);
+            draw();
+        };
+        regenerateRef.current = runGeneration;
+
+        // Full path: size the canvas, build a fresh grid, generate, draw.
+        // Called on mount and whenever the container width changes.
+        const rebuild = () => {
             const width = parent.clientWidth;
             if (width === lastWidth) return; // height-only changes can't loop us
             lastWidth = width;
@@ -71,51 +103,75 @@ export default function HexMapCanvas() {
 
             // Origin at (0,0) and an extra ring of hexes past every edge, so the
             // canvas clips partial tiles instead of showing a margin.
-            const layout = { size, originX: 0, originY: 0 };
-            const grid = rectGridRange<TerrainData>(
+            layout = { size, originX: 0, originY: 0 };
+            canvasW = width;
+            canvasH = height;
+            grid = rectGridRange<TerrainData>(
                 -1, COLS + 1,
                 -1, rows + 1,
                 () => ({}),
             );
 
-            // ── GENERATION HOOK ────────────────────────────────────────────
-            // Replace this placeholder with your real generator. It only needs
-            // the grid (cells, neighbors, directions) and to set cell.data.biome.
-            placeholderGenerate(grid);
-            // ───────────────────────────────────────────────────────────────
-
-            drawGrid(ctx, grid, layout, {
-                fillOf: (cell) => (cell.data.biome ? BIOME_COLORS[cell.data.biome] : EMPTY_COLOR),
-                stroke: '#1a1a1a',
-            });
+            runGeneration();
         };
 
-        render();
-        const observer = new ResizeObserver(render);
+        rebuild();
+        const observer = new ResizeObserver(rebuild);
         observer.observe(parent);
         return () => observer.disconnect();
     }, []);
 
     return (
-        <canvas
-            ref={canvasRef}
-            style={{ display: 'block', margin: 0 }}
-        />
+        <div>
+            <div style={{ marginBottom: '0.75rem' }}>
+                <Button onClick={() => regenerateRef.current()}>Regenerate</Button>
+            </div>
+            <canvas
+                ref={canvasRef}
+                style={{ display: 'block', margin: 0 }}
+            />
+        </div>
     );
 }
 
-// Throwaway stand-in so the grid renders something terrain-shaped on first
-// load. A few summed sinusoids fake an elevation field, then thresholds split
-// it into biomes. Delete this once your real generator exists.
-function placeholderGenerate(grid: HexGrid<TerrainData>): void {
+// Pick which canvas edges become ocean (independent coin flip per edge), then
+// collect every cell whose center sits within one hex-step of a selected edge.
+// "Within one step" catches both the visible edge cells (even-column row 0 at
+// y=0, odd-column row 0 at y=½·rowStep, etc.) and the overdraw ring just past
+// the canvas — seeding the overdraw too keeps the boundary unambiguous for
+// WFC propagation. Returns an empty map when all four coins came up tails.
+function buildEdgeSeeds(
+    grid: HexGrid<TerrainData>,
+    layout: Layout,
+    canvasW: number,
+    canvasH: number,
+): Map<Cell<TerrainData>, Biome> {
+    const seeds = new Map<Cell<TerrainData>, Biome>();
+    const wet = {
+        top: Math.random() < 0.5,
+        bottom: Math.random() < 0.5,
+        left: Math.random() < 0.5,
+        right: Math.random() < 0.5,
+    };
+    if (!wet.top && !wet.bottom && !wet.left && !wet.right) return seeds;
+
+    const rowStep = SQRT3 * layout.size;
+    const colStep = 1.5 * layout.size;
+    // 0.6 of a step: < 1 so we don't catch the second row in, > 0.5 so odd
+    // columns' row 0 (at ½·rowStep) is included.
+    const vBand = 0.6 * rowStep;
+    const hBand = 0.6 * colStep;
+
     for (const cell of grid.cells()) {
-        const e =
-            (Math.sin(cell.q * 0.45) +
-                Math.cos(cell.r * 0.5) +
-                Math.sin((cell.q + cell.r) * 0.3)) /
-            3; // ~[-1, 1]
-        const n = (e + 1) / 2; // [0, 1]
-        cell.data.biome =
-            n < 0.35 ? 'water' : n < 0.45 ? 'sand' : n < 0.7 ? 'grass' : n < 0.85 ? 'forest' : 'rock';
+        const { x, y } = hexToPixel(cell, layout);
+        if (
+            (wet.top && y < vBand) ||
+            (wet.bottom && y > canvasH - vBand) ||
+            (wet.left && x < hBand) ||
+            (wet.right && x > canvasW - hBand)
+        ) {
+            seeds.set(cell, 'water');
+        }
     }
+    return seeds;
 }
