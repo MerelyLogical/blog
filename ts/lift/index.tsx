@@ -59,7 +59,7 @@ import {
 import type { Algo, Empty, Occupied, Rider } from './types';
 import { advance, result, run } from './run';
 import type { Run } from './run';
-import './compare.css';
+import './style.css';
 
 type SeenRider = Rider & {
     hidden?: number;
@@ -125,8 +125,8 @@ export default function Lift() {
         <div className="lift-compare">
             <p>Only the two selected combinations run, with identical passengers. Changing a policy restarts both views.</p>
             <div className="lift-toolbar">
-                <Button style={styles.action} onClick={() => setRunning((value) => !value)}>{running ? 'Pause' : 'Run'}</Button>
-                <Button style={styles.action} onClick={reset}>Reset</Button>
+                <Button className="lift-action" onClick={() => setRunning((value) => !value)}>{running ? 'Pause' : 'Run'}</Button>
+                <Button className="lift-action" onClick={reset}>Reset</Button>
                 <label>Speed <select className="app-input app-input--compact app-select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>
                     {[1, 2, 4].map((value) => <option key={value} value={value}>{value}×</option>)}
                 </select></label>
@@ -274,12 +274,9 @@ function View({ state, clock, running }: { state: Run; clock: number; running: b
         }
 
         return {
-            ...styles.rider,
             left,
             bottom,
-            transition: 'background 160ms ease',
             opacity: rider.place === 'fading' ? Math.max(0, 1 - (clock - (rider.fadeAt ?? clock)) / FADE_MS) : 1,
-            ...(rider.hidden !== undefined ? styles.riderQueue : {}),
         };
     }
 
@@ -354,54 +351,35 @@ function View({ state, clock, running }: { state: Run; clock: number; running: b
     ];
 
     return (
-        <div style={styles.wrap}>
-            <div style={styles.status}>
-                <div style={styles.statusText}>
-                    <div style={styles.statusLine}>
-                        <span>{current}</span>
-                        {motion === undefined && <span>Target {goal}</span>}
-                        <span style={styles.velocity}>{velText}</span>
-                    </div>
-                </div>
+        <div className="lift-sim">
+            <div className="lift-status">
+                <span>{current}</span>
+                {motion === undefined && <span>Target {goal}</span>}
+                <span className="lift-vel">{velText}</span>
             </div>
-            <div style={styles.sim}>
-                <div style={styles.shaft}>
+            <div className="lift-stage">
+                <div className="lift-shaft" style={dims}>
                     {Array.from({ length: FLOORS }, (_, index) => {
                         const shown = TOP - index;
 
                         return (
                             <div key={shown}>
                                 <div
-                                    style={{
-                                        ...styles.band,
-                                        top: bandTop(index),
-                                        background: shown % 2 === 0
-                                            ? 'rgba(148, 163, 184, 0.08)'
-                                            : 'rgba(29, 82, 197, 0.06)',
-                                    }}
+                                    className={`lift-band ${shown % 2 === 0 ? '' : 'is-odd'}`}
+                                    style={{ top: bandTop(index) }}
                                 />
-                                <div
-                                    style={{
-                                        ...styles.row,
-                                        bottom: y(shown),
-                                    }}
-                                >
-                                    <span style={styles.label}>{shown}</span>
+                                <div className="lift-row" style={{ bottom: y(shown) }}>
+                                    <span className="lift-label">{shown}</span>
                                 </div>
                             </div>
                         );
                     })}
-                    <div
-                        style={{
-                            ...styles.car,
-                            bottom: y(pos),
-                        }}
-                    />
+                    <div className="lift-car" style={{ bottom: y(pos) }} />
                     {SLOTS.map((space, index) => (
                         <span
                             key={index}
+                            className="lift-space"
                             style={{
-                                ...styles.space,
                                 left: spaceLeft(space),
                                 bottom: spaceBottom(pos, space),
                             }}
@@ -410,38 +388,38 @@ function View({ state, clock, running }: { state: Run; clock: number; running: b
                     {visibleRiders.map((rider, index) => (
                         <span
                             key={rider.id}
-                            style={{
-                                ...riderStyle(visibleRiders, rider, index),
-                                ...(rider.id === maxFloorRider?.id || rider.id === maxLiftRider?.id
-                                    ? styles.riderMax
-                                    : {}),
-                            }}
+                            className={[
+                                'lift-rider',
+                                rider.hidden !== undefined ? 'is-queue' : '',
+                                rider.id === maxFloorRider?.id || rider.id === maxLiftRider?.id ? 'is-max' : '',
+                            ].join(' ')}
+                            style={riderStyle(visibleRiders, rider, index)}
                         >
                             {rider.hidden === undefined ? rider.dest : `+${rider.hidden}`}
                         </span>
                     ))}
                 </div>
-                <aside style={styles.metrics}>
-                    <div style={styles.metricsTitle}>Metrics</div>
-                    <div style={styles.metricHeader}>
+                <aside className="lift-metrics">
+                    <div className="lift-metrics-title">Metrics</div>
+                    <div className="lift-metric-row lift-metric-head">
                         <span />
-                        <span style={styles.metricCell}>Now</span>
-                        <span style={styles.metricCell}>10s</span>
-                        <span style={styles.metricCell}>60s</span>
+                        <span>Now</span>
+                        <span>10s</span>
+                        <span>60s</span>
                     </div>
                     {metrics.map((metric) => (
-                        <div key={metric.name} style={styles.metricRow}>
-                            <span style={styles.metricName}>{metric.name}</span>
-                            <span style={styles.metricCell}>{metric.now}</span>
-                            <span style={styles.metricCell}>{metric.ten}</span>
-                            <span style={styles.metricCell}>{metric.sixty}</span>
+                        <div key={metric.name} className="lift-metric-row">
+                            <span>{metric.name}</span>
+                            <span>{metric.now}</span>
+                            <span>{metric.ten}</span>
+                            <span>{metric.sixty}</span>
                         </div>
                     ))}
-                    <div style={styles.metricMax}>
+                    <div className="lift-metric-max">
                         <span>Max floor wait</span>
                         <strong>{fmtTime(Math.max(state.maxFloorWait, currentMaxWait(riders, clock)))}</strong>
                     </div>
-                    <div style={styles.metricMax}>
+                    <div className="lift-metric-max">
                         <span>Max lift wait</span>
                         <strong>{fmtTime(Math.max(state.maxLiftWait, currentMaxLiftWait(riders, clock)))}</strong>
                     </div>
@@ -451,184 +429,13 @@ function View({ state, clock, running }: { state: Run; clock: number; running: b
     );
 }
 
-const styles = {
-    wrap: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        minWidth: 0,
-    },
-    status: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '1rem',
-        color: 'var(--app-text-color)',
-    },
-    statusText: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.15rem',
-    },
-    statusLine: {
-        display: 'flex',
-        alignItems: 'baseline',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-    },
-    velocity: {
-        color: 'var(--app-text-muted)',
-        fontVariantNumeric: 'tabular-nums',
-    },
-    sim: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr)',
-        alignItems: 'start',
-        gap: '1rem',
-    },
-    shaft: {
-        position: 'relative',
-        height: 430,
-        border: '1px solid var(--app-card-border)',
-        borderRadius: 5,
-        background: 'var(--app-card-bg)',
-        overflow: 'hidden',
-    },
-    band: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        height: `${100 / FLOORS}%`,
-    },
-    row: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        minHeight: 32,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.6rem',
-        padding: '0 0.75rem',
-        boxSizing: 'border-box',
-        transform: 'translateY(50%)',
-    },
-    label: {
-        position: 'absolute',
-        left: 12,
-        width: '2ch',
-        fontSize: '1rem',
-        fontWeight: 700,
-        color: 'var(--app-text-muted)',
-    },
-    rider: {
-        position: 'absolute',
-        zIndex: 2,
-        width: RIDER,
-        height: RIDER,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '50%',
-        background: '#f59e0b',
-        color: '#111827',
-        fontSize: '0.7rem',
-        fontWeight: 700,
-        lineHeight: 1,
-        transform: 'translate(-50%, 50%)',
-    },
-    riderMax: {
-        background: '#dc2626',
-        color: '#fff',
-    },
-    riderQueue: {
-        background: '#111827',
-        color: '#fff',
-        fontSize: '0.62rem',
-    },
-    car: {
-        position: 'absolute',
-        left: CAR_X,
-        width: CAR_W,
-        height: CAR_H,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        borderRadius: 5,
-        border: '1px solid #1d52c5',
-        background: '#1d52c5',
-        color: '#fff',
-        fontWeight: 700,
-        transform: 'translate(-50%, 50%)',
-    },
-    space: {
-        position: 'absolute',
-        width: SPACE,
-        height: SPACE,
-        border: `${SPACE_BORDER}px solid rgba(255, 255, 255, 0.86)`,
-        borderRadius: '50%',
-        boxSizing: 'border-box',
-        transform: 'translate(-50%, 50%)',
-    },
-    action: {
-        margin: 0,
-    },
-    metrics: {
-        border: '1px solid var(--app-card-border)',
-        borderRadius: 5,
-        background: 'var(--app-card-bg)',
-        color: 'var(--app-text-color)',
-        padding: '0.8rem',
-    },
-    metricsTitle: {
-        fontWeight: 700,
-        marginBottom: '0.55rem',
-    },
-    metricHeader: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(4.7rem, 1fr) repeat(3, minmax(3.2rem, 1fr))',
-        gap: '0.25rem',
-        paddingBottom: '0.35rem',
-        color: 'var(--app-text-muted)',
-        fontSize: '0.72rem',
-        fontWeight: 700,
-        textAlign: 'right',
-    },
-    metricRow: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(4.7rem, 1fr) repeat(3, minmax(3.2rem, 1fr))',
-        gap: '0.25rem',
-        padding: '0.34rem 0',
-        borderTop: '1px solid var(--app-card-border)',
-        fontSize: '0.78rem',
-        fontVariantNumeric: 'tabular-nums',
-        textAlign: 'right',
-    },
-    metricCell: {
-        minWidth: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-    },
-    metricName: {
-        minWidth: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        color: 'var(--app-text-muted)',
-        fontWeight: 700,
-        textAlign: 'left',
-    },
-    metricMax: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '0.5rem',
-        borderTop: '1px solid var(--app-card-border)',
-        paddingTop: '0.45rem',
-        marginTop: '0.35rem',
-        color: 'var(--app-text-muted)',
-        fontSize: '0.8rem',
-        fontVariantNumeric: 'tabular-nums',
-    },
-} satisfies Record<string, CSSProperties>;
+// Sizes come from the layout constants, so pass them to the stylesheet.
+const dims = {
+    '--band': `${100 / FLOORS}%`,
+    '--rider': `${RIDER}px`,
+    '--space': `${SPACE}px`,
+    '--space-border': `${SPACE_BORDER}px`,
+    '--car-x': CAR_X,
+    '--car-w': `${CAR_W}px`,
+    '--car-h': `${CAR_H}px`,
+} as CSSProperties;

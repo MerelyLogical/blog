@@ -20,6 +20,7 @@ import {
 } from './music';
 import type { KeyLabel, NoteChordAnalysis, QualityId, TuningId } from './music';
 import { TogglePill } from '@/ts/ui/TogglePill';
+import './style.css';
 
 const EMPTY = '-';
 const STRING_COUNT = 6;

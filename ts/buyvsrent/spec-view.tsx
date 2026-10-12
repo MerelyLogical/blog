@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BUY_VS_RENT_SPEC, type ModelSpec, type SpecBinding, type SpecSeriesBinding, type SpecStateBinding } from './spec';
 import { parseExpression, type ExprNode } from './expr-parser';
+import './style.css';
 
 const DISPLAY_NAME: Record<string, string> = {
     annualOwnershipCostRate: 'annual ownership cost rate',

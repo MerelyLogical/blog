@@ -333,7 +333,7 @@ export default function PhysicsCanvas() {
     }, []);
 
     return (
-        <div>
+        <div style={{ marginTop: 24 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: 8 }}>
                 {FLAG_LABELS.map(({ key, label }) => (
                     <TogglePill

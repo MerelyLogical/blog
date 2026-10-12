@@ -136,15 +136,6 @@ function toPeriodic(hhmmss) {
 
 //🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧
 
-// TODO: make this into a toggle system
-// function show(id) {
-//     document.getElementById(id).style.display = "block";
-// }
-//
-// function hide(id) {
-//     document.getElementById(id).style.display = "none";
-// }
-
 const TimeOverrideContext = createContext<Date | null>(null);
 
 export function TimeOverrideProvider({

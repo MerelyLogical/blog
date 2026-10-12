@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { Layout, Navbar } from 'nextra-theme-docs'
 import { Head, Search } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
@@ -6,9 +8,11 @@ import KoFiSidebarButton from '../ts/components/KoFiSidebarButton'
 import 'nextra-theme-docs/style.css'
 import '../styles/components.css'
 
-export const metadata = {
-    // Define your metadata here
-    // For more information on metadata API, see: https://nextjs.org/docs/app/building-your-application/optimizing/metadata
+const SITE = "ML's BF's Website"
+
+export const metadata: Metadata = {
+    metadataBase: new URL('https://mlogical.co.uk'),
+    title: SITE,
 }
 
 const navbar = (
@@ -24,7 +28,7 @@ const navbar = (
     </Navbar>
 );
 
-export default async function RootLayout({children}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html
         // English

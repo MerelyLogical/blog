@@ -6,19 +6,23 @@
 	"scripts": {
 		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
 		"build": "next build",
+		"typecheck": "tsc --noEmit",
 		"testbvr": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/testbvr.ts",
+		"testlift": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/testlift.ts",
+		"test": "pnpm typecheck && pnpm testbvr && pnpm testlift",
 		"postbuild": "pagefind --site ./out --output-path ./out/_pagefind"
 	},
 	"dependencies": {
-		"next": "^16.3.3",
+		"next": "^16.4.0",
 		"nextra": "^4.6.1",
 		"nextra-theme-docs": "^4.6.1",
-		"react": "^19.2.5",
-		"react-dom": "^19.2.5"
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.6.0",
-		"@types/react": "^19.2.14",
-		"pagefind": "^1.5.0"
+		"@types/node": "^25.9.9",
+		"@types/react": "^19.3.0",
+		"pagefind": "^1.5.2",
+		"typescript": "^6.0.3"
 	}
 }
