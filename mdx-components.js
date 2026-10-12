@@ -1,5 +1,4 @@
 import { useMDXComponents as getThemeComponents } from 'nextra-theme-docs' // nextra-theme-blog or your custom theme
-import type { MDXComponents } from 'nextra/mdx-components'
 import { Button } from '@/ts/ui/Button'
 import { TimeStamp } from '@/ts/components/TimeStamp'
 import { MDXImage } from '@/ts/components/MDXImage'
@@ -9,7 +8,7 @@ import { MDXSub } from '@/ts/components/MDXSub'
 const themeComponents = getThemeComponents()
 
 // Merge components
-export function useMDXComponents(components?: MDXComponents) {
+export function useMDXComponents(components) {
     return {
         ...themeComponents,
         Button,
