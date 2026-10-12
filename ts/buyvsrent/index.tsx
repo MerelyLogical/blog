@@ -10,6 +10,7 @@ import {
 } from './constants';
 import { createChartDatasets, createMonthLabels, DATASET_INDEX, loadChartJs } from './chart';
 import { simulateBuying, simulateRenting } from './simulation';
+import './style.css';
 import type { BuyVsRentInputs, NumericFieldConfig } from './types';
 
 function resolveFieldMax(field: NumericFieldConfig, inputs: BuyVsRentInputs) {
