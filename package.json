@@ -4,8 +4,8 @@
 		"node": "26.x"
 	},
 	"scripts": {
-		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
-		"build": "next build",
+		"dev": "DIST_DIR=.next NODE_OPTIONS=--no-webstorage next dev -p 3300 --turbopack",
+		"build": "NODE_OPTIONS=--no-webstorage next build",
 		"typecheck": "tsc --noEmit",
 		"testbvr": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/testbvr.ts",
 		"testlift": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/testlift.ts",
