@@ -55,7 +55,7 @@ function textClass(node: Node, i: number) {
 
 function Box({ node }: { node: Node }) {
     const fill = node === root ? 'root' : node.level;
-    return (
+    const box = (
         <g>
             <rect
                 className="garden-box"
@@ -77,6 +77,18 @@ function Box({ node }: { node: Node }) {
                 </text>
             ))}
         </g>
+    );
+    if (!node.wiki) return box;
+    return (
+        <a
+            className="garden-wiki"
+            href={node.wiki}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${node.lines.join(', ')} on Wikipedia`}
+        >
+            {box}
+        </a>
     );
 }
 

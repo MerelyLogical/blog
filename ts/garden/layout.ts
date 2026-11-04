@@ -7,6 +7,7 @@ export type Node = {
     id: string;
     lines: string[];
     level: Level;
+    wiki?: string;
     depth: number;
     up: boolean;
     w: number;
@@ -33,6 +34,13 @@ const SIZES: Record<Level, { w: number; h: number }> = {
     fam:   { w: 112, h: 32 },
     gen:   { w:  92, h: 32 },
     plant: { w: 128, h: 44 },
+};
+
+// Boxes link to the Wikipedia page of their name, or their species for plants.
+// These are the exceptions, with null for names that have no page.
+const WIKI: Record<string, string | null> = {
+    'Erica':         'Erica (plant)',
+    'Brassica rapa': 'Pak choi',
 };
 
 // These branches grow upwards from the root. The rest grow down.
@@ -64,8 +72,14 @@ function bySpecies(a: Plant, b: Plant) {
     return a.sp.localeCompare(b.sp) || a.name.localeCompare(b.name);
 }
 
+function wikiUrl(name: string) {
+    const page = name in WIKI ? WIKI[name] : name;
+    return page ? `https://en.wikipedia.org/wiki/${encodeURIComponent(page.replaceAll(' ', '_'))}` : undefined;
+}
+
 function node(id: string, lines: string[], level: Level, depth: number, kids: Node[]): Node {
-    return { id, lines, level, depth, up: false, ...SIZES[level], x: 0, y: 0, kids };
+    const wiki = wikiUrl(level === 'plant' ? lines[1] : lines[0]);
+    return { id, lines, level, wiki, depth, up: false, ...SIZES[level], x: 0, y: 0, kids };
 }
 
 // Plants without a value at a rank skip it, so their box attaches directly to

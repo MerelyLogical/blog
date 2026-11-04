@@ -59,6 +59,12 @@ html[data-theme='dark'] .garden {
   stroke-width: 1;
 }
 
+.garden-wiki:hover .garden-box,
+.garden-wiki:focus-visible .garden-box {
+  stroke: var(--app-text-color);
+  stroke-width: 2;
+}
+
 .garden-link {
   stroke: var(--app-text-muted);
   stroke-width: 1.25;
