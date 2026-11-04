@@ -30,10 +30,11 @@ export const PLANTS: Plant[] = [
 // https://ja.wikipedia.org/wiki/APG_V
 // https://zh.wikipedia.org/zh-cn/被子植物APG_V分类法
 // Short Chinese clade labels omit the final 植物.
-// Japanese names, optional kanji spellings and Chinese names.
+// Established Japanese and Chinese names, with optional kanji spellings.
+// Omit labels that only transliterate the scientific species name.
 // Keyed by English name, or by species for plants. Omit page / set zhPage to
 // null when there is no article; different titles may still name the same taxon.
-type Name = { ja: string; kanji?: string; page?: string; zh?: string; zhPage?: string | null };
+type Name = { ja?: string; kanji?: string; page?: string; zh?: string; zhPage?: string | null };
 
 export const NAMES: Record<string, Name | undefined> = {
     'Angiosperms':          { ja: '被子植物',                                            page: '被子植物',             zh: '被子植物'          },
@@ -63,11 +64,12 @@ export const NAMES: Record<string, Name | undefined> = {
     'Erica':                { ja: 'エリカ属',                                            page: 'エリカ属',             zh: '欧石南属'          },
     'Brassica':             { ja: 'アブラナ属',                 kanji: '油菜属',         page: 'アブラナ属',           zh: '芸薹属'            },
     'Allium':               { ja: 'ネギ属',                     kanji: '葱属',           page: 'ネギ属',               zh: '葱属'              },
-    'Achillea ptarmica':    { ja: 'アキレア・プタルミカ',                                                       zh: '珠蓍',             zhPage: null },
+    'Achillea ptarmica':    {                                                                                     zh: '珠蓍',             zhPage: null },
     'Helichrysum italicum': { ja: 'カレープラント',                                      page: 'カレープラント',       zh: '意大利永久花',     zhPage: null },
-    'Viburnum tinus':       { ja: 'ビバーナム・ティヌス',                                                         zh: '地中海荚蒾',       zhPage: null },
+    'Viburnum tinus':       {                                                                                     zh: '地中海荚蒾',       zhPage: null },
     'Vinca minor':          { ja: 'ヒメツルニチニチソウ',       kanji: '姫蔓日々草',                           zh: '小蔓长春花'        },
-    'Erica × darleyensis':  { ja: 'エリカ・ダーリーエンシス' },
+    // Parentage description, rather than an established Chinese hybrid name.
+    'Erica × darleyensis':  { zh: '冬石南 × 爱尔兰欧石南', zhPage: null },
     'Brassica rapa':        { ja: 'チンゲンサイ',               kanji: '青梗菜',         page: 'チンゲンサイ',         zh: '青菜'            },
     'Allium sativum':       { ja: 'ニンニク',                   kanji: '大蒜',           page: 'ニンニク',             zh: '大蒜'              },
     'Allium sp.':           { ja: 'アオネギ',                   kanji: '青葱',                                              zh: '青葱',             zhPage: null },
