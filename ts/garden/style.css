@@ -78,10 +78,10 @@ html[data-theme='dark'] .garden {
   fill: var(--app-text-color);
   text-anchor: middle;
   dominant-baseline: middle;
+  font-size: 12px;
 }
 
 .garden-name {
-  font-size: 12px;
   font-weight: 600;
 }
 
@@ -90,6 +90,23 @@ html[data-theme='dark'] .garden {
 }
 
 .garden-species {
-  font-size: 11px;
   font-style: italic;
+}
+
+.garden-name-hit {
+  fill: transparent;
+}
+
+.garden-name-link:hover > text,
+.garden-name-link:focus-visible > text {
+  text-decoration: underline;
+}
+
+.garden-kana {
+  pointer-events: none;
+}
+
+.garden-kana rect {
+  fill: var(--garden-root);
+  stroke: var(--app-text-muted);
 }

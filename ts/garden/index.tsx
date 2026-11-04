@@ -1,10 +1,9 @@
 'use client';
 
-import { LAYOUT } from './layout';
+import { useState } from 'react';
+import { LAYOUT, LINE, tip } from './layout';
 import type { Level, Node } from './layout';
 import './style.css';
-
-const { root, nodes, x, y, w, h } = LAYOUT;
 
 const KEY: [Level, string][] = [
     ['clade', 'Clade'],
@@ -13,8 +12,6 @@ const KEY: [Level, string][] = [
     ['gen',   'Genus'],
     ['plant', 'Plant'],
 ];
-
-const LINE = 18;
 
 // How far along a line from the box's centre, in direction (ux, uy), its edge is.
 function edge(n: Node, ux: number, uy: number) {
@@ -53,10 +50,51 @@ function textClass(node: Node, i: number) {
     return node.level === 'gen' ? 'garden-name garden-genus' : 'garden-name';
 }
 
-function Box({ node }: { node: Node }) {
-    const fill = node === root ? 'root' : node.level;
+type Tips = { onHover: (node?: Node) => void; onFocus: (node?: Node) => void };
+
+// Unlinked labels still catch pointer events so clicks do not reach the English
+// box underneath them.
+function Label({ node, text, y, lang, href, title, onHover, onFocus }: {
+    node: Node; text: string; y: number; lang: 'ja' | 'zh'; href?: string; title?: string;
+} & Partial<Tips>) {
+    const Tag = href ? 'a' : 'g';
+    return (
+        <Tag
+            className={`garden-label${href ? ' garden-name-link' : ''}`}
+            href={href}
+            onPointerEnter={title ? () => onHover?.(node) : undefined}
+            onPointerLeave={title ? () => onHover?.() : undefined}
+            onFocus={title ? () => onFocus?.(node) : undefined}
+            onBlur={title ? () => onFocus?.() : undefined}
+            tabIndex={title && !href ? 0 : undefined}
+            target={href ? '_blank' : undefined}
+            rel={href ? 'noreferrer' : undefined}
+            lang={lang}
+            aria-label={href
+                ? `${text}${title ? ` (${title})` : ''} on ${lang === 'ja' ? 'Japanese' : 'Chinese'} Wikipedia`
+                : title ? `${text} (${title})` : undefined}
+        >
+            <rect
+                className="garden-name-hit"
+                x={node.x - node.w / 2 + 4}
+                y={y - LINE / 2}
+                width={node.w - 8}
+                height={LINE}
+            />
+            <text className={lang === 'ja' ? 'garden-ja' : 'garden-zh'} x={node.x} y={y}>{text}</text>
+        </Tag>
+    );
+}
+
+// Each name line links to its own language edition of Wikipedia.
+function Box({ node, isRoot, onHover, onFocus }: { node: Node; isRoot: boolean } & Tips) {
+    const fill = isRoot ? 'root' : node.level;
+    const nameH = ((node.zh ? 1 : 0) + (node.ja ? 1 : 0)) * LINE;
+    const top = node.y - ((node.lines.length - 1) * LINE + nameH) / 2;
+    const zhY = top + node.lines.length * LINE;
+    const jaY = zhY + (node.zh ? LINE : 0);
     const box = (
-        <g>
+        <>
             <rect
                 className="garden-box"
                 x={node.x - node.w / 2}
@@ -67,32 +105,41 @@ function Box({ node }: { node: Node }) {
                 style={{ fill: `var(--garden-${fill})` }}
             />
             {node.lines.map((line, i) => (
-                <text
-                    key={i}
-                    className={textClass(node, i)}
-                    x={node.x}
-                    y={node.y + (i - (node.lines.length - 1) / 2) * LINE}
-                >
+                <text key={i} className={textClass(node, i)} x={node.x} y={top + i * LINE}>
                     {line}
                 </text>
             ))}
-        </g>
+        </>
     );
-    if (!node.wiki) return box;
     return (
-        <a
-            className="garden-wiki"
-            href={node.wiki}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`${node.lines.join(', ')} on Wikipedia`}
-        >
-            {box}
-        </a>
+        <g>
+            {node.wiki ? (
+                <a
+                    className="garden-wiki"
+                    href={node.wiki}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${node.lines.join(', ')} on Wikipedia`}
+                >
+                    {box}
+                </a>
+            ) : box}
+            {node.zh && (
+                <Label node={node} text={node.zh} y={zhY} lang="zh" href={node.zhWiki} />
+            )}
+            {node.ja && (
+                <Label node={node} text={node.ja} y={jaY} lang="ja" href={node.jaWiki} title={node.kana} onHover={onHover} onFocus={onFocus} />
+            )}
+        </g>
     );
 }
 
 export default function Garden() {
+    const { root, nodes, x, y, w, h } = LAYOUT;
+    const [hover, setHover] = useState<Node>();
+    const [focus, setFocus] = useState<Node>();
+    const active = hover ?? focus;
+    const t = active && tip(active);
     return (
         <div className="garden">
             <div className="garden-key">
@@ -126,7 +173,13 @@ export default function Garden() {
                         </marker>
                     </defs>
                     {nodes.flatMap(n => n.kids.map(k => <Link key={k.id} from={n} to={k} />))}
-                    {nodes.map(n => <Box key={n.id} node={n} />)}
+                    {nodes.map(n => <Box key={n.id} node={n} isRoot={n === root} onHover={setHover} onFocus={setFocus} />)}
+                    {active && t && (
+                        <g className="garden-kana" lang="ja" aria-hidden="true">
+                            <rect x={t.x} y={t.y - 11} width={t.w} height={22} rx={4} />
+                            <text x={t.x + t.w / 2} y={t.y}>{active.kana}</text>
+                        </g>
+                    )}
                 </svg>
             </div>
         </div>

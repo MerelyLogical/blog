@@ -1,4 +1,4 @@
-import { PLANTS } from './data';
+import { NAMES, PLANTS } from './data';
 import type { Plant } from './data';
 
 export type Level = 'clade' | 'ord' | 'fam' | 'gen' | 'plant';
@@ -8,6 +8,11 @@ export type Node = {
     lines: string[];
     level: Level;
     wiki?: string;
+    ja?: string;
+    zh?: string;
+    kana?: string;
+    jaWiki?: string;
+    zhWiki?: string;
     depth: number;
     up: boolean;
     w: number;
@@ -16,6 +21,13 @@ export type Node = {
     y: number;
     kids: Node[];
 };
+
+// Tooltips sit to the left of the box, level with its last name line.
+export function tip(n: Node) {
+    const w = Array.from(n.kana ?? '').length * 12 + 16;
+    const lines = n.lines.length + Number(!!n.zh) + Number(!!n.ja);
+    return { x: n.x - n.w / 2 - 8 - w, y: n.y + (lines - 1) * LINE / 2, w };
+}
 
 const RANKS = [
     { key: 'cl1', level: 'clade' },
@@ -54,6 +66,9 @@ const ROWS: Partial<Record<Level, { up: number; down: number }>> = {
     plant: { up: -352, down: 410 },
 };
 
+export const LINE = 18;
+const STRETCH = 1.35;
+
 const STEPS = 1500;
 const LINK_LEN = 58;
 const MIN_GAP = 12;
@@ -63,10 +78,10 @@ const GRAVITY = 0.006;
 const LAYER = 0.25;
 const MIN_STEP = 48;
 const X_STEP = 60;
-const SPREAD = 136;
+const SPREAD = 160;
 const CLADE_STEP = 58;
 const DAMP = 0.6;
-const PAD = 4;
+const PAD = 48;
 
 function bySpecies(a: Plant, b: Plant) {
     return a.sp.localeCompare(b.sp) || a.name.localeCompare(b.name);
@@ -78,8 +93,32 @@ function wikiUrl(name: string) {
 }
 
 function node(id: string, lines: string[], level: Level, depth: number, kids: Node[]): Node {
-    const wiki = wikiUrl(level === 'plant' ? lines[1] : lines[0]);
-    return { id, lines, level, wiki, depth, up: false, ...SIZES[level], x: 0, y: 0, kids };
+    const name = level === 'plant' ? lines[1] : lines[0];
+    const label = NAMES[name];
+    const ja = label?.kanji ?? label?.ja;
+    const zh = label?.zh;
+    const names = [...lines, ...[zh, ja].filter((s): s is string => !!s)];
+    const width = (s: string) => Array.from(s).reduce((sum, c) => sum + (c.charCodeAt(0) > 255 ? 12 : 7), 0) + 20;
+    const zhPage = label?.zhPage === null ? undefined : label?.zhPage ?? label?.zh;
+    const { w, h } = SIZES[level];
+    return {
+        id,
+        lines,
+        level,
+        wiki: wikiUrl(name),
+        ja,
+        zh,
+        kana: label?.kanji ? label.ja : undefined,
+        jaWiki: label?.page ? `https://ja.wikipedia.org/wiki/${encodeURIComponent(label.page)}` : undefined,
+        zhWiki: zhPage ? `https://zh.wikipedia.org/wiki/${encodeURIComponent(zhPage)}` : undefined,
+        depth,
+        up: false,
+        w: Math.max(w, ...names.map(width)),
+        h: Math.max(h, (names.length - 1) * LINE + 28),
+        x: 0,
+        y: 0,
+        kids,
+    };
 }
 
 // Plants without a value at a rank skip it, so their box attaches directly to
@@ -121,20 +160,20 @@ function assign(n: Node, up: boolean) {
     for (const k of n.kids) assign(k, n.up);
 }
 
-function rowY(n: Node) {
+function rowY(n: Node, k: number) {
     const row = ROWS[n.level];
-    return row && (n.up ? row.up : row.down);
+    return row && (n.up ? row.up : row.down) * k;
 }
 
 // Start the plants above and below the root in their own centred rows, with each
 // parent over its children, so the same plants always settle into the same
 // picture and branches don't have to untangle themselves.
-function seed(root: Node, nodes: Node[]) {
+function seed(root: Node, nodes: Node[], k: number, spread: number) {
     const leaves = nodes.filter(n => !n.kids.length);
     for (const up of [true, false]) {
         const row = leaves.filter(n => n.up === up);
         row.forEach((n, i) => {
-            n.x = (i - (row.length - 1) / 2) * SPREAD;
+            n.x = (i - (row.length - 1) / 2) * spread;
         });
     }
     const centre = (n: Node) => {
@@ -144,7 +183,7 @@ function seed(root: Node, nodes: Node[]) {
     };
     centre(root);
     for (const n of nodes) {
-        n.y = rowY(n) ?? (n.up ? -1 : 1) * n.depth * CLADE_STEP;
+        n.y = rowY(n, k) ?? (n.up ? -1 : 1) * n.depth * CLADE_STEP * k;
     }
 }
 
@@ -182,7 +221,8 @@ function splits(n: Node) {
 // Keeps each child further from the root than its parent, so a branch never doubles
 // back, and each clade to the right of its parent, so the graph flows away from
 // the root at the left edge.
-function order(root: Node, nodes: Node[]) {
+function order(root: Node, nodes: Node[], stretch: number) {
+    const step = MIN_STEP * stretch;
     for (const a of nodes) {
         for (const k of a.kids) {
             if (k.level === 'clade') {
@@ -193,7 +233,7 @@ function order(root: Node, nodes: Node[]) {
                 }
             }
             if (splits(k)) continue;
-            const over = k.up ? k.y - (a.y - MIN_STEP) : a.y + MIN_STEP - k.y;
+            const over = k.up ? k.y - (a.y - step) : a.y + step - k.y;
             if (over <= 0) continue;
             const s = (k.up ? -over : over) / 2;
             k.y += s;
@@ -207,7 +247,7 @@ function order(root: Node, nodes: Node[]) {
 // Boxes push each other apart, links pull parents and children together, and
 // each ranked box drifts towards its row. The push fades over time so the layout
 // comes to rest, with the root held at the left edge.
-function settle(root: Node, nodes: Node[], left: number) {
+function settle(root: Node, nodes: Node[], left: number, k: number) {
     const vel = new Map(nodes.map(n => [n, { x: 0, y: 0 }]));
     const shove = (n: Node, x: number, y: number) => {
         const v = vel.get(n)!;
@@ -231,14 +271,14 @@ function settle(root: Node, nodes: Node[], left: number) {
                 const dx = b.x - a.x;
                 const dy = b.y - a.y;
                 const d = Math.hypot(dx, dy) || 1;
-                const f = (d - LINK_LEN) * PULL;
+                const f = (d - LINK_LEN * k) * PULL;
                 shove(a, dx / d * f, dy / d * f);
                 shove(b, -dx / d * f, -dy / d * f);
             }
         }
         for (const n of nodes) {
             const v = vel.get(n)!;
-            const row = rowY(n);
+            const row = rowY(n, k);
             v.x -= n.x * GRAVITY;
             if (row !== undefined) v.y += (row - n.y) * LAYER;
             if (splits(n)) v.y -= n.y * LAYER;
@@ -250,7 +290,7 @@ function settle(root: Node, nodes: Node[], left: number) {
         separate(nodes);
         root.x = left;
         root.y = 0;
-        order(root, nodes);
+        order(root, nodes, k);
         root.x = left;
         root.y = 0;
     }
@@ -258,20 +298,22 @@ function settle(root: Node, nodes: Node[], left: number) {
 }
 
 function layout() {
+    const k = STRETCH;
+    const spread = SPREAD;
     const root = build(PLANTS, 0)[0];
     arrange(root);
     const nodes = flat(root);
     assign(root, false);
-    seed(root, nodes);
-    const left = Math.min(...nodes.filter(n => !n.kids.length).map(n => n.x)) - SPREAD;
-    settle(root, nodes, left);
+    seed(root, nodes, k, spread);
+    const left = Math.min(...nodes.filter(n => !n.kids.length).map(n => n.x)) - spread;
+    settle(root, nodes, left, k);
     // Whole pixels, so the server and browser agree despite small differences
     // in how each engine rounds its maths.
     for (const n of nodes) {
         n.x = Math.round(n.x);
         n.y = Math.round(n.y);
     }
-    const x0 = Math.min(...nodes.map(n => n.x - n.w / 2)) - PAD;
+    const x0 = Math.min(...nodes.map(n => n.kana ? tip(n).x : n.x - n.w / 2)) - PAD;
     const y0 = Math.min(...nodes.map(n => n.y - n.h / 2)) - PAD;
     const x1 = Math.max(...nodes.map(n => n.x + n.w / 2)) + PAD;
     const y1 = Math.max(...nodes.map(n => n.y + n.h / 2)) + PAD;
