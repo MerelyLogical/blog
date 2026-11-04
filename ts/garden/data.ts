@@ -16,13 +16,14 @@ export type Plant = {
 // This is a pruned tree of the garden's plants, with intervening clades omitted.
 // Species and cultivar names are checked separately against Kew POWO and RHS.
 export const PLANTS: Plant[] = [
-    { name: 'Peter',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Achillea',    sp: 'Achillea ptarmica',    full: "Achillea ptarmica 'Peter Cottontail'"               },
-    { name: 'Curry',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Helichrysum', sp: 'Helichrysum italicum', full: 'Helichrysum italicum'                               },
-    { name: 'Spirit',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Dipsacales',  fam: 'Viburnaceae',    gen: 'Viburnum',    sp: 'Viburnum tinus',       full: "Viburnum tinus Spirit = 'Anvi'"                     },
-    { name: 'Winkle',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Lamiids',     ord: 'Gentianales', fam: 'Apocynaceae',    gen: 'Vinca',       sp: 'Vinca minor',          full: "Vinca minor f. alba 'Gertrude Jekyll'"              },
-    { name: 'Erica',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids',                     ord: 'Ericales',    fam: 'Ericaceae',      gen: 'Erica',       sp: 'Erica × darleyensis',  full: "Erica × darleyensis f. aureifolia 'Golden Perfect'" },
-    { name: 'Pak choi', cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Rosids',   cl4: 'Malvids',     ord: 'Brassicales', fam: 'Brassicaceae',   gen: 'Brassica',    sp: 'Brassica rapa',        full: 'Brassica rapa subsp. chinensis'                     },
-    { name: 'Garlic',   cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sativum',       full: 'Allium sativum'                                     },
+    { name: 'Peter',         cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Achillea',    sp: 'Achillea ptarmica',    full: "Achillea ptarmica 'Peter Cottontail'"               },
+    { name: 'Curry',         cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Helichrysum', sp: 'Helichrysum italicum', full: 'Helichrysum italicum'                               },
+    { name: 'Spirit',        cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Dipsacales',  fam: 'Viburnaceae',    gen: 'Viburnum',    sp: 'Viburnum tinus',       full: "Viburnum tinus Spirit = 'Anvi'"                     },
+    { name: 'Winkle',        cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Lamiids',     ord: 'Gentianales', fam: 'Apocynaceae',    gen: 'Vinca',       sp: 'Vinca minor',          full: "Vinca minor f. alba 'Gertrude Jekyll'"              },
+    { name: 'Erica',         cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids',                     ord: 'Ericales',    fam: 'Ericaceae',      gen: 'Erica',       sp: 'Erica × darleyensis',  full: "Erica × darleyensis f. aureifolia 'Golden Perfect'" },
+    { name: 'Pak choi',      cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Rosids',   cl4: 'Malvids',     ord: 'Brassicales', fam: 'Brassicaceae',   gen: 'Brassica',    sp: 'Brassica rapa',        full: 'Brassica rapa subsp. chinensis'                     },
+    { name: 'Garlic',        cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sativum',       full: 'Allium sativum'                                     },
+    { name: 'Spring onions', cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sp.',           full: 'Allium sp.'                                         },
 ];
 
 // Clade/order translations checked against the Japanese and Chinese APG V pages:
@@ -69,4 +70,5 @@ export const NAMES: Record<string, Name | undefined> = {
     'Erica × darleyensis':  { ja: 'エリカ・ダーリーエンシス' },
     'Brassica rapa':        { ja: 'チンゲンサイ',               kanji: '青梗菜',         page: 'チンゲンサイ',         zh: '青菜'            },
     'Allium sativum':       { ja: 'ニンニク',                   kanji: '大蒜',           page: 'ニンニク',             zh: '大蒜'              },
+    'Allium sp.':           { ja: 'アオネギ',                   kanji: '青葱',                                              zh: '青葱',             zhPage: null },
 };

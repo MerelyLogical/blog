@@ -9,7 +9,7 @@ import './style.css'
 
 type Formant = { hz: number; bw: number }
 type Preset = { id: string; set: string; ipa: string; fs: Formant[]; glyph?: string }
-type VowelSet = 'rp' | 'ga' | 'ja' | 'zh'
+type VowelSet = 'rp' | 'ga' | 'zh' | 'ja'
 type PitchMode = 'free' | 'tet' | 'gong' | 'hirajoshi'
 type Source = 'voice' | 'sawtooth' | 'square' | 'triangle' | 'noise' | 'sine'
 type Voice = {
@@ -83,7 +83,7 @@ const ZH_PRESETS: Preset[] = [
   { id: 'yu', set: 'YU', glyph: '迂', ipa: 'y', fs: [{ hz: 280, bw: 80 }, { hz: 1992, bw: 110 }, { hz: 2331, bw: 170 }] },
 ]
 
-const SETS: Record<VowelSet, Preset[]> = { rp: RP_PRESETS, ga: GA_PRESETS, ja: JA_PRESETS, zh: ZH_PRESETS }
+const SETS: Record<VowelSet, Preset[]> = { rp: RP_PRESETS, ga: GA_PRESETS, zh: ZH_PRESETS, ja: JA_PRESETS }
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -473,8 +473,8 @@ export default function FormantSynth() {
         <span>Vowel set</span>
         <button type="button" aria-pressed={vowelSet === 'rp'} onClick={() => chooseSet('rp')}>Received Pronunciation</button>
         <button type="button" aria-pressed={vowelSet === 'ga'} onClick={() => chooseSet('ga')}>General American</button>
-        <button type="button" aria-pressed={vowelSet === 'ja'} onClick={() => chooseSet('ja')}>Japanese</button>
         <button type="button" aria-pressed={vowelSet === 'zh'} onClick={() => chooseSet('zh')}>Mandarin</button>
+        <button type="button" aria-pressed={vowelSet === 'ja'} onClick={() => chooseSet('ja')}>Japanese</button>
       </div>
       <div className="formant-presets" aria-label={`${vowelSet === 'rp' ? 'Received Pronunciation' : vowelSet === 'ga' ? 'General American' : vowelSet === 'ja' ? 'Japanese' : 'Mandarin'} vowel presets`}>
         {presets.map((item) => (
