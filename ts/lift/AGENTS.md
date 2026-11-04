@@ -20,7 +20,7 @@
 
 - `run.ts` owns per-algorithm state and scheduled transitions. `index.tsx` advances only the two selected runs on one simulation clock and supplies identical arrivals. Changing a policy restarts both runs and clears their results, preserving whether the comparison is running or paused.
 - Pause freezes simulation time; speed changes its rate. Results include only the two selected views. Each view owns a separate run, even if both select the same policies.
-- `compare.css` uses the available container width to switch between two panels and one panel with tabs.
+- `style.css` uses the available container width to switch between two panels and one panel with tabs.
 
 ## TODO
 

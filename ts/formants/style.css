@@ -45,7 +45,7 @@
 .formant-preset-label { font-size: .68rem; font-weight: 700; letter-spacing: .025em; }
 .formant-glyph { font-size: 1rem; font-weight: 500; line-height: 1; }
 .formant-presets button[aria-pressed='true'],
-.formant-set button[aria-pressed='true'] { background: #1d52c5; color: #fff; }
+.formant-set button[aria-pressed='true'] { background: var(--app-accent); color: #fff; }
 .formant-set > span { margin-right: .15rem; color: var(--app-text-muted); font-size: .82rem; }
 
 .formant-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: 1rem; }

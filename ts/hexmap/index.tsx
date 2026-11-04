@@ -122,7 +122,7 @@ export default function HexMapCanvas() {
     }, []);
 
     return (
-        <div>
+        <div style={{ marginTop: 24 }}>
             <div style={{ marginBottom: '0.75rem' }}>
                 <Button onClick={() => regenerateRef.current()}>Regenerate</Button>
             </div>

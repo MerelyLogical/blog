@@ -25,7 +25,6 @@
       }
     ],
     "strictNullChecks": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
@@ -37,8 +36,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    "docs/types/**/*.ts",
-    "mdx-components.js",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
