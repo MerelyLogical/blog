@@ -97,7 +97,7 @@ export function PiCalc() {
         π is <span ref={result} />
       </p>
       <br/>
-      <svg ref={graph} id="graph" viewBox="0 0 1 1" />
+      <svg ref={graph} id="graph" className="app-square" viewBox="0 0 1 1" />
     </div>
   );
 }

@@ -356,7 +356,7 @@ export default function PhysicsCanvas() {
                 ref={canvasRef}
                 width={WIDTH}
                 height={HEIGHT}
-                style={{ width: '100%', height: '100%', margin: 0 }}
+                className="app-square"
             />
         </div>
     );
