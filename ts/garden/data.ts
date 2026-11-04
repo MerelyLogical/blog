@@ -4,7 +4,6 @@ export type Plant = {
     cl2: string;
     cl3?: string;
     cl4?: string;
-    cl5?: string;
     ord: string;
     fam: string;
     gen: string;
@@ -12,16 +11,24 @@ export type Plant = {
     full: string;
 };
 
+// Clade relationships and order/family pairs checked against APG V (2026),
+// Figure 1 and Appendix A: https://doi.org/10.1111/jse.70096 (4 November 2026).
+// This is a pruned tree of the garden's plants, with intervening clades omitted.
+// Species and cultivar names are checked separately against Kew POWO and RHS.
 export const PLANTS: Plant[] = [
-    { name: 'Peter',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Euasterids', cl5: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Achillea',    sp: 'Achillea ptarmica',    full: "Achillea ptarmica 'Peter Cottontail'"               },
-    { name: 'Curry',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Euasterids', cl5: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Helichrysum', sp: 'Helichrysum italicum', full: 'Helichrysum italicum'                               },
-    { name: 'Spirit',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Euasterids', cl5: 'Campanulids', ord: 'Dipsacales',  fam: 'Viburnaceae',    gen: 'Viburnum',    sp: 'Viburnum tinus',       full: "Viburnum tinus Spirit = 'Anvi'"                     },
-    { name: 'Winkle',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Euasterids', cl5: 'Lamiids',     ord: 'Gentianales', fam: 'Apocynaceae',    gen: 'Vinca',       sp: 'Vinca minor',          full: "Vinca minor f. alba 'Gertrude Jekyll'"              },
-    { name: 'Erica',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids',                                        ord: 'Ericales',    fam: 'Ericaceae',      gen: 'Erica',       sp: 'Erica × darleyensis',  full: "Erica × darleyensis f. aureifolia 'Golden Perfect'" },
-    { name: 'Pak choi', cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Rosids',   cl4: 'Malvids',                        ord: 'Brassicales', fam: 'Brassicaceae',   gen: 'Brassica',    sp: 'Brassica rapa',        full: 'Brassica rapa subsp. chinensis'                     },
-    { name: 'Garlic',   cl1: 'Angiosperms', cl2: 'Monocots',                                                         ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sativum',       full: 'Allium sativum'                                     },
+    { name: 'Peter',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Achillea',    sp: 'Achillea ptarmica',    full: "Achillea ptarmica 'Peter Cottontail'"               },
+    { name: 'Curry',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Asterales',   fam: 'Asteraceae',     gen: 'Helichrysum', sp: 'Helichrysum italicum', full: 'Helichrysum italicum'                               },
+    { name: 'Spirit',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Campanulids', ord: 'Dipsacales',  fam: 'Viburnaceae',    gen: 'Viburnum',    sp: 'Viburnum tinus',       full: "Viburnum tinus Spirit = 'Anvi'"                     },
+    { name: 'Winkle',   cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids', cl4: 'Lamiids',     ord: 'Gentianales', fam: 'Apocynaceae',    gen: 'Vinca',       sp: 'Vinca minor',          full: "Vinca minor f. alba 'Gertrude Jekyll'"              },
+    { name: 'Erica',    cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids',                     ord: 'Ericales',    fam: 'Ericaceae',      gen: 'Erica',       sp: 'Erica × darleyensis',  full: "Erica × darleyensis f. aureifolia 'Golden Perfect'" },
+    { name: 'Pak choi', cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Rosids',   cl4: 'Malvids',     ord: 'Brassicales', fam: 'Brassicaceae',   gen: 'Brassica',    sp: 'Brassica rapa',        full: 'Brassica rapa subsp. chinensis'                     },
+    { name: 'Garlic',   cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sativum',       full: 'Allium sativum'                                     },
 ];
 
+// Clade/order translations checked against the Japanese and Chinese APG V pages:
+// https://ja.wikipedia.org/wiki/APG_V
+// https://zh.wikipedia.org/zh-cn/被子植物APG_V分类法
+// Short Chinese clade labels omit the final 植物.
 // Japanese names, optional kanji spellings and Chinese names.
 // Keyed by English name, or by species for plants. Omit page / set zhPage to
 // null when there is no article; different titles may still name the same taxon.
@@ -30,10 +37,9 @@ type Name = { ja: string; kanji?: string; page?: string; zh?: string; zhPage?: s
 export const NAMES: Record<string, Name | undefined> = {
     'Angiosperms':          { ja: '被子植物',                                            page: '被子植物',             zh: '被子植物'          },
     'Eudicots':             { ja: '真正双子葉類',                                        page: '真正双子葉類',         zh: '真双子叶植物'      },
-    'Monocots':             { ja: '単子葉植物',                                          page: '単子葉植物',           zh: '单子叶植物'        },
+    'Monocots':             { ja: '単子葉類',                                            page: '単子葉植物',           zh: '单子叶植物'        },
     'Asterids':             { ja: 'キク類',                     kanji: '菊類',           page: 'キク類',               zh: '菊类'          },
     'Rosids':               { ja: 'バラ類',                     kanji: '薔薇類',         page: 'バラ類',               zh: '蔷薇类'        },
-    'Euasterids':           { ja: '真正キク類',                 kanji: '真正菊類',       page: '真正キク類',           zh: '真菊类',         zhPage: null },
     'Campanulids':          { ja: 'キキョウ類',                 kanji: '桔梗類',         page: 'キキョウ類',           zh: '桔梗类'        },
     'Lamiids':              { ja: 'シソ類',                     kanji: '紫蘇類',         page: 'シソ類',               zh: '唇形类'        },
     'Malvids':              { ja: 'アオイ類',                   kanji: '葵類',           page: 'アオイ類',             zh: '锦葵类'        },

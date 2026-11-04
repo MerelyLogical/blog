@@ -34,7 +34,6 @@ const RANKS = [
     { key: 'cl2', level: 'clade' },
     { key: 'cl3', level: 'clade' },
     { key: 'cl4', level: 'clade' },
-    { key: 'cl5', level: 'clade' },
     { key: 'ord', level: 'ord'   },
     { key: 'fam', level: 'fam'   },
     { key: 'gen', level: 'gen'   },
