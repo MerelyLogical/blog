@@ -4,5 +4,6 @@ node_modules/
 out/
 .claude/
 tsconfig.tsbuildinfo
+next-env.d.ts
 .DS_Store
 
