@@ -1,0 +1,51 @@
+.garden {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.garden svg {
+  display: block;
+  width: 100%;
+  min-width: 680px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.garden-box {
+  fill: var(--app-card-bg);
+  stroke: var(--app-text-muted);
+  stroke-width: 1;
+}
+
+.garden-link {
+  fill: none;
+  stroke: var(--app-text-muted);
+  stroke-width: 1.25;
+}
+
+.garden-tip {
+  fill: var(--app-text-muted);
+}
+
+.garden svg text {
+  fill: var(--app-text-color);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.garden-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.garden-species {
+  font-size: 12px;
+  font-style: italic;
+}
+
+.garden svg .garden-head {
+  fill: var(--app-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

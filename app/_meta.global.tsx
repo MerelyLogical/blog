@@ -66,6 +66,7 @@ export default {
       "lift":      { title: "Lift Simulator" },
       "terrain":   { title: "Hex Terrain Generation" },
       "formants":  { title: "Vowel Synth" },
+      "garden":    { title: "Garden" },
 
     }
   },
