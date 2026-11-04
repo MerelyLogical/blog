@@ -1,0 +1,112 @@
+.garden {
+  --garden-root: hsl(230 50% 76%);
+  --garden-clade: hsl(230 50% 86%);
+  --garden-ord: hsl(197 50% 84%);
+  --garden-fam: hsl(179 45% 82%);
+  --garden-gen: hsl(161 45% 82%);
+  --garden-plant: hsl(143 45% 82%);
+  margin: 1.5rem 0;
+  color: var(--app-text-color);
+}
+
+html.dark .garden,
+:root[data-theme='dark'] .garden,
+html[data-theme='dark'] .garden {
+  --garden-root: hsl(230 35% 38%);
+  --garden-clade: hsl(230 35% 28%);
+  --garden-ord: hsl(197 35% 26%);
+  --garden-fam: hsl(179 32% 24%);
+  --garden-gen: hsl(161 32% 24%);
+  --garden-plant: hsl(143 32% 25%);
+}
+
+.garden-key {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.garden-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.garden-swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 1px solid var(--app-text-muted);
+  border-radius: 3px;
+}
+
+.garden-scroll {
+  overflow-x: auto;
+}
+
+.garden svg {
+  display: block;
+  width: 100%;
+  min-width: 680px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.garden-box {
+  stroke: var(--app-text-muted);
+  stroke-width: 1;
+}
+
+.garden-wiki:hover .garden-box,
+.garden-wiki:focus-visible .garden-box {
+  stroke: var(--app-text-color);
+  stroke-width: 2;
+}
+
+.garden-link {
+  stroke: var(--app-text-muted);
+  stroke-width: 1.25;
+}
+
+.garden-tip {
+  fill: var(--app-text-muted);
+}
+
+.garden svg text {
+  fill: var(--app-text-color);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size: 12px;
+}
+
+.garden-name {
+  font-weight: 600;
+}
+
+.garden-genus {
+  font-style: italic;
+}
+
+.garden-species {
+  font-style: italic;
+}
+
+.garden-name-hit {
+  fill: transparent;
+}
+
+.garden-name-link:hover > text,
+.garden-name-link:focus-visible > text {
+  text-decoration: underline;
+}
+
+.garden-kana {
+  pointer-events: none;
+}
+
+.garden-kana rect {
+  fill: var(--garden-root);
+  stroke: var(--app-text-muted);
+}

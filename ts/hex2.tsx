@@ -468,7 +468,8 @@ export function HexGridPathfinding() {
                 ref={svgRef}
                 id="grid"
                 viewBox="0 0 1000 1000"
-                style={{ display: "block", marginTop: "1rem" }}
+                className="app-square"
+                style={{ marginTop: "1rem" }}
             />
         </div>
     );

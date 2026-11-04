@@ -20,7 +20,8 @@ export default function AiCanvas() {
             ref={canvasRef}
             width={WIDTH}
             height={HEIGHT}
-            style={{ width: '100%', height: '100%', margin: '24px 0 0' }}
+            className="app-square"
+            style={{ marginTop: 24 }}
         />
     );
 }

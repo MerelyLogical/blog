@@ -208,7 +208,7 @@ function DrawGraph({ size = 25 }: { size?: number }) {
 
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"
-        style={{ display: 'block', maxWidth: '100%', pointerEvents: 'none' }} >
+        className="app-square" style={{ pointerEvents: 'none' }} >
         {circles.map((e) => (
             <circle key={e.id} id={e.id} cx={e.cx} cy={e.cy} r={e.r} fill={e.fill} />
         ))}
