@@ -4,19 +4,20 @@ import { PLANTS } from './data';
 import type { Plant } from './data';
 import './style.css';
 
-const RANKS = ['cl1', 'cl2', 'cl3', 'ord', 'fam'] as const;
-const HEADS = ['Clade', 'Clade', 'Clade', 'Order', 'Family', 'Plant'];
+const RANKS = ['cl1', 'cl2', 'cl3', 'cl4', 'cl5', 'ord', 'fam', 'gen'] as const;
+const HEADS = ['Clade', 'Clade', 'Clade', 'Clade', 'Clade', 'Order', 'Family', 'Genus', 'Plant'];
 
 const BOX_W = 104;
 const BOX_H = 32;
-const LEAF_W = 128;
+const LEAF_W = 124;
 const LEAF_H = 44;
-const GAP = 24;
+const COL = 132;
 const ROW = 56;
-const TOP = 28;
+const LEFT = 52;
+const TOP = 20;
 
-const WIDTH = colX(RANKS.length) + LEAF_W;
-const HEIGHT = TOP + PLANTS.length * ROW;
+const WIDTH = LEFT + PLANTS.length * COL;
+const HEIGHT = rowY(RANKS.length) + LEAF_H / 2 + 2;
 
 type Node = {
     id: string;
@@ -27,8 +28,8 @@ type Node = {
     kids: Node[];
 };
 
-function colX(depth: number) {
-    return depth * (BOX_W + GAP);
+function rowY(depth: number) {
+    return TOP + depth * ROW;
 }
 
 function bySpecies(a: Plant, b: Plant) {
@@ -43,8 +44,8 @@ function build(plants: Plant[], depth: number): Node[] {
             id: p.name,
             label: p.name,
             sp: p.sp,
-            x: colX(depth),
-            y: 0,
+            x: 0,
+            y: rowY(depth),
             kids: [],
         }));
     }
@@ -57,20 +58,20 @@ function build(plants: Plant[], depth: number): Node[] {
         .flatMap(([label, members]) => {
             const kids = build(members, depth + 1);
             if (!label) return kids;
-            return [{ id: `${RANKS[depth]}-${label}`, label, x: colX(depth), y: 0, kids }];
+            return [{ id: `${RANKS[depth]}-${label}`, label, x: 0, y: rowY(depth), kids }];
         })
         .sort((a, b) => a.label.localeCompare(b.label));
 }
 
-// Leaves take the next free row, and each parent sits midway between its first
-// and last child.
-function place(nodes: Node[], rows: { next: number }) {
+// Leaves take the next free column, and each parent sits midway between its
+// first and last child.
+function place(nodes: Node[], cols: { next: number }) {
     for (const n of nodes) {
         if (n.kids.length) {
-            place(n.kids, rows);
-            n.y = (n.kids[0].y + n.kids[n.kids.length - 1].y) / 2;
+            place(n.kids, cols);
+            n.x = (n.kids[0].x + n.kids[n.kids.length - 1].x) / 2;
         } else {
-            n.y = TOP + ROW * (rows.next++ + 0.5);
+            n.x = LEFT + COL * (cols.next++ + 0.5);
         }
     }
 }
@@ -86,12 +87,11 @@ const NODES = flat(ROOTS);
 function Box({ node }: { node: Node }) {
     const w = node.sp ? LEAF_W : BOX_W;
     const h = node.sp ? LEAF_H : BOX_H;
-    const mid = node.x + w / 2;
     return (
         <g>
             <rect
                 className="garden-box"
-                x={node.x}
+                x={node.x - w / 2}
                 y={node.y - h / 2}
                 width={w}
                 height={h}
@@ -99,11 +99,17 @@ function Box({ node }: { node: Node }) {
             />
             {node.sp ? (
                 <>
-                    <text className="garden-name" x={mid} y={node.y - 9}>{node.label}</text>
-                    <text className="garden-species" x={mid} y={node.y + 9}>{node.sp}</text>
+                    <text className="garden-name" x={node.x} y={node.y - 9}>{node.label}</text>
+                    <text className="garden-species" x={node.x} y={node.y + 9}>{node.sp}</text>
                 </>
             ) : (
-                <text className="garden-name" x={mid} y={node.y}>{node.label}</text>
+                <text
+                    className={node.id.startsWith('gen-') ? 'garden-name garden-genus' : 'garden-name'}
+                    x={node.x}
+                    y={node.y}
+                >
+                    {node.label}
+                </text>
             )}
         </g>
     );
@@ -128,23 +134,19 @@ export default function Garden() {
                     </marker>
                 </defs>
                 {HEADS.map((head, i) => (
-                    <text
-                        key={i}
-                        className="garden-head"
-                        x={colX(i) + (i === RANKS.length ? LEAF_W : BOX_W) / 2}
-                        y={10}
-                    >
+                    <text key={i} className="garden-head" x={0} y={rowY(i)}>
                         {head}
                     </text>
                 ))}
                 {NODES.flatMap(n => n.kids.map(k => {
-                    const x1 = n.x + BOX_W;
-                    const midX = (x1 + k.x) / 2;
+                    const y1 = n.y + BOX_H / 2;
+                    const y2 = k.y - (k.sp ? LEAF_H : BOX_H) / 2;
+                    const midY = (y1 + y2) / 2;
                     return (
                         <path
                             key={k.id}
                             className="garden-link"
-                            d={`M${x1} ${n.y} C${midX} ${n.y} ${midX} ${k.y} ${k.x} ${k.y}`}
+                            d={`M${n.x} ${y1} C${n.x} ${midY} ${k.x} ${midY} ${k.x} ${y2}`}
                             markerEnd="url(#garden-arrow)"
                         />
                     );

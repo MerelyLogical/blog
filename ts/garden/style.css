@@ -6,7 +6,7 @@
 .garden svg {
   display: block;
   width: 100%;
-  min-width: 680px;
+  min-width: 800px;
   height: auto;
   margin: 0 auto;
 }
@@ -38,6 +38,10 @@
   font-weight: 600;
 }
 
+.garden-genus {
+  font-style: italic;
+}
+
 .garden-species {
   font-size: 12px;
   font-style: italic;
@@ -45,6 +49,7 @@
 
 .garden svg .garden-head {
   fill: var(--app-text-muted);
+  text-anchor: start;
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
