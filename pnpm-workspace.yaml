@@ -3,4 +3,8 @@ allowBuilds:
 
 overrides:
   '@xmldom/xmldom': 0.9.12
-  zod: 4.3.6
+  minimatch: 11.0.1
+  katex: 0.18.2
+
+patchedDependencies:
+  nextra-theme-docs@4.6.1: patches/nextra-theme-docs@4.6.1.patch
