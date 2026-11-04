@@ -1,7 +1,7 @@
 {
 	"packageManager": "pnpm@11.1.2",
 	"engines": {
-		"node": "24.x"
+		"node": "26.x"
 	},
 	"scripts": {
 		"dev": "DIST_DIR=.next next dev -p 3300 --turbopack",
@@ -20,7 +20,7 @@
 		"react-dom": "^19.3.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.9.9",
+		"@types/node": "^26.0.0",
 		"@types/react": "^19.3.0",
 		"pagefind": "^1.5.2",
 		"typescript": "^6.0.3"
