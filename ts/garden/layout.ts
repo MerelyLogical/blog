@@ -58,7 +58,7 @@ const WIKI: Record<string, string | null> = {
 // These branches grow upwards from the root. The rest grow down.
 const UP = new Set(['Monocots', 'Rosids']);
 
-// Clades have no formal rank, so they float. Only real ranks get a row.
+// Starting rows for ranked boxes; the plant values set the outer edges.
 const ROWS: Partial<Record<Level, { up: number; down: number }>> = {
     ord:   { up: -174, down: 232 },
     fam:   { up: -232, down: 290 },
@@ -74,6 +74,7 @@ const LINK_LEN = 58;
 const MIN_GAP = 12;
 const PUSH = 7000;
 const PULL = 0.12;
+const SIBLING = 0.025;
 const GRAVITY = 0.006;
 const LAYER = 0.25;
 const MIN_STEP = 48;
@@ -165,6 +166,21 @@ function rowY(n: Node, k: number) {
     return row && (n.up ? row.up : row.down) * k;
 }
 
+// Pin plant edges and keep the other boxes inside the same vertical bounds.
+function pin(root: Node, nodes: Node[], left: number, k: number) {
+    const top = ROWS.plant!.up * k;
+    const bottom = ROWS.plant!.down * k;
+    for (const n of nodes) {
+        if (n.level === 'plant') {
+            n.y = n.up ? top + n.h / 2 : bottom - n.h / 2;
+        } else {
+            n.y = Math.max(top + n.h / 2, Math.min(bottom - n.h / 2, n.y));
+        }
+    }
+    root.x = left;
+    root.y = 0;
+}
+
 // Start the plants above and below the root in their own centred rows, with each
 // parent over its children, so the same plants always settle into the same
 // picture and branches don't have to untangle themselves.
@@ -188,7 +204,7 @@ function seed(root: Node, nodes: Node[], k: number, spread: number) {
 }
 
 // Pushes overlapping boxes apart along whichever axis needs the smaller move,
-// though boxes on the same row always move sideways so they can't stack.
+// though plants on the same branch side move sideways to preserve their rows.
 function separate(nodes: Node[]) {
     for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
@@ -199,15 +215,19 @@ function separate(nodes: Node[]) {
             const ox = (a.w + b.w) / 2 + MIN_GAP - Math.abs(dx);
             const oy = (a.h + b.h) / 2 + MIN_GAP - Math.abs(dy);
             if (ox <= 0 || oy <= 0) continue;
-            const sameRow = a.level === b.level && a.level !== 'clade' && a.up === b.up;
+            const sameRow = a.level === 'plant' && b.level === 'plant' && a.up === b.up;
             if (ox < oy || sameRow) {
                 const s = (dx < 0 ? -ox : ox) / 2;
                 a.x -= s;
                 b.x += s;
             } else {
-                const s = (dy < 0 ? -oy : oy) / 2;
-                a.y -= s;
-                b.y += s;
+                const s = dy < 0 ? -oy : oy;
+                if (a.level === 'plant') b.y += s;
+                else if (b.level === 'plant') a.y -= s;
+                else {
+                    a.y -= s / 2;
+                    b.y += s / 2;
+                }
             }
         }
     }
@@ -236,8 +256,11 @@ function order(root: Node, nodes: Node[], stretch: number) {
             const over = k.up ? k.y - (a.y - step) : a.y + step - k.y;
             if (over <= 0) continue;
             const s = (k.up ? -over : over) / 2;
-            k.y += s;
-            a.y -= s;
+            if (k.level === 'plant') a.y -= 2 * s;
+            else {
+                k.y += s;
+                a.y -= s;
+            }
         }
     }
     const edge = root.x - root.w / 2;
@@ -245,9 +268,10 @@ function order(root: Node, nodes: Node[], stretch: number) {
 }
 
 // Boxes push each other apart, links pull parents and children together, and
-// each ranked box drifts towards its row. The push fades over time so the layout
-// comes to rest, with the root held at the left edge.
+// plant edges stay pinned. The push fades over time so the layout comes to rest,
+// with the root held at the left edge.
 function settle(root: Node, nodes: Node[], left: number, k: number) {
+    pin(root, nodes, left, k);
     const vel = new Map(nodes.map(n => [n, { x: 0, y: 0 }]));
     const shove = (n: Node, x: number, y: number) => {
         const v = vel.get(n)!;
@@ -275,26 +299,33 @@ function settle(root: Node, nodes: Node[], left: number, k: number) {
                 shove(a, dx / d * f, dy / d * f);
                 shove(b, -dx / d * f, -dy / d * f);
             }
+            // Siblings gather around their shared centre, making branches read
+            // as groups without assigning their boxes to rows.
+            if (a.kids.length > 1) {
+                const x = a.kids.reduce((sum, n) => sum + n.x, 0) / a.kids.length;
+                const y = a.kids.reduce((sum, n) => sum + n.y, 0) / a.kids.length;
+                for (const b of a.kids) shove(b, (x - b.x) * SIBLING, (y - b.y) * SIBLING);
+            }
         }
         for (const n of nodes) {
             const v = vel.get(n)!;
-            const row = rowY(n, k);
             v.x -= n.x * GRAVITY;
-            if (row !== undefined) v.y += (row - n.y) * LAYER;
             if (splits(n)) v.y -= n.y * LAYER;
             n.x += v.x * 0.5;
-            n.y += v.y * 0.5;
+            if (n.level === 'plant') v.y = 0;
+            else n.y += v.y * 0.5;
             v.x *= DAMP;
             v.y *= DAMP;
         }
         separate(nodes);
-        root.x = left;
-        root.y = 0;
+        pin(root, nodes, left, k);
         order(root, nodes, k);
-        root.x = left;
-        root.y = 0;
+        pin(root, nodes, left, k);
     }
-    for (let i = 0; i < 50; i++) separate(nodes);
+    for (let i = 0; i < 50; i++) {
+        separate(nodes);
+        pin(root, nodes, left, k);
+    }
 }
 
 function layout() {

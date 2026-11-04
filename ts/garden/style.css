@@ -1,6 +1,6 @@
 .garden {
-  --garden-root: hsl(215 50% 76%);
-  --garden-clade: hsl(215 50% 86%);
+  --garden-root: hsl(230 50% 76%);
+  --garden-clade: hsl(230 50% 86%);
   --garden-ord: hsl(197 50% 84%);
   --garden-fam: hsl(179 45% 82%);
   --garden-gen: hsl(161 45% 82%);
@@ -12,8 +12,8 @@
 html.dark .garden,
 :root[data-theme='dark'] .garden,
 html[data-theme='dark'] .garden {
-  --garden-root: hsl(215 35% 38%);
-  --garden-clade: hsl(215 35% 28%);
+  --garden-root: hsl(230 35% 38%);
+  --garden-clade: hsl(230 35% 28%);
   --garden-ord: hsl(197 35% 26%);
   --garden-fam: hsl(179 32% 24%);
   --garden-gen: hsl(161 32% 24%);
