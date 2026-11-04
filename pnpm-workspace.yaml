@@ -2,4 +2,5 @@ allowBuilds:
   sharp: true
 
 overrides:
-  '@xmldom/xmldom': 0.9.10
+  '@xmldom/xmldom': 0.9.12
+  zod: 4.3.6
