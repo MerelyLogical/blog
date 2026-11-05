@@ -26,7 +26,8 @@ export function MDXSub({ children }: MDXSubProps) {
     }, [])
 
     return (
-        <sub style={{ display: 'block', textAlign: 'center', whiteSpace: 'pre-line' }}>
+        // The negative margin keeps a caption close to the image above it.
+        <sub style={{ display: 'block', marginTop: '-0.75rem', textAlign: 'center', whiteSpace: 'pre-line' }}>
             {normalized}
         </sub>
     )

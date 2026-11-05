@@ -70,6 +70,16 @@ export default {
 
     }
   },
+  // A link rather than a page tab, so the page keeps the shared sidebar.
+  "whats-new-tab": {
+    title: "What's New",
+    type: "page",
+    href: "/whats-new",
+  },
+  "whats-new": {
+    title: "What's New",
+    display: 'hidden'
+  },
   "not-found": {
     title: "404",
     display: 'hidden'

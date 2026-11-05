@@ -230,12 +230,11 @@ html[data-theme='dark'] .app-input::placeholder {
 .hero-wrapper {
   position: relative;
   display: flex;
-  align-items: center;
   justify-content: center;
   text-align: center;
   color: #fff;
   min-height: 70vh;
-  padding: clamp(4rem, 8vw, 6rem) clamp(1rem, 4vw, 3rem);
+  padding: clamp(4rem, 8vw, 6rem) clamp(1rem, 4vw, 3rem) clamp(2.5rem, 10vh, 14rem);
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   width: 100vw;
@@ -245,7 +244,7 @@ html[data-theme='dark'] .app-input::placeholder {
 .mdx-image {
   display: block;
   height: auto;
-  margin: auto;
+  margin: 1.25em auto;
   max-width: 100%;
   width: var(--mdx-image-width, 85%);
 }
@@ -277,7 +276,66 @@ html[data-theme='dark'] .app-input::placeholder {
   z-index: -1;
 }
 
+/* The two auto margins keep the welcome text centred and the list at the bottom. */
 .hero-wrapper__content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   max-width: 48rem;
   margin: 0 auto;
+}
+
+.hero-wrapper__content > :first-child {
+  margin-top: auto;
+}
+
+.hero-wrapper__content .recent {
+  margin: auto auto 0;
+}
+
+/* A grid lines the dates up in a column, just past the longest title. */
+.recent {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto;
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: fit-content;
+  max-width: 100%;
+  text-align: left;
+}
+
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1rem;
+  margin-top: 1rem;
+}
+
+.recent li {
+  display: contents;
+}
+
+.recent a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.recent-path {
+  opacity: 0.75;
+}
+
+/* FlagTitle is inline-flex, which a link's underline doesn't reach into. */
+.recent-path > span {
+  border-bottom: 1px solid;
+  line-height: 1.1;
+}
+
+.recent time {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  opacity: 0.8;
 }
