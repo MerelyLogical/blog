@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { PageMapItem } from 'nextra'
+import type { MdxFile, PageMapItem } from 'nextra'
 
 type Dated = { route: string; path: ReactNode[]; title: ReactNode; date: string }
 
@@ -18,10 +18,13 @@ function walk(items: PageMapItem[], path: ReactNode[] = []): Dated[] {
         const m = titles[name]
         return (typeof m === 'object' ? m.title : m) ?? name
     }
-    return items.flatMap(i => {
-        if ('children' in i) return walk(i.children, [...path, title(i.name)])
-        if (!('route' in i) || !i.frontMatter?.updated) return []
-        return [{ route: i.route, path, title: title(i.name), date: i.frontMatter.updated }]
+    return items.flatMap((i): Dated[] => {
+        if ('data' in i) return []
+        const name = title(i.name)
+        // A folder's asIndexPage page is merged into the folder, so it carries the date.
+        const date = (i as MdxFile).frontMatter?.updated
+        const own = date ? [{ route: i.route, path, title: name, date }] : []
+        return 'children' in i ? [...own, ...walk(i.children, [...path, name])] : own
     })
 }
 

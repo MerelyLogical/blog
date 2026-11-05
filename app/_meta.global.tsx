@@ -34,6 +34,12 @@ export default {
       "nas3": { title: "3 - Upgrading the NAS" },
     },
   },
+  "garden": {
+    title: "Garden",
+    items: {
+      "log": { title: "Log" },
+    },
+  },
   '--': {
     type: "separator",
   },
@@ -66,7 +72,6 @@ export default {
       "pinyin":    { title: "Pinyin Chart" },
       "fretboard": { title: "Fretboard" },
       "formants":  { title: "Vowel Synth" },
-      "garden":    { title: "Garden" },
     }
   },
   // A link rather than a page tab, so the page keeps the shared sidebar.
