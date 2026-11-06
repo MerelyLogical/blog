@@ -23,7 +23,8 @@ export const PLANTS: Plant[] = [
     { name: 'Erica',         cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Asterids',                     ord: 'Ericales',    fam: 'Ericaceae',      gen: 'Erica',       sp: 'Erica × darleyensis',  full: "Erica × darleyensis f. aureifolia 'Golden Perfect'" },
     { name: 'Pak choi',      cl1: 'Angiosperms', cl2: 'Eudicots', cl3: 'Rosids',   cl4: 'Malvids',     ord: 'Brassicales', fam: 'Brassicaceae',   gen: 'Brassica',    sp: 'Brassica rapa',        full: 'Brassica rapa subsp. chinensis'                     },
     { name: 'Garlic',        cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sativum',       full: 'Allium sativum'                                     },
-    { name: 'Spring onions', cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium sp.',           full: 'Allium sp.'                                         },
+    { name: 'Spring onions', cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium cepa',          full: 'Allium cepa'                                        },
+    { name: 'Welsh onions',  cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium fistulosum',    full: 'Allium fistulosum'                                  },
 ];
 
 // Clade/order translations checked against the Japanese and Chinese APG V pages:
@@ -32,7 +33,8 @@ export const PLANTS: Plant[] = [
 // Short Chinese clade labels omit the final 植物.
 // Established Japanese and Chinese names, with optional kanji spellings.
 // Omit labels that only transliterate the scientific species name.
-// Keyed by English name, or by species for plants. Omit page / set zhPage to
+// Keyed by English name, or by species for plants, though plant labels follow the
+// English name since a species can have many. Omit page / set zhPage to
 // null when there is no article; different titles may still name the same taxon.
 type Name = { ja?: string; kanji?: string; page?: string; zh?: string; zhPage?: string | null };
 
@@ -72,5 +74,6 @@ export const NAMES: Record<string, Name | undefined> = {
     'Erica × darleyensis':  { zh: '冬石南 × 爱尔兰欧石南', zhPage: null },
     'Brassica rapa':        { ja: 'チンゲンサイ',               kanji: '青梗菜',         page: 'チンゲンサイ',         zh: '青菜'            },
     'Allium sativum':       { ja: 'ニンニク',                   kanji: '大蒜',           page: 'ニンニク',             zh: '大蒜'              },
-    'Allium sp.':           { ja: 'アオネギ',                   kanji: '青葱',                                              zh: '青葱',             zhPage: null },
+    'Allium cepa':          { ja: 'アオネギ',                   kanji: '青葱',                                              zh: '青葱',             zhPage: null },
+    'Allium fistulosum':    { ja: 'ネギ',                       kanji: '葱',             page: 'ネギ',                 zh: '葱'                },
 };
