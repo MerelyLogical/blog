@@ -70,7 +70,6 @@ export const LINE = 18;
 const STRETCH = 1.35;
 
 const STEPS = 1000;
-const LINK_LEN = 58;
 const MIN_GAP = 12;
 const PUSH = 7000;
 const PULL = 0.12;
@@ -294,10 +293,13 @@ function settle(root: Node, nodes: Node[], left: number, k: number) {
             for (const b of a.kids) {
                 const dx = b.x - a.x;
                 const dy = b.y - a.y;
-                const d = Math.hypot(dx, dy) || 1;
-                const f = (d - LINK_LEN * k) * PULL;
-                shove(a, dx / d * f, dy / d * f);
-                shove(b, -dx / d * f, -dy / d * f);
+                // Links are springs with no rest length, so a branch between the pinned
+                // root and plants spreads its boxes evenly. A parent feels its children's
+                // pull averaged rather than summed, so it sits halfway between its parent
+                // and its children however many it has.
+                const n = a.kids.length;
+                shove(a, dx * PULL / n, dy * PULL / n);
+                shove(b, -dx * PULL, -dy * PULL);
             }
             // Siblings gather around their shared centre, making branches read
             // as groups without assigning their boxes to rows.
