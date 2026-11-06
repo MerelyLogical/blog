@@ -51,6 +51,34 @@ html[data-theme='dark'] {
   --app-textarea-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.6);
 }
 
+/* A list of log entries led by dates, laid out as a two column table. The date
+   column fits the widest date, and the rest of each entry becomes an anonymous
+   cell beside it. Undated entries get an empty first cell so their text lines up. */
+ul:has(> li > .app-date) {
+  display: table;
+  margin-left: 0;
+  padding-left: 0;
+  border-spacing: 0 0.5rem;
+  list-style: none;
+}
+
+ul:has(> li > .app-date) > li {
+  display: table-row;
+}
+
+ul:has(> li > .app-date) > li:not(:has(> .app-date))::before {
+  content: '';
+  display: table-cell;
+}
+
+.app-date {
+  display: table-cell;
+  padding-right: 1rem;
+  font-weight: 600;
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
 /* Keeps a square within the visible page height, below the navbar. */
 .app-square {
   display: block;

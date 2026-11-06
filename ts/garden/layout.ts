@@ -52,7 +52,7 @@ const SIZES: Record<Level, { w: number; h: number }> = {
 const WIKI: Record<string, string | null> = {
     'Erica':         'Erica (plant)',
     'Brassica rapa': 'Pak choi',
-    'Allium sp.':    'Scallion',
+    'Allium cepa':   'Scallion',
 };
 
 // These branches grow upwards from the root. The rest grow down.
