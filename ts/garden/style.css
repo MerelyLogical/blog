@@ -70,10 +70,6 @@ html[data-theme='dark'] .garden {
   stroke-width: 1.25;
 }
 
-.garden-tip {
-  fill: var(--app-text-muted);
-}
-
 .garden svg text {
   fill: var(--app-text-color);
   text-anchor: middle;
