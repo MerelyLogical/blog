@@ -2,7 +2,7 @@
 3:"/_next/static/chunks/2kx671-zsvqpy.js"
 4:"/_next/static/chunks/3pv3c5ytjsq04.js"
 5:"/_next/static/chunks/003zzghncp30k.js"
-6:"/_next/static/chunks/3puntt4-9q57q.js"
+6:"/_next/static/chunks/1tc4wcnsns9j2.js"
 7:"/_next/static/chunks/1xdudrwrhydeb.js"
 8:I[58521,["$3","$4","$5","$6","$7"],"default"]
 9:I[45641,["$3","$4","$5","$6","$7"],"default"]
@@ -22,9 +22,9 @@ f:I[2145,["$3","$4","$5","$6","$7","$e"],"TOCProvider"]
 b:X
 b:C
 c:X
-d:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$2","c",{"children":[["$","div",null,{"className":"x:mx-auto x:flex x:max-w-(--nextra-content-width)","children":["$","$Lf",null,{"value":[],"children":[["$","$L10",null,{}],["$","$L11",null,{"metadata":{"theme":{"layout":"full","toc":false},"updated":"2025-10-24","title":"Hexagonal Grid Pathfinding","filePath":"content/playground/hex2.mdx","timestamp":1794331509000},"sourceCode":"","children":[["$","div",null,{"id":"nextra-skip-nav"}],["$","main",null,{"data-pagefind-body":true,"children":[[["$","h1",null,{"className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-bold x:mt-2 x:text-4xl","children":["Hexagonal Grid Pathfinding","$undefined"]}],"\n",["$","p",null,{"className":"x:not-first:mt-[1.25em] x:leading-7","children":"Pathfinding on an SVG-based hexagonal grid."}],"\n",["$","$L13",null,{}]],["$","$L14",null,{"date":"24 Oct 2025"}]]}]]}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/2vfss35rlmol7.js","async":true}]],["$","$L15",null,{"children":["$","$16",null,{"name":"Next.MetadataOutlet","children":"$@17"}]}]]}],"p":"$@18","v":null,"s":"$c"}}]]
+d:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$2","c",{"children":[["$","div",null,{"className":"x:mx-auto x:flex x:max-w-(--nextra-content-width)","children":["$","$Lf",null,{"value":[],"children":[["$","$L10",null,{}],["$","$L11",null,{"metadata":{"theme":{"layout":"full","toc":false},"updated":"2025-10-24","title":"Hexagonal Grid Pathfinding","filePath":"content/playground/hex2.mdx","timestamp":1794336162000},"sourceCode":"","children":[["$","div",null,{"id":"nextra-skip-nav"}],["$","main",null,{"data-pagefind-body":true,"children":[[["$","h1",null,{"className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-bold x:mt-2 x:text-4xl","children":["Hexagonal Grid Pathfinding","$undefined"]}],"\n",["$","p",null,{"className":"x:not-first:mt-[1.25em] x:leading-7","children":"Pathfinding on an SVG-based hexagonal grid."}],"\n",["$","$L13",null,{}]],["$","$L14",null,{"date":"24 Oct 2025"}]]}]]}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/2vfss35rlmol7.js","async":true}]],["$","$L15",null,{"children":["$","$16",null,{"name":"Next.MetadataOutlet","children":"$@17"}]}]]}],"p":"$@18","v":null,"s":"$c"}}]]
 1:[["children",{"s":{"n":"mdxPath","t":"oc","k":"playground/hex2","s":[]},"h":64,"d":{"r":["$","$2","c",{"children":[null,["$","$L8",null,{"parallelRouterKey":"children","template":["$","$L9",null,{}]}]]}],"p":"$@a","v":"$b","s":"$c"},"c":"$Qd"}]]
-0:{"t":{"t":{"s":"","h":16,"c":"$Q1"},"h":{"r":["$","$2","h",{"children":[null,["$","$L1a",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","$L1c",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$16",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Hexagonal Grid Pathfinding"}]]}]}],null]}],null]}],"p":"$@1d","v":null,"s":"$c"}},"a":"$@1e","u":"$@1f","b":"yARQo0eJls740G4bsFWri"}
+0:{"t":{"t":{"s":"","h":16,"c":"$Q1"},"h":{"r":["$","$2","h",{"children":[null,["$","$L1a",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","$L1c",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$16",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Hexagonal Grid Pathfinding"}]]}]}],null]}],null]}],"p":"$@1d","v":null,"s":"$c"}},"a":"$@1e","u":"$@1f","b":"ulTi4HoSlvmmufxgfAP_9"}
 17:null
 1f:true
 c:300
