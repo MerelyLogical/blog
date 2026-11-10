@@ -2,7 +2,7 @@
 updated: '2026-03-28'
 ---
 
-import { Callout } from 'nextra/components';
+import { Callout } from 'nextra/components'
 
 # Upgrading the NAS
 
@@ -19,10 +19,10 @@ $ sudo apt install deluged deluge-web deluge-console
 Now we just need to open the ports used for the webUI on ufw:
 
 ```bash
-sudo ufw allow <port>
-sudo ufw enable
+$ sudo ufw allow <port>
+$ sudo ufw enable
 
-sudo ufw status
+$ sudo ufw status
 ```
 
 and the rest of it can be easily configured through the WebUI, very convenient!
@@ -62,14 +62,14 @@ We can also switch the policy back to `epmfs`.
 Since we are now using the NAS as a 24/7 torrent machine, we don't want disks to
 repeated spin up and down anymore, so let's switch it off.
 
-``` bash
+```bash
 $ sudo ./openSeaChest_PowerControl --device /dev/sdx  --idle_a default --idle_b default --idle_c default --standby_z disable
 $ sudo ./openSeaChest_PowerControl -d /dev/sdx --showEPCSettings
 ```
 
 ## Serve Static Images from S3
 
-<Callout type="info">
+<Callout type='info'>
 Actually this hasn't got much to do with the NAS, but eh.
 </Callout>
 
@@ -110,7 +110,7 @@ First we create an IAM user, and give it the `AmazonS3FullAccess` permission.
 Then we can just run this to sync our folders up to S3, thereby making it avaliable in the blog!
 
 ```bash
-aws s3 sync "$LOCAL_FOLDER" "$S3_BUCKET" \
+$ aws s3 sync "$LOCAL_FOLDER" "$S3_BUCKET" \
   --cache-control "public, immutable, max-age=31536000" \
   --content-type "image/jpeg" \
   --size-only
@@ -130,15 +130,15 @@ As long as the server's version has the same name and size, we skip uploading it
 ## Set up Plex
 
 ```bash
-curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo gpg --dearmor -o /usr/share/keyrings/plex-archive-keyring.gpg
-echo deb [signed-by=/usr/share/keyrings/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
-sudo apt install plexmediaserver
-sudo ufw allow <plex-port>/tcp
+$ curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo gpg --dearmor -o /usr/share/keyrings/plex-archive-keyring.gpg
+$ echo deb [signed-by=/usr/share/keyrings/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+$ sudo apt install plexmediaserver
+$ sudo ufw allow <plex-port>/tcp
 ```
 
 check if it is running:
 ```bash
-sudo systemctl status plexmediaserver
+$ sudo systemctl status plexmediaserver
 ```
 
 Everything is done in the webUI, easy easy!
@@ -152,23 +152,23 @@ Especially as it offers transcoding videos as a free feature.
 An official install script is provided so its easy enough:
 
 ```bash
-curl https://repo.jellyfin.org/install-debuntu.sh | sudo bash
-sudo ufw allow <jellyfin-port>/tcp
+$ curl https://repo.jellyfin.org/install-debuntu.sh | sudo bash
+$ sudo ufw allow <jellyfin-port>/tcp
 ```
 
 Some extra installation and configuration is required for transcoding:
 
 ```bash
-sudo apt update && sudo apt install -y jellyfin-ffmpeg7
-sudo usermod -aG render jellyfin
-sudo apt install -y intel-opencl-icd
-sudo systemctl restart jellyfin
+$ sudo apt update && sudo apt install -y jellyfin-ffmpeg7
+$ sudo usermod -aG render jellyfin
+$ sudo apt install -y intel-opencl-icd
+$ sudo systemctl restart jellyfin
 ```
 
 Then we can monitor it like any other services:
 
 ```bash
-sudo systemctl status jellyfin
+$ sudo systemctl status jellyfin
 ```
 
 Everything else is done in the webUI, so easy easy as well!
@@ -275,8 +275,8 @@ scrape_configs:
 
 Then restart it:
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl restart prometheus
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart prometheus
 ```
 
 Now everything should be working on the Grafana webUI!
