@@ -200,19 +200,19 @@ export function BuyVsRentChart() {
     return (
         <div className="buyvsrent-panel">
             <div className="buyvsrent-grid-wrap">
-                <h4 className="buyvsrent-section-title">Core Inputs</h4>
+                <h3 className="buyvsrent-section-title">Core Inputs</h3>
                 <div className="buyvsrent-form-grid">
                     {CORE_FIELDS.map(renderField)}
                 </div>
             </div>
             <div className="buyvsrent-grid-wrap">
-                <h4 className="buyvsrent-section-title">Rent Inputs</h4>
+                <h3 className="buyvsrent-section-title">Rent Inputs</h3>
                 <div className="buyvsrent-form-grid">
                     {RENT_FIELDS.map(renderField)}
                 </div>
             </div>
             <div className="buyvsrent-grid-wrap">
-                <h4 className="buyvsrent-section-title">Buying Inputs</h4>
+                <h3 className="buyvsrent-section-title">Buying Inputs</h3>
                 <div className="buyvsrent-form-grid">
                     {BUYING_FIELDS.map(renderField)}
                     {renderField(OWNERSHIP_COST_RATE_FIELD)}

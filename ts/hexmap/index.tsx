@@ -122,14 +122,14 @@ export default function HexMapCanvas() {
     }, []);
 
     return (
-        <div className="app-square" style={{ marginTop: 24 }}>
-            <div style={{ marginBottom: '0.75rem' }}>
-                <Button onClick={() => regenerateRef.current()}>Regenerate</Button>
+        <div>
+            <Button onClick={() => regenerateRef.current()}>Regenerate</Button>
+            <div className="app-square" style={{ marginTop: '0.75rem' }}>
+                <canvas
+                    ref={canvasRef}
+                    style={{ display: 'block', margin: 0 }}
+                />
             </div>
-            <canvas
-                ref={canvasRef}
-                style={{ display: 'block', margin: 0 }}
-            />
         </div>
     );
 }

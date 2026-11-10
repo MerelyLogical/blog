@@ -7,6 +7,6 @@
 - This is a .co.uk site, so prefer British English in user-facing text and code names where natural. For example, prefer `lift` over `elevator`.
 - For local constants and data tables, keep repeated keys especially terse when the values are the important part.
 - For compact data tables, use whitespace to line up related fields when it improves scanning, like the `KEYS`, `TUNINGS`, and `QUALITIES` arrays.
-- When a page's content changes, set the `updated` date in its front matter to today. This includes pages that render a component or data file, like `content/garden/index.mdx` for `ts/garden/data.ts`.
+- When a page's content changes, set the `updated` date in its front matter to today. This includes pages that render a component or data file, like `content/garden/index.mdx` for `ts/garden/data.ts`. Only real content updates count: spelling fixes, bug fixes and code changes that readers wouldn't notice should leave the date alone.
 - Do not run full builds as a testing step unless explicitly asked. The user will handle build testing.
 - Do not run `pnpm dev` unless explicitly asked. The user will handle the dev server.
