@@ -13,12 +13,20 @@ const KEY: [Level, string][] = [
     ['plant', 'Plant'],
 ];
 
+const RADIUS = 10;
+
 // How far along a line from the box's centre, in direction (ux, uy), its edge is.
+// Where the line meets a rounded corner, it runs on to the corner's arc instead.
 function edge(n: Node, ux: number, uy: number) {
-    return Math.min(
+    const t = Math.min(
         ux ? n.w / 2 / Math.abs(ux) : Infinity,
         uy ? n.h / 2 / Math.abs(uy) : Infinity,
     );
+    const cx = Math.sign(ux) * (n.w / 2 - RADIUS);
+    const cy = Math.sign(uy) * (n.h / 2 - RADIUS);
+    if (Math.abs(ux * t) <= Math.abs(cx) || Math.abs(uy * t) <= Math.abs(cy)) return t;
+    const b = ux * cx + uy * cy;
+    return b + Math.sqrt(b * b - cx * cx - cy * cy + RADIUS * RADIUS);
 }
 
 // Server and browser maths can differ in the last few decimal places, which React
@@ -101,7 +109,7 @@ function Box({ node, isRoot, onHover, onFocus }: { node: Node; isRoot: boolean }
                 y={node.y - node.h / 2}
                 width={node.w}
                 height={node.h}
-                rx={10}
+                rx={RADIUS}
                 style={{ fill: `var(--garden-${fill})` }}
             />
             {node.lines.map((line, i) => (

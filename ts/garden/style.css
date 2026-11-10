@@ -1,10 +1,10 @@
 .garden {
-  --garden-root: hsl(230 50% 76%);
-  --garden-clade: hsl(230 50% 86%);
-  --garden-ord: hsl(197 50% 84%);
-  --garden-fam: hsl(179 45% 82%);
-  --garden-gen: hsl(161 45% 82%);
-  --garden-plant: hsl(143 45% 82%);
+  --garden-root: hsl(215 60% 76%);
+  --garden-clade: hsl(215 65% 87%);
+  --garden-ord: hsl(275 50% 88%);
+  --garden-fam: hsl(340 60% 89%);
+  --garden-gen: hsl(30 75% 85%);
+  --garden-plant: hsl(130 45% 82%);
   margin: 1.5rem 0;
   color: var(--app-text-color);
 }
@@ -12,12 +12,12 @@
 html.dark .garden,
 :root[data-theme='dark'] .garden,
 html[data-theme='dark'] .garden {
-  --garden-root: hsl(230 35% 38%);
-  --garden-clade: hsl(230 35% 28%);
-  --garden-ord: hsl(197 35% 26%);
-  --garden-fam: hsl(179 32% 24%);
-  --garden-gen: hsl(161 32% 24%);
-  --garden-plant: hsl(143 32% 25%);
+  --garden-root: hsl(215 40% 40%);
+  --garden-clade: hsl(215 38% 29%);
+  --garden-ord: hsl(275 26% 30%);
+  --garden-fam: hsl(340 28% 29%);
+  --garden-gen: hsl(30 34% 27%);
+  --garden-plant: hsl(130 28% 25%);
 }
 
 .garden-key {

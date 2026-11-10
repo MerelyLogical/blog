@@ -2,7 +2,7 @@
 updated: '2022-11-10'
 ---
 
-import { Callout } from 'nextra/components';
+import { Callout } from 'nextra/components'
 
 # Improving the NAS
 
@@ -19,7 +19,7 @@ $ sudo hdparm -S 120 /dev/sdb
 $ sudo hdparm -S 120 /dev/sdc
 ```
 
-Nothing spinned down after 10 minutes, and the culprit is Advanced Power Management.
+Nothing spun down after 10 minutes, and the culprit is Advanced Power Management.
 APM levels above 128 do not allow drives to spin down.
 
 ```bash
@@ -57,12 +57,12 @@ SG_IO: bad/missing sense data, sb[]: ...
 Seagate drives require `openSeaChest`:
 
 ```bash
-sudo apt install make
-sudo apt install gcc
-git clone --recursive https://github.com/Seagate/openSeaChest.git
-cd openSeaChest/Make/gcc
-make release
-cd openseachest_exes
+$ sudo apt install make
+$ sudo apt install gcc
+$ git clone --recursive https://github.com/Seagate/openSeaChest.git
+$ cd openSeaChest/Make/gcc
+$ make release
+$ cd openseachest_exes
 ```
 
 Now we can configure the power modes:
@@ -123,14 +123,14 @@ too many drives at the same time.
 Install prometheus:
 
 ```bash
-sudo apt install prometheus
+$ sudo apt install prometheus
 ```
 
 Give the folders to the prometheus user:
 
 ```bash
-sudo chown -R prometheus:prometheus /etc/prometheus/ /var/lib/prometheus/
-sudo chmod -R 775 /etc/prometheus/ /var/lib/prometheus/
+$ sudo chown -R prometheus:prometheus /etc/prometheus/ /var/lib/prometheus/
+$ sudo chmod -R 775 /etc/prometheus/ /var/lib/prometheus/
 ```
 
 Configure it with `/etc/prometheus/prometheus.yml`
@@ -210,15 +210,15 @@ WantedBy=multi-user.target
 Enable and run the service:
 
 ```bash
-sudo systemctl enable prometheus
-sudo systemctl start prometheus
-sudo systemctl status prometheus
+$ sudo systemctl enable prometheus
+$ sudo systemctl start prometheus
+$ sudo systemctl status prometheus
 ```
 
 Open the port in firewall:
 
 ```bash
-sudo ufw allow <prometheus-port>
+$ sudo ufw allow <prometheus-port>
 ```
 
 Now we should be able to access it from `192.168.0.<nas-ip>:<prometheus-port>`.
@@ -252,8 +252,8 @@ To change the port used, add `--web.listen-address=:<node-port>`
 To restart a service:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl restart prometheus
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart prometheus
 ```
 
 Now we start prometheus-node-exporter, and new data points should become available.
@@ -265,8 +265,8 @@ Prometheus provides some basic visualisation but it's nothing compared to what
 Grafana can do.
 
 ```bash
-wget https://dl.grafana.com/oss/release/grafana_9.2.3_amd64.deb
-sudo dpkg -i grafana_9.2.3_amd64.deb
+$ wget https://dl.grafana.com/oss/release/grafana_9.2.3_amd64.deb
+$ sudo dpkg -i grafana_9.2.3_amd64.deb
 ```
 
 To configure, edit `/etc/grafana/grafana.ini`
@@ -375,5 +375,5 @@ WantedBy=timers.target
 To enable HDD temperatures in `hwmon`:
 
 ```bash
-sudo modprobe drivetemp
+$ sudo modprobe drivetemp
 ```

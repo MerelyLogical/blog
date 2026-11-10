@@ -115,6 +115,9 @@ function gaussianRandom() {
     return z;
 }
 
+// fixed height, as Chart.js 2 otherwise locks its aspect ratio to the page width on load
+const CHART = { position: 'relative', height: '12rem', margin: '1rem 0' } as const;
+
 export function MarketSim() {
     const market_numbers = useRef<MarketNumbers>(createDefaultNumbers());
     const game_state = useRef<GameState>({grind: true, market: false, bank: false});
@@ -163,6 +166,7 @@ export function MarketSim() {
                 }]
             },
             options: {
+                maintainAspectRatio: false,
                 legend: {display: true},
                 tooltips: {enabled: false},
                 hover: {mode: null}
@@ -182,6 +186,7 @@ export function MarketSim() {
                 }]
             },
             options: {
+                maintainAspectRatio: false,
                 legend: {display: false},
                 tooltips: {enabled: false},
                 hover: {mode: null}
@@ -382,11 +387,12 @@ export function MarketSim() {
 
     return (
         <div className="space-y-4">
-            <br/>
-            <canvas
-                ref={netCanvasRef}
-                style={{height: "50%", width: "100%"}}
-            />
+            <p style={{ margin: '1rem 0' }}>
+                Net worth: £<MarketNumber field="networth" />, cash: £<MarketNumber field="cash" />
+            </p>
+            <div style={CHART}>
+                <canvas ref={netCanvasRef} />
+            </div>
             <Button onClick={grind}>
                 grind
             </Button>
@@ -396,10 +402,9 @@ export function MarketSim() {
                 style={{display: state.market ? undefined : "none"}}
                 aria-hidden={!state.market}
             >
-                <canvas
-                    ref={stockCanvasRef}
-                    style={{height: "75%", width: "100%"}}
-                />
+                <div style={CHART}>
+                    <canvas ref={stockCanvasRef} />
+                </div>
                 <Table>
                     <thead>
                         <Table.Tr>

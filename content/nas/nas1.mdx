@@ -2,7 +2,7 @@
 updated: '2022-11-02'
 ---
 
-import { Callout } from 'nextra/components';
+import { Callout } from 'nextra/components'
 
 # Building a NAS
 
@@ -50,7 +50,7 @@ Boot time seems to have slowed down a lot after installing the three drives?
 Test to see if the drives are good:
 
 ```bash
-badblocks -b 4096 -wsv /dev/sdX
+$ badblocks -b 4096 -wsv /dev/sdX
 ```
 
 This is limited by disk write speeds, so we can test multiple drives in parallel with screens.
@@ -82,7 +82,7 @@ ata-ST4000[-----------]3[-] -../../sdc
 Using `gdisk` to partition the drives:
 
 ```bash
-sudo gdisk /dev/sda
+$ sudo gdisk /dev/sda
 o   #create a new empty GUID partition table (GPT)
 n   #add a new partition
 w   #write table to disk and exit
@@ -106,7 +106,7 @@ sdc           8:32   0   3.6T  0 disk
 To create an `ext4` filesystem:
 
 ```bash
-sudo mkfs.ext4 /dev/sda1
+$ sudo mkfs.ext4 /dev/sda1
 ```
 
 
@@ -115,7 +115,7 @@ sudo mkfs.ext4 /dev/sda1
 Install MergerFS:
 
 ```bash
-sudo apt install mergerfs
+$ sudo apt install mergerfs
 ```
 
 Confirming the ID of our partitions:
@@ -180,36 +180,36 @@ This is probably not a good idea, but let's remove `snap`.
 First disable all `snapd` services:
 
 ```bash
-sudo systemctl disable snapd.service
-sudo systemctl disable snapd.socket
+$ sudo systemctl disable snapd.service
+$ sudo systemctl disable snapd.socket
 ...
 ```
 
 Then uninstall all snap packages with `snapd` as the last one:
 
 ```bash
-sudo snap list
-sudo snap remove firefox
+$ sudo snap list
+$ sudo snap remove firefox
 ...
-sudo snap remove snapd
+$ sudo snap remove snapd
 ```
 
 Delete its cache:
 
 ```bash
-sudo rm -rf /var/cache/snapd/
+$ sudo rm -rf /var/cache/snapd/
 ```
 
 Delete it from `apt`:
 
 ```bash
-sudo apt autoremove --purge snapd
-rm -rf ~/snap/
+$ sudo apt autoremove --purge snapd
+$ rm -rf ~/snap/
 ```
 
 Create `/etc/apt/preferences.d/nosnap.perf` to make sure it doesn't accidentally come back:
 
-```bash
+```text
 Package: snapd
 Pin: release a=*
 Pin-Priority: -10
@@ -226,8 +226,8 @@ so let's install a few good (looking) system monitors to figure out why.
 To install `btop` and `iotop`:
 
 ```bash
-sudo apt install btop
-sudo apt install iotop-c
+$ sudo apt install btop
+$ sudo apt install iotop-c
 ```
 
 <Callout type='info'>
@@ -241,7 +241,7 @@ That means `ext4` is still initialising, so there's nothing to worry about.
 To test the connection speeds between the machines, we can use `iperf3`:
 
 ```bash
-sudo apt install iperf3
+$ sudo apt install iperf3
 ```
 
 To start listening on the server side:
@@ -268,7 +268,7 @@ iperf Done.
 Install SnapRAID as usual:
 
 ```bash
-sudo apt install snapraid
+$ sudo apt install snapraid
 ```
 
 Checking its version directly returns `vnone`, but checking it through `apt` gives a more sensible result:
@@ -307,7 +307,7 @@ exclude /lost+found/
 Now we just need to run:
 
 ```bash
-snapraid sync
+$ snapraid sync
 ```
 
 <Callout>

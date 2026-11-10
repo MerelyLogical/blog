@@ -18,7 +18,7 @@ export default {
           "Hungary": {
             title: <FlagTitle image="Flag_HUN_Anjou.png" label="Hungary" />,
             items: {
-              "EU5_H_1": { title: "Chapter 1 — Start!" }
+              "EU5_H_1": { title: "1 - Start!" }
             },
           },
         },
