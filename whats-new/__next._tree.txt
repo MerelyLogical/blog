@@ -1,7 +1,7 @@
-:HL["/_next/static/chunks/3x8-cfvwpsh2o.css","style"]
+:HL["/_next/static/chunks/3bfi5k2cpc540.css","style"]
 :HL["/_next/static/chunks/2q581ltgdxyuk.css","style"]
 :HL["/images/Flag_HUN_Anjou.png","image"]
 :HL["/images/logo.jpg","image"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":{"n":"mdxPath","t":"oc","k":"whats-new","s":[]},"h":64,"c":"$Q2"}]]
-0:{"b":"mFxf73ayJVXMhzWiumVIw","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
+0:{"b":"yARQo0eJls740G4bsFWri","t":{"t":{"s":"","h":16,"c":"$Q1"}}}
