@@ -15,42 +15,9 @@ const KEY: [Level, string][] = [
 
 const RADIUS = 10;
 
-// How far along a line from the box's centre, in direction (ux, uy), its edge is.
-// Where the line meets a rounded corner, it runs on to the corner's arc instead.
-function edge(n: Node, ux: number, uy: number) {
-    const t = Math.min(
-        ux ? n.w / 2 / Math.abs(ux) : Infinity,
-        uy ? n.h / 2 / Math.abs(uy) : Infinity,
-    );
-    const cx = Math.sign(ux) * (n.w / 2 - RADIUS);
-    const cy = Math.sign(uy) * (n.h / 2 - RADIUS);
-    if (Math.abs(ux * t) <= Math.abs(cx) || Math.abs(uy * t) <= Math.abs(cy)) return t;
-    const b = ux * cx + uy * cy;
-    return b + Math.sqrt(b * b - cx * cx - cy * cy + RADIUS * RADIUS);
-}
-
-// Server and browser maths can differ in the last few decimal places, which React
-// reports as a hydration mismatch.
-function tidy(v: number) {
-    return Math.round(v * 10) / 10;
-}
-
+// Links run centre to centre, and the boxes drawn over them hide the ends.
 function Link({ from, to }: { from: Node; to: Node }) {
-    const d = Math.hypot(to.x - from.x, to.y - from.y) || 1;
-    const ux = (to.x - from.x) / d;
-    const uy = (to.y - from.y) / d;
-    const start = edge(from, ux, uy);
-    const end = edge(to, ux, uy);
-    return (
-        <line
-            className="garden-link"
-            x1={tidy(from.x + ux * start)}
-            y1={tidy(from.y + uy * start)}
-            x2={tidy(to.x - ux * end)}
-            y2={tidy(to.y - uy * end)}
-            markerEnd="url(#garden-arrow)"
-        />
-    );
+    return <line className="garden-link" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />;
 }
 
 function textClass(node: Node, i: number) {
@@ -166,20 +133,6 @@ export default function Garden() {
                     viewBox={`${x} ${y} ${w} ${h}`}
                     style={{ maxWidth: `min(${w}px, calc((100dvh - var(--nextra-navbar-height) - 2rem) * ${w / h}))` }}
                 >
-                    <defs>
-                        <marker
-                            id="garden-arrow"
-                            viewBox="0 0 8 8"
-                            refX={8}
-                            refY={4}
-                            markerWidth={8}
-                            markerHeight={8}
-                            markerUnits="userSpaceOnUse"
-                            orient="auto"
-                        >
-                            <path className="garden-tip" d="M0 0 L8 4 L0 8 Z" />
-                        </marker>
-                    </defs>
                     {nodes.flatMap(n => n.kids.map(k => <Link key={k.id} from={n} to={k} />))}
                     {nodes.map(n => <Box key={n.id} node={n} isRoot={n === root} onHover={setHover} onFocus={setFocus} />)}
                     {active && t && (

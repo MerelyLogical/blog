@@ -70,7 +70,7 @@ export const LINE = 18;
 // edge is ROOM times as long as the plants need side by side, and it is SHAPE
 // times as tall as it is wide.
 const ROOM = 1.8;
-const SHAPE = 1.2;
+const SHAPE = 1;
 // Neighbouring plants sit closer the more ranks they share. Their gap grows with
 // the ranks they don't share raised to this power, so siblings huddle, cousins
 // sit a little apart, and distant branches get the most room.
