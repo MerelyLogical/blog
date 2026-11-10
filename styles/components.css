@@ -54,7 +54,7 @@ html[data-theme='dark'] {
 /* A list of log entries led by dates, laid out as a two column table. The date
    column fits the widest date, and the rest of each entry becomes an anonymous
    cell beside it. Undated entries get an empty first cell so their text lines up. */
-ul:has(> li > .app-date) {
+ul:has(> li > :is(.app-date, .app-label)) {
   display: table;
   margin-left: 0;
   padding-left: 0;
@@ -62,16 +62,17 @@ ul:has(> li > .app-date) {
   list-style: none;
 }
 
-ul:has(> li > .app-date) > li {
+ul:has(> li > :is(.app-date, .app-label)) > li {
   display: table-row;
 }
 
-ul:has(> li > .app-date) > li:not(:has(> .app-date))::before {
+ul:has(> li > :is(.app-date, .app-label)) > li:not(:has(> :is(.app-date, .app-label)))::before {
   content: '';
   display: table-cell;
 }
 
-.app-date {
+.app-date,
+.app-label {
   display: table-cell;
   padding-right: 1rem;
   font-weight: 600;

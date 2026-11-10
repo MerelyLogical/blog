@@ -1,5 +1,6 @@
-import { NAMES, PLANTS } from './data';
+import { NOTES, PLANTS } from './data';
 import type { Plant } from './data';
+import { labels } from './wiki';
 
 export type Level = 'clade' | 'ord' | 'fam' | 'gen' | 'plant';
 type Dir = 'up' | 'down' | 'right';
@@ -9,6 +10,7 @@ export type Node = {
     lines: string[];
     level: Level;
     wiki?: string;
+    notes?: string;
     ja?: string;
     zh?: string;
     kana?: string;
@@ -48,14 +50,6 @@ const SIZES: Record<Level, { w: number; h: number }> = {
     plant: { w: 128, h: 44 },
 };
 
-// Boxes link to the Wikipedia page of their name, or their species for plants.
-// These are the exceptions, with null for names that have no page.
-const WIKI: Record<string, string | null> = {
-    'Erica':         'Erica (plant)',
-    'Brassica rapa': 'Pak choi',
-    'Allium cepa':   'Scallion',
-};
-
 // Plants sit around the top, right and bottom edges, clockwise from the top left
 // corner: branches listed here go along the top, then down the right, and the
 // rest come back along the bottom.
@@ -85,30 +79,18 @@ function bySpecies(a: Plant, b: Plant) {
     return a.sp.localeCompare(b.sp) || a.name.localeCompare(b.name);
 }
 
-function wikiUrl(name: string) {
-    const page = name in WIKI ? WIKI[name] : name;
-    return page ? `https://en.wikipedia.org/wiki/${encodeURIComponent(page.replaceAll(' ', '_'))}` : undefined;
-}
-
 function node(id: string, lines: string[], level: Level, rank: number, kids: Node[]): Node {
     const name = level === 'plant' ? lines[1] : lines[0];
-    const label = NAMES[name];
-    const ja = label?.kanji ?? label?.ja;
-    const zh = label?.zh;
-    const names = [...lines, ...[zh, ja].filter((s): s is string => !!s)];
+    const l = labels(name);
+    const names = [...lines, ...[l.zh, l.ja].filter((s): s is string => !!s)];
     const width = (s: string) => Array.from(s).reduce((sum, c) => sum + (c.charCodeAt(0) > 255 ? 12 : 7), 0) + 20;
-    const zhPage = label?.zhPage === null ? undefined : label?.zhPage ?? label?.zh;
     const { w, h } = SIZES[level];
     return {
         id,
         lines,
         level,
-        wiki: wikiUrl(name),
-        ja,
-        zh,
-        kana: label?.kanji ? label.ja : undefined,
-        jaWiki: label?.page ? `https://ja.wikipedia.org/wiki/${encodeURIComponent(label.page)}` : undefined,
-        zhWiki: zhPage ? `https://zh.wikipedia.org/wiki/${encodeURIComponent(zhPage)}` : undefined,
+        ...l,
+        notes: NOTES.has(name) ? `/garden/families/#${name.toLowerCase()}` : undefined,
         rank,
         dir: 'down',
         w: Math.max(w, ...names.map(width)),

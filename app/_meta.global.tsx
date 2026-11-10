@@ -37,6 +37,7 @@ export default {
   "garden": {
     title: "Garden",
     items: {
+      "families": { title: "Families" },
       "log": { title: "Log" },
     },
   },

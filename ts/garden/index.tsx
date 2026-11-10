@@ -14,6 +14,18 @@ const KEY: [Level, string][] = [
 ];
 
 const RADIUS = 10;
+const SHEET = 14;
+
+// A little page of notes, centred on (x, y).
+function Sheet({ x, y }: { x: number; y: number }) {
+    const h = SHEET / 2;
+    return (
+        <g className="garden-sheet">
+            <rect x={x - h} y={y - h} width={SHEET} height={SHEET} rx={2} />
+            {[-3, 0, 3].map(d => <line key={d} x1={x - 4} y1={y + d} x2={x + 4} y2={y + d} />)}
+        </g>
+    );
+}
 
 // Links run centre to centre, and the boxes drawn over them hide the ends.
 function Link({ from, to }: { from: Node; to: Node }) {
@@ -105,6 +117,11 @@ function Box({ node, isRoot, onHover, onFocus }: { node: Node; isRoot: boolean }
             {node.ja && (
                 <Label node={node} text={node.ja} y={jaY} lang="ja" href={node.jaWiki} title={node.kana} onHover={onHover} onFocus={onFocus} />
             )}
+            {node.notes && (
+                <a className="garden-notes" href={node.notes} aria-label={`My notes on ${node.lines[0]}`}>
+                    <Sheet x={node.x + node.w / 2 - 2} y={node.y - node.h / 2 + 2} />
+                </a>
+            )}
         </g>
     );
 }
@@ -127,6 +144,12 @@ export default function Garden() {
                         {label}
                     </span>
                 ))}
+                <span className="garden-key-item">
+                    <svg className="garden-key-sheet" viewBox={`0 0 ${SHEET + 2} ${SHEET + 2}`}>
+                        <Sheet x={SHEET / 2 + 1} y={SHEET / 2 + 1} />
+                    </svg>
+                    Notes
+                </span>
             </div>
             <div className="garden-scroll">
                 <svg
