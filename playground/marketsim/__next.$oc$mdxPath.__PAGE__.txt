@@ -2,35 +2,33 @@
 3:"/_next/static/chunks/2kx671-zsvqpy.js"
 4:"/_next/static/chunks/3pv3c5ytjsq04.js"
 5:"/_next/static/chunks/003zzghncp30k.js"
-6:"/_next/static/chunks/41vsf_jcn87fe.js"
+6:"/_next/static/chunks/1_qcbuocf37la.js"
 7:"/_next/static/chunks/1xdudrwrhydeb.js"
 8:I[58521,["$3","$4","$5","$6","$7"],"default"]
 9:I[45641,["$3","$4","$5","$6","$7"],"default"]
 e:"/_next/static/chunks/2vfss35rlmol7.js"
 f:I[2145,["$3","$4","$5","$6","$7","$e"],"TOCProvider"]
-10:I[1365,["$3","$4","$5","$6","$7","$e"],"MarketNumber"]
-11:I[37376,["$3","$4","$5","$6","$7","$e"],"Sidebar"]
-12:I[52520,["$3","$4","$5","$6","$7","$e"],"ClientWrapper"]
-13:I[38187,["$3","$4","$5","$6","$7","$e"],"HeadingAnchor"]
-14:I[1365,["$3","$4","$5","$6","$7","$e"],"MarketSim"]
-15:I[54869,["$3","$4","$5","$6","$7","$e"],"TimeStamp"]
-16:I[81899,["$3","$4","$5","$6","$7"],"OutletBoundary"]
-17:"$Sreact.suspense"
-1a:"ViewportBoundary"
+10:I[37376,["$3","$4","$5","$6","$7","$e"],"Sidebar"]
+11:I[52520,["$3","$4","$5","$6","$7","$e"],"ClientWrapper"]
+12:I[1365,["$3","$4","$5","$6","$7","$e"],"MarketSim"]
+13:I[54869,["$3","$4","$5","$6","$7","$e"],"TimeStamp"]
+14:I[81899,["$3","$4","$5","$6","$7"],"OutletBoundary"]
+15:"$Sreact.suspense"
+18:"ViewportBoundary"
+19:I[81899,["$3","$4","$5","$6","$7"],"$18"]
+1a:"MetadataBoundary"
 1b:I[81899,["$3","$4","$5","$6","$7"],"$1a"]
-1c:"MetadataBoundary"
-1d:I[81899,["$3","$4","$5","$6","$7"],"$1c"]
 b:X
 b:C
 c:X
-d:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$2","c",{"children":[["$","div",null,{"className":"x:mx-auto x:flex x:max-w-(--nextra-content-width)","children":["$","$Lf",null,{"value":[{"value":[["$","$2",".0",{"children":["Networth: £",["$","$L10",".1",{"field":"networth"}]]}]],"id":"networth-","depth":2},{"value":[["$","$2",".0",{"children":["Cash: £",["$","$L10",".1",{"field":"cash"}]]}]],"id":"cash-","depth":3}],"children":[["$","$L11",null,{}],["$","$L12",null,{"metadata":{"updated":"2024-03-21","title":"Stock Market Simulator","filePath":"content/playground/marketsim.mdx","timestamp":1794313147000},"sourceCode":"","children":[["$","div",null,{"id":"nextra-skip-nav"}],["$","main",null,{"data-pagefind-body":true,"children":[[["$","h1",null,{"className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-bold x:mt-2 x:text-4xl","children":["Stock Market Simulator","$undefined"]}],"\n",["$","h2",null,{"id":"networth-","className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-semibold x:target:animate-[fade-in_1.5s] x:mt-10 x:border-b x:pb-1 x:text-3xl nextra-border","children":[["Networth: £",["$","$L10",null,{"field":"networth"}]],["$","$L13",null,{"id":"networth-"}]]}],"\n",["$","h3",null,{"id":"cash-","className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-semibold x:target:animate-[fade-in_1.5s] x:mt-8 x:text-2xl","children":[["Cash: £",["$","$L10",null,{"field":"cash"}]],["$","$L13",null,{"id":"cash-"}]]}],"\n",["$","$L14",null,{}]],["$","$L15",null,{"date":"21 Mar 2024"}]]}]]}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/2vfss35rlmol7.js","async":true}]],["$","$L16",null,{"children":["$","$17",null,{"name":"Next.MetadataOutlet","children":"$@18"}]}]]}],"p":"$@19","v":null,"s":"$c"}}]]
+d:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$2","c",{"children":[["$","div",null,{"className":"x:mx-auto x:flex x:max-w-(--nextra-content-width)","children":["$","$Lf",null,{"value":[],"children":[["$","$L10",null,{}],["$","$L11",null,{"metadata":{"theme":{"layout":"full","toc":false},"updated":"2024-03-21","title":"Stock Market Simulator","filePath":"content/playground/marketsim.mdx","timestamp":1794325223000},"sourceCode":"","children":[["$","div",null,{"id":"nextra-skip-nav"}],["$","main",null,{"data-pagefind-body":true,"children":[[["$","h1",null,{"className":"x:tracking-tight x:text-slate-900 x:dark:text-slate-100 x:font-bold x:mt-2 x:text-4xl","children":["Stock Market Simulator","$undefined"]}],"\n",["$","$L12",null,{}]],["$","$L13",null,{"date":"21 Mar 2024"}]]}]]}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/2vfss35rlmol7.js","async":true}]],["$","$L14",null,{"children":["$","$15",null,{"name":"Next.MetadataOutlet","children":"$@16"}]}]]}],"p":"$@17","v":null,"s":"$c"}}]]
 1:[["children",{"s":{"n":"mdxPath","t":"oc","k":"playground/marketsim","s":[]},"h":64,"d":{"r":["$","$2","c",{"children":[null,["$","$L8",null,{"parallelRouterKey":"children","template":["$","$L9",null,{}]}]]}],"p":"$@a","v":"$b","s":"$c"},"c":"$Qd"}]]
-0:{"t":{"t":{"s":"","h":16,"c":"$Q1"},"h":{"r":["$","$2","h",{"children":[null,["$","$L1b",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","$L1d",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$17",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Stock Market Simulator"}]]}]}],null]}],null]}],"p":"$@1e","v":null,"s":"$c"}},"a":"$@1f","u":"$@20","b":"CCLbXtwxO7YI4ycdbwjis"}
-18:null
-20:true
+0:{"t":{"t":{"s":"","h":16,"c":"$Q1"},"h":{"r":["$","$2","h",{"children":[null,["$","$L19",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","$L1b",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$15",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Stock Market Simulator"}]]}]}],null]}],null]}],"p":"$@1c","v":null,"s":"$c"}},"a":"$@1d","u":"$@1e","b":"mFxf73ayJVXMhzWiumVIw"}
+16:null
+1e:true
 c:300
 c:C
-1f:0
+1d:0
 a:"$undefined"
-1e:"$undefined"
-19:"$undefined"
+1c:"$undefined"
+17:"$undefined"
