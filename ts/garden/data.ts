@@ -28,6 +28,9 @@ export const PLANTS: Plant[] = [
     { name: 'Welsh onion',       cl1: 'Angiosperms', cl2: 'Monocots',                                      ord: 'Asparagales', fam: 'Amaryllidaceae', gen: 'Allium',      sp: 'Allium fistulosum',    full: 'Allium fistulosum'                                  },
 ];
 
+// Names with a section on the families page, which their boxes link to.
+export const NOTES = new Set(['Rosaceae', 'Brassicaceae']);
+
 // Clade/order translations checked against the Japanese and Chinese APG V pages:
 // https://ja.wikipedia.org/wiki/APG_V
 // https://zh.wikipedia.org/zh-cn/被子植物APG_V分类法
@@ -71,6 +74,20 @@ export const NAMES: Record<string, Name | undefined> = {
     'Brassica':             { ja: 'アブラナ属',                 kanji: '油菜属',         page: 'アブラナ属',           zh: '芸薹属'            },
     'Fragaria':             { ja: 'オランダイチゴ属',           kanji: '和蘭苺属',       page: 'オランダイチゴ属',     zh: '草莓属'            },
     'Allium':               { ja: 'ネギ属',                     kanji: '葱属',           page: 'ネギ属',               zh: '葱属'              },
+    // Rosaceae genera from the families page, checked against their Japanese and
+    // Chinese Wikipedia pages (10 November 2026). Japanese also calls Prunus スモモ属.
+    'Rosa':                 { ja: 'バラ属',                     kanji: '薔薇属',         page: 'バラ属',               zh: '蔷薇属'            },
+    'Malus':                { ja: 'リンゴ属',                   kanji: '林檎属',         page: 'リンゴ属',             zh: '苹果属'            },
+    'Prunus':               { ja: 'サクラ属',                   kanji: '桜属',           page: 'サクラ属',             zh: '李属'              },
+    'Pyrus':                { ja: 'ナシ属',                     kanji: '梨属',           page: 'ナシ属',               zh: '梨属',             zhPage: '梨' },
+    'Rubus':                { ja: 'キイチゴ属',                 kanji: '木苺属',         page: 'キイチゴ属',           zh: '悬钩子属'          },
+    // Brassicaceae genera, checked the same way. Armoracia, Eruca and Nasturtium
+    // have no Japanese genus page, so their names come from the species pages.
+    'Armoracia':            { ja: 'セイヨウワサビ属',           kanji: '西洋山葵属',                                   zh: '辣根属'            },
+    'Eruca':                { ja: 'キバナスズシロ属',           kanji: '黄花蘿蔔属',                                   zh: '芝麻菜属'          },
+    'Eutrema':              { ja: 'ワサビ属',                   kanji: '山葵属',         page: 'ワサビ属',             zh: '山萮菜属'          },
+    'Nasturtium':           { ja: 'オランダガラシ属',           kanji: '和蘭芥子属',                                   zh: '豆瓣菜属'          },
+    'Raphanus':             { ja: 'ダイコン属',                 kanji: '大根属',         page: 'ダイコン属',           zh: '萝卜属'            },
     'Achillea ptarmica':    {                                                                                     zh: '珠蓍',             zhPage: null },
     'Helichrysum italicum': { ja: 'カレープラント',                                      page: 'カレープラント',       zh: '意大利永久花',     zhPage: null },
     'Viburnum tinus':       {                                                                                     zh: '地中海荚蒾',       zhPage: null },

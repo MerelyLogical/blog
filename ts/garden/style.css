@@ -46,7 +46,7 @@ html[data-theme='dark'] .garden {
   overflow-x: auto;
 }
 
-.garden svg {
+.garden-scroll svg {
   display: block;
   width: 100%;
   min-width: 680px;
@@ -98,6 +98,33 @@ html[data-theme='dark'] .garden {
   text-decoration: underline;
 }
 
+.garden-sheet rect {
+  fill: var(--app-card-bg);
+  stroke: var(--app-text-muted);
+  stroke-width: 1;
+}
+
+.garden-sheet line {
+  stroke: var(--app-text-muted);
+  stroke-width: 1;
+}
+
+.garden-notes:hover rect,
+.garden-notes:focus-visible rect {
+  stroke: var(--app-text-color);
+  stroke-width: 2;
+}
+
+.garden-notes:hover line,
+.garden-notes:focus-visible line {
+  stroke: var(--app-text-color);
+}
+
+.garden-key-sheet {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
 .garden-kana {
   pointer-events: none;
 }
@@ -105,4 +132,18 @@ html[data-theme='dark'] .garden {
 .garden-kana rect {
   fill: var(--garden-root);
   stroke: var(--app-text-muted);
+}
+
+.garden-gen a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.garden-gen a:hover,
+.garden-gen a:focus-visible {
+  text-decoration: underline;
+}
+
+.garden-gen-cjk {
+  font-weight: 400;
 }
